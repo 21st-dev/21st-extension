@@ -53,7 +53,7 @@ export function ComponentResultButton({
     if (previewUrl && !hasImageError) {
       const timeout = setTimeout(() => {
         setShowPreview(true);
-      }, 1000); // 1 second delay
+      }, 300);
       setHoverTimeout(timeout);
     }
   }, [previewUrl, hasImageError]);

@@ -1,5 +1,5 @@
 import { TWENTY_FIRST_URL } from '@/constants';
-import type { SelectedComponentWithCode } from './hooks/use-selected-components';
+import type { SelectedComponentWithCode } from './hooks/use-chat-state';
 import type { ContextSnippet } from './plugin';
 
 /**

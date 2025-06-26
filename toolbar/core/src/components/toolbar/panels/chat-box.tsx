@@ -1,11 +1,15 @@
+import { TWENTY_FIRST_URL } from '@/constants';
+import type { SelectedComponentWithCode } from '@/hooks/use-chat-state';
 import { useChatState } from '@/hooks/use-chat-state';
 import { useComponentSearch } from '@/hooks/use-component-search';
 import { useHotkeyListenerComboText } from '@/hooks/use-hotkey-listener-combo-text';
 import { usePlugins } from '@/hooks/use-plugins';
-import type { SelectedComponentWithCode } from '@/hooks/use-selected-components';
+import { useSRPCBridge } from '@/hooks/use-srpc-bridge';
+import { useVSCode } from '@/hooks/use-vscode';
+import { createPrompt } from '@/prompts';
 import { cn, HotkeyActions } from '@/utils';
-import { Button, Textarea } from '@headlessui/react';
-import { SendIcon } from 'lucide-react';
+import { Button as HeadlessButton, Textarea } from '@headlessui/react';
+import { CodeXml } from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -13,12 +17,15 @@ import {
   useRef,
   useState,
 } from 'preact/hooks';
+import { Badge } from '../badge';
 import { SearchResults } from './search-results';
 
 export function ToolbarChatArea() {
   const chatState = useChatState();
   const [isComposing, setIsComposing] = useState(false);
   const { plugins } = usePlugins();
+  const { bridge } = useSRPCBridge();
+  const { selectedSession } = useVSCode();
 
   const currentChat = useMemo(
     () => chatState.chats.find((c) => c.id === chatState.currentChatId),
@@ -72,18 +79,115 @@ export function ToolbarChatArea() {
   );
 
   const handleSubmit = useCallback(() => {
-    if (!currentChat || !currentInput.trim()) return;
+    if (!currentChat) return;
     chatState.addMessage(currentChat.id, currentInput);
   }, [currentChat, currentInput, chatState.addMessage]);
+
+  const handleOpenMagicChat = async () => {
+    if (!currentChat || chatState.promptState === 'loading') return;
+
+    // Set loading state at the start
+    chatState.setPromptStateLoading();
+
+    try {
+      const finalPrompt = await createPrompt(
+        domContextElements,
+        currentInput,
+        window.location.href,
+        pluginContextSnippets,
+        currentChat?.selectedComponents || [],
+      );
+
+      const response = await fetch(
+        TWENTY_FIRST_URL + '/api/magic-chat/prefill-text',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: finalPrompt }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.id) {
+        throw new Error('No ID returned from API');
+      }
+
+      const url = TWENTY_FIRST_URL + `/magic-chat?q_key=${data.id}`;
+
+      // Use SRPC openExternal instead of window.open
+      if (bridge && selectedSession) {
+        const openResult = await bridge.call.openExternal(
+          {
+            url,
+            sessionId: selectedSession.sessionId,
+          },
+          { onUpdate: () => {} },
+        );
+
+        if (!openResult.result.success) {
+          throw new Error(openResult.result.error || 'Failed to open URL');
+        }
+      }
+
+      // On success, show success state briefly then reset - mimic IDE submit behavior
+      setTimeout(() => {
+        chatState.setPromptStateSuccess();
+      }, 1000);
+
+      // Clear selection and input like addMessage does
+      if (chatState.currentChatId) {
+        // Clear selected components from chat state
+        chatState.clearSelectedComponents(chatState.currentChatId);
+
+        // Clear DOM context elements by removing each one
+        domContextElements.forEach((element) => {
+          chatState.removeChatDomContext(chatState.currentChatId!, element);
+        });
+
+        // Clear chat input
+        chatState.setChatInput(chatState.currentChatId, '');
+      }
+
+      // Clear local selected components state
+      chatState.clearSelection();
+    } catch (err) {
+      console.error('Error creating query:', err);
+      // On error, go to error state - mimic IDE submit behavior
+      chatState.setPromptStateError();
+
+      // Auto-reset to idle after error animation
+      setTimeout(() => {
+        chatState.resetPromptState();
+      }, 300);
+    }
+  };
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
         e.preventDefault();
-        handleSubmit();
+        // Ensure prompt creation is active for loading animation to show
+        if (!chatState.isPromptCreationActive) {
+          chatState.startPromptCreation();
+        }
+
+        if (e.metaKey) {
+          // ⌘ + Enter: Open in Magic Chat
+          handleOpenMagicChat();
+        } else {
+          // Enter: Submit to IDE
+          handleSubmit();
+        }
       }
     },
-    [handleSubmit, isComposing],
+    [handleSubmit, handleOpenMagicChat, isComposing, chatState],
   );
 
   const handleCompositionStart = useCallback(() => {
@@ -135,7 +239,7 @@ export function ToolbarChatArea() {
   // Container styles based on prompt state
   const containerClassName = useMemo(() => {
     const baseClasses =
-      'flex h-24 w-full flex-1 flex-row items-end gap-1 rounded-2xl p-4 text-sm text-zinc-950 shadow-md backdrop-blur transition-all duration-150 placeholder:text-zinc-950/70';
+      'flex h-24 w-full flex-1 flex-col gap-2 rounded-2xl p-4 text-sm text-zinc-950 shadow-md backdrop-blur transition-all duration-150 placeholder:text-zinc-950/70';
 
     switch (chatState.promptState) {
       case 'loading':
@@ -175,6 +279,48 @@ export function ToolbarChatArea() {
     [chatState],
   );
 
+  // Handle badge deletions
+  const handleSelectedComponentDelete = useCallback(
+    (componentId: number) => {
+      chatState.removeComponent(componentId);
+    },
+    [chatState],
+  );
+
+  const handleDomElementDelete = useCallback(
+    (element: HTMLElement) => {
+      if (chatState.currentChatId) {
+        chatState.removeChatDomContext(chatState.currentChatId, element);
+      }
+    },
+    [chatState],
+  );
+
+  // Get selected components and DOM elements for badges
+  const selectedComponentBadges = useMemo(() => {
+    return (currentChat?.selectedComponents || []).map((component) => ({
+      type: 'component' as const,
+      id: component.id,
+      title: component.name || 'Unknown',
+      imgSrc: component.preview_url,
+      component,
+    }));
+  }, [currentChat?.selectedComponents]);
+
+  const domElementBadges = useMemo(() => {
+    return (currentChat?.domContextElements || []).map((domEl, index) => ({
+      type: 'dom' as const,
+      id: `dom-${index}`,
+      title: domEl.element.tagName.toLowerCase() || 'element',
+      icon: <CodeXml />,
+      element: domEl.element,
+    }));
+  }, [currentChat?.domContextElements]);
+
+  const allBadges = useMemo(() => {
+    return [...selectedComponentBadges, ...domElementBadges];
+  }, [selectedComponentBadges, domElementBadges]);
+
   // Show search results when prompt creation is active and there are results/loading/error OR context elements
   const shouldShowSearchResults =
     chatState.isPromptCreationActive &&
@@ -206,6 +352,28 @@ export function ToolbarChatArea() {
         role="button"
         tabIndex={0}
       >
+        {/* Selected Components and DOM Elements Badges */}
+        {allBadges.length > 0 && (
+          <div className="flex flex-wrap gap-1 w-full">
+            {allBadges.map((badge) => (
+              <Badge
+                key={badge.id}
+                title={badge.title}
+                className="shadow-sm"
+                imgSrc={badge.type === 'component' ? badge.imgSrc : undefined}
+                icon={badge.type === 'dom' ? badge.icon : undefined}
+                onDelete={() => {
+                  if (badge.type === 'component') {
+                    handleSelectedComponentDelete(badge.component.id);
+                  } else {
+                    handleDomElementDelete(badge.element);
+                  }
+                }}
+              />
+            ))}
+          </div>
+        )}
+
         <Textarea
           ref={inputRef}
           className={textareaClassName}
@@ -223,15 +391,44 @@ export function ToolbarChatArea() {
           }
           disabled={chatState.promptState === 'loading'}
         />
-        <Button
-          className={buttonClassName}
-          disabled={
-            currentInput.length === 0 || chatState.promptState === 'loading'
-          }
-          onClick={handleSubmit}
-        >
-          <SendIcon className="size-4" />
-        </Button>
+
+        <div className="flex justify-end gap-2">
+          <HeadlessButton
+            type="button"
+            className={cn(
+              '!py-0 gap-0.5 bg-transparent text-[10px] hover:bg-transparent',
+              chatState.promptState === 'loading'
+                ? 'opacity-50 cursor-not-allowed'
+                : '',
+            )}
+            disabled={chatState.promptState === 'loading'}
+            onClick={handleOpenMagicChat}
+          >
+            <span className="mr-1 font-semibold text-foreground">
+              {chatState.promptState === 'loading'
+                ? 'Opening...'
+                : 'Open in Magic'}
+            </span>
+            <span className="text-muted-foreground">⌘</span>
+            <span className="text-muted-foreground">⏎</span>
+          </HeadlessButton>
+          <HeadlessButton
+            type="button"
+            className={cn(
+              'gap-0.5 border py-0.5 text-[10px] transition-all duration-200 bg-muted',
+              chatState.promptState === 'loading'
+                ? 'opacity-50 cursor-not-allowed'
+                : '',
+            )}
+            disabled={chatState.promptState === 'loading'}
+            onClick={handleSubmit}
+          >
+            <span className="mr-1 font-semibold text-foreground">
+              Send to IDE
+            </span>
+            <span className="text-muted-foreground">⏎</span>
+          </HeadlessButton>
+        </div>
       </div>
     </div>
   );

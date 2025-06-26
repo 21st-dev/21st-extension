@@ -1,13 +1,17 @@
 import type { ContextElementContext } from '@/plugin';
 import { createPrompt, type PluginContextSnippets } from '@/prompts';
+import type { ComponentSearchResult } from '@/types/supabase';
 import { generateId } from '@/utils';
 import { type ComponentChildren, createContext } from 'preact';
 import { useCallback, useContext, useEffect, useState } from 'preact/hooks';
 import { useAppState } from './use-app-state';
 import { usePlugins } from './use-plugins';
-import type { SelectedComponentWithCode } from './use-selected-components';
 import { useSRPCBridge } from './use-srpc-bridge';
 import { useVSCode } from './use-vscode';
+
+export interface SelectedComponentWithCode extends ComponentSearchResult {
+  // Removed codeContent, codeLoading, codeError since we no longer fetch code upfront
+}
 
 interface Message {
   id: string;
@@ -62,6 +66,12 @@ interface ChatContext {
   ) => void;
   clearSelectedComponents: (chatId: ChatId) => void;
 
+  // Selected components operations (for current chat)
+  selectedComponents: SelectedComponentWithCode[];
+  addComponent: (component: ComponentSearchResult) => void;
+  removeComponent: (componentId: number) => void;
+  clearSelection: () => void;
+
   // UI state
   chatAreaState: ChatAreaState;
   setChatAreaState: (state: ChatAreaState) => void;
@@ -72,6 +82,9 @@ interface ChatContext {
   // Prompt state
   promptState: PromptState;
   resetPromptState: () => void;
+  setPromptStateLoading: () => void;
+  setPromptStateSuccess: () => void;
+  setPromptStateError: () => void;
 }
 
 const ChatContext = createContext<ChatContext>({
@@ -86,6 +99,10 @@ const ChatContext = createContext<ChatContext>({
   addMessage: () => {},
   addSelectedComponents: () => {},
   clearSelectedComponents: () => {},
+  selectedComponents: [],
+  addComponent: () => {},
+  removeComponent: () => {},
+  clearSelection: () => {},
   chatAreaState: 'hidden',
   setChatAreaState: () => {},
   isPromptCreationActive: false,
@@ -93,6 +110,9 @@ const ChatContext = createContext<ChatContext>({
   stopPromptCreation: () => {},
   promptState: 'idle',
   resetPromptState: () => {},
+  setPromptStateLoading: () => {},
+  setPromptStateSuccess: () => {},
+  setPromptStateError: () => {},
 });
 
 interface ChatStateProviderProps {
@@ -122,6 +142,19 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
   // Reset prompt state function
   const resetPromptState = useCallback(() => {
     setPromptState('idle');
+  }, []);
+
+  // Prompt state setters
+  const setPromptStateLoading = useCallback(() => {
+    setPromptState('loading');
+  }, []);
+
+  const setPromptStateSuccess = useCallback(() => {
+    setPromptState('success');
+  }, []);
+
+  const setPromptStateError = useCallback(() => {
+    setPromptState('error');
   }, []);
 
   const { minimized } = useAppState();
@@ -303,6 +336,59 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     );
   }, []);
 
+  // Get current chat's selected components
+  const currentChat = chats.find((chat) => chat.id === currentChatId);
+  const selectedComponents = currentChat?.selectedComponents || [];
+
+  // Selected components operations for current chat
+  const addComponent = useCallback(
+    (component: ComponentSearchResult) => {
+      if (!currentChatId) return;
+
+      setChats((prev) =>
+        prev.map((chat) => {
+          if (chat.id !== currentChatId) return chat;
+
+          const exists = chat.selectedComponents.some(
+            (c) => c.id === component.id,
+          );
+          if (exists) return chat;
+
+          return {
+            ...chat,
+            selectedComponents: [...chat.selectedComponents, { ...component }],
+          };
+        }),
+      );
+    },
+    [currentChatId],
+  );
+
+  const removeComponent = useCallback(
+    (componentId: number) => {
+      if (!currentChatId) return;
+
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.id === currentChatId
+            ? {
+                ...chat,
+                selectedComponents: chat.selectedComponents.filter(
+                  (c) => c.id !== componentId,
+                ),
+              }
+            : chat,
+        ),
+      );
+    },
+    [currentChatId],
+  );
+
+  const clearSelection = useCallback(() => {
+    if (!currentChatId) return;
+    clearSelectedComponents(currentChatId);
+  }, [currentChatId, clearSelectedComponents]);
+
   const addMessage = useCallback(
     async (chatId: ChatId, content: string, pluginTriggered = false) => {
       if (!content.trim()) return;
@@ -478,6 +564,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
                 messages: [...chat.messages, newMessage],
                 inputValue: content.trim(), // Keep the original prompt instead of clearing
                 domContextElements: [],
+                selectedComponents: [],
               }
             : chat,
         ),
@@ -513,8 +600,15 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     removeChatDomContext,
     addSelectedComponents,
     clearSelectedComponents,
+    selectedComponents,
+    addComponent,
+    removeComponent,
+    clearSelection,
     promptState,
     resetPromptState,
+    setPromptStateLoading,
+    setPromptStateSuccess,
+    setPromptStateError,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
