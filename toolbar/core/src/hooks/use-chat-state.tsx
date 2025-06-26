@@ -56,7 +56,10 @@ interface ChatContext {
   addMessage: (chatId: ChatId, content: string) => void;
   addChatDomContext: (chatId: ChatId, element: HTMLElement) => void;
   removeChatDomContext: (chatId: ChatId, element: HTMLElement) => void;
-  addSelectedComponents: (chatId: ChatId, components: SelectedComponentWithCode[]) => void;
+  addSelectedComponents: (
+    chatId: ChatId,
+    components: SelectedComponentWithCode[],
+  ) => void;
   clearSelectedComponents: (chatId: ChatId) => void;
 
   // UI state
@@ -65,6 +68,10 @@ interface ChatContext {
   isPromptCreationActive: boolean;
   startPromptCreation: () => void;
   stopPromptCreation: () => void;
+
+  // Search results focus state
+  isSearchResultsFocused: boolean;
+  setSearchResultsFocused: (focused: boolean) => void;
 
   // Prompt state
   promptState: PromptState;
@@ -88,6 +95,8 @@ const ChatContext = createContext<ChatContext>({
   isPromptCreationActive: false,
   startPromptCreation: () => {},
   stopPromptCreation: () => {},
+  isSearchResultsFocused: false,
+  setSearchResultsFocused: () => {},
   promptState: 'idle',
   resetPromptState: () => {},
 });
@@ -111,6 +120,10 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
   const [chatAreaState, internalSetChatAreaState] =
     useState<ChatAreaState>('hidden');
   const [isPromptCreationMode, setIsPromptCreationMode] =
+    useState<boolean>(false);
+
+  // Add search results focus state
+  const [isSearchResultsFocused, setIsSearchResultsFocused] =
     useState<boolean>(false);
 
   // Add prompt state management
@@ -279,27 +292,28 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     [],
   );
 
-  const addSelectedComponents = useCallback((chatId: ChatId, components: SelectedComponentWithCode[]) => {
-    setChats((prev) =>
-      prev.map((chat) =>
-        chat.id === chatId
-          ? { ...chat, selectedComponents: components }
-          : chat,
-      ),
-    );
-  }, []);
+  const addSelectedComponents = useCallback(
+    (chatId: ChatId, components: SelectedComponentWithCode[]) => {
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.id === chatId
+            ? { ...chat, selectedComponents: components }
+            : chat,
+        ),
+      );
+    },
+    [],
+  );
 
   const clearSelectedComponents = useCallback((chatId: ChatId) => {
     setChats((prev) =>
       prev.map((chat) =>
-        chat.id === chatId
-          ? { ...chat, selectedComponents: [] }
-          : chat,
+        chat.id === chatId ? { ...chat, selectedComponents: [] } : chat,
       ),
     );
   }, []);
 
-  const addMessage = useCallback( 
+  const addMessage = useCallback(
     async (chatId: ChatId, content: string, pluginTriggered = false) => {
       if (!content.trim()) return;
 
@@ -509,6 +523,8 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     removeChatDomContext,
     addSelectedComponents,
     clearSelectedComponents,
+    isSearchResultsFocused,
+    setSearchResultsFocused: setIsSearchResultsFocused,
     promptState,
     resetPromptState,
   };

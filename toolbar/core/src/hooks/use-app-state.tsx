@@ -21,6 +21,11 @@ export interface AppState {
   minimized: boolean;
   minimize: () => void;
   expand: () => void;
+
+  position: 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight';
+  setPosition: (
+    position: 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight',
+  ) => void;
 }
 
 interface InternalAppState extends AppState {
@@ -67,8 +72,9 @@ export function AppStateProvider({
       lastUnblockRequestNumber: 0,
       isMainAppBlocked: false,
       toolbarBoxRef: createRef(),
-      minimized: storedState.minimized ?? false,
-      requestMainAppBlock: () => 0, // These will be replaced by the actual implementations
+      minimized: storedState.minimized ?? true,
+      position: storedState.position ?? 'bottomLeft',
+      requestMainAppBlock: () => 0,
       requestMainAppUnblock: () => 0,
       discardMainAppBlock: () => {},
       discardMainAppUnblock: () => {},
@@ -76,6 +82,7 @@ export function AppStateProvider({
       unsetToolbarBoxRef: () => {},
       minimize: () => {},
       expand: () => {},
+      setPosition: () => {},
     };
   });
 
@@ -83,8 +90,9 @@ export function AppStateProvider({
   useEffect(() => {
     saveStateToStorage({
       minimized: state.minimized,
+      position: state.position,
     });
-  }, [state.minimized]);
+  }, [state.minimized, state.position]);
 
   const requestMainAppBlock = useCallback(() => {
     let newHandleValue = 0;
@@ -160,6 +168,13 @@ export function AppStateProvider({
     setState((prev) => ({ ...prev, minimized: false }));
   }, []);
 
+  const setPosition = useCallback(
+    (position: 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight') => {
+      setState((prev) => ({ ...prev, position }));
+    },
+    [],
+  );
+
   const value: AppState = {
     requestMainAppBlock,
     requestMainAppUnblock,
@@ -172,6 +187,8 @@ export function AppStateProvider({
     minimized: state.minimized,
     minimize,
     expand,
+    position: state.position,
+    setPosition,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

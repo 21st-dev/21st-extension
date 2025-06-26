@@ -11,7 +11,7 @@ function Panel({
   return (
     <section
       className={cn(
-        'flex max-h-full min-h-48 flex-col items-stretch justify-start rounded-2xl border border-border/30 bg-zinc-50/80 p-4 shadow-md backdrop-blur-md',
+        'pointer-events-auto flex max-h-full min-h-48 flex-col items-stretch justify-start rounded-2xl border border-border/30 bg-zinc-50/80 p-4 shadow-md backdrop-blur-md',
         alwaysFullHeight && 'h-full',
       )}
     >
@@ -23,13 +23,19 @@ function Panel({
 Panel.Header = function PanelHeader({
   title,
   description,
+  small = false,
 }: {
   title?: string;
   description?: string;
+  small?: boolean;
 }) {
   return (
     <header className="mb-3 flex flex-col gap-1 text-zinc-950">
-      {title && <h3 className="font-semibold text-lg ">{title}</h3>}
+      {title && (
+        <h3 className={`font-semibold ${small ? 'text-base' : 'text-lg'}`}>
+          {title}
+        </h3>
+      )}
       {description && (
         <p className="font-medium text-zinc-600">{description}</p>
       )}

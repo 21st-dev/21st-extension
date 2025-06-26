@@ -1,7 +1,7 @@
 import './app.css';
 
 import { ContextProviders } from './components/context-providers';
-import { HotkeyListener } from './components/hotkey-listener';
+import HotkeyListener from './components/hotkey-listener';
 import { DesktopLayout } from './components/layouts/desktop';
 import { FocusLock } from './components/focus-lock';
 import { VisibilityManager } from './components/visibility-manager';

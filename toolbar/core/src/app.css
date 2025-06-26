@@ -2,20 +2,50 @@
 
 /* Custom animations for chat box states */
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-  20%, 40%, 60%, 80% { transform: translateX(2px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
 }
 
 @keyframes gradient-animation {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 stagewise-companion-anchor {
@@ -38,6 +68,30 @@ stagewise-companion-anchor {
     min-width: 0;
     position: relative;
   }
+
+  /* Remove default browser outline and borders from all focusable elements */
+  stagewise-companion-anchor button,
+  stagewise-companion-anchor button:focus,
+  stagewise-companion-anchor button:active,
+  stagewise-companion-anchor button:hover,
+  stagewise-companion-anchor input:focus,
+  stagewise-companion-anchor textarea:focus,
+  stagewise-companion-anchor select:focus,
+  stagewise-companion-anchor [tabindex]:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Remove webkit specific button outline and borders */
+  stagewise-companion-anchor button {
+    border: none !important;
+    outline: none !important;
+    -webkit-focus-ring-color: transparent !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+  }
 }
 
 @layer utilities {
@@ -47,10 +101,11 @@ stagewise-companion-anchor {
 }
 
 @layer components {
+
   /* Chat box loading gradient border */
   .chat-loading-gradient {
     background: linear-gradient(rgb(248 250 252 / 0.8), rgb(248 250 252 / 0.8)) padding-box,
-                linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6) border-box;
+      linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6) border-box;
     background-size: auto, 400% 400%;
     animation: gradient-animation 2s ease infinite;
     border: 2px solid transparent;
@@ -66,18 +121,24 @@ stagewise-companion-anchor {
   }
 
   @keyframes blink-green-fade {
-    0%, 50% {
+
+    0%,
+    50% {
       box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.7);
     }
+
     100% {
       box-shadow: 0 0 0 2px rgba(34, 197, 94, 0);
     }
   }
 
   @keyframes blink-red-fade {
-    0%, 50% {
+
+    0%,
+    50% {
       box-shadow: 0 0 0 2px rgba(239, 68, 68, 1);
     }
+
     100% {
       box-shadow: 0 0 0 2px rgba(239, 68, 68, 0);
     }
@@ -105,6 +166,6 @@ stagewise-companion-anchor {
   @apply fixed h-screen w-screen z-50;
 }
 
-#headlessui-portal-root > * {
+#headlessui-portal-root>* {
   @apply pointer-events-auto;
 }

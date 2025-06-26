@@ -54,7 +54,7 @@ export function ContextItem({ refElement, ...props }: ContextItemProps) {
     <div
       {...props}
       className={
-        'pointer-events-auto fixed flex cursor-pointer items-center justify-center rounded-lg border-2 border-green-600/80 bg-green-600/5 text-transparent transition-all duration-0 hover:border-red-600/80 hover:bg-red-600/20 hover:text-white'
+        'pointer-events-auto fixed flex cursor-pointer items-center justify-center rounded border border-green-600/80 bg-green-600/5 text-transparent transition-all duration-0 hover:border-red-600/80 hover:bg-red-600/20 hover:text-white'
       }
       ref={boxRef}
       onClick={handleDeleteClick}
@@ -62,13 +62,13 @@ export function ContextItem({ refElement, ...props }: ContextItemProps) {
       tabIndex={0}
     >
       <div className="absolute top-0.5 left-0.5 flex w-full flex-row items-start justify-start gap-1">
-        <div className="flex flex-row items-center justify-center gap-0.5 overflow-hidden rounded-md bg-zinc-700/80 px-1 py-0 font-medium text-white text-xs">
+        <div className="flex flex-row items-center justify-center gap-0.5 overflow-hidden rounded-sm bg-zinc-700/80 px-1 py-0 font-medium text-white text-xs">
           <span className="truncate">{refElement.tagName.toLowerCase()}</span>
         </div>
         {props.pluginContext
           .filter((plugin) => plugin.context.annotation)
           .map((plugin) => (
-            <div className="flex flex-row items-center justify-center gap-0.5 overflow-hidden rounded-md bg-zinc-700/80 px-1 py-0 font-medium text-white text-xs">
+            <div className="flex flex-row items-center justify-center gap-0.5 overflow-hidden rounded-sm bg-zinc-700/80 px-1 py-0 font-medium text-white text-xs">
               <span className="size-3 shrink-0 stroke-white text-white *:size-full">
                 {
                   plugins.find((p) => p.pluginName === plugin.pluginName)
@@ -79,7 +79,9 @@ export function ContextItem({ refElement, ...props }: ContextItemProps) {
             </div>
           ))}
       </div>
-      <Trash2 className="size-6 drop-shadow-black drop-shadow-md" />
+      <div className="absolute top-0.5 right-0.5 flex items-center justify-center rounded-sm bg-zinc-700/80 p-0.5">
+        <Trash2 className="size-3 text-white" />
+      </div>
     </div>
   );
 }

@@ -1,270 +1,511 @@
-import { TWENTY_FIRST_URL } from '@/constants'
-import { useChatState } from '@/hooks/use-chat-state'
-import { useSelectedComponents, type SelectedComponentWithCode } from '@/hooks/use-selected-components'
-import { createPrompt, type PluginContextSnippets } from '@/prompts'
-import type { ComponentSearchResult } from '@/types/supabase'
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
-import LogoIcon from '../../../../assets/21st-logo-dark.svg'
-import { TextShimmer } from '../../ui/text-shimmer'
-import { ComponentResultButton } from './component-result-button'
+import type { SelectedComponentWithCode } from '@/hooks/use-selected-components';
+import type { PluginContextSnippets } from '@/prompts';
+import type { ComponentSearchResult } from '@/types/supabase';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useImperativeHandle,
+  useMemo,
+} from 'preact/hooks';
+import { forwardRef } from 'preact/compat';
+import { TextShimmer } from '../../ui/text-shimmer';
 
 interface SearchResultsProps {
-  results: ComponentSearchResult[]
-  isLoading: boolean
-  error: string | null
-  searchQuery?: string
-  domContextElements?: HTMLElement[]
-  pluginContextSnippets?: PluginContextSnippets[]
-  onSelectionChange?: (selectedResults: SelectedComponentWithCode[]) => void
+  results: ComponentSearchResult[];
+  isLoading: boolean;
+  error: string | null;
+  searchQuery?: string;
+  domContextElements?: HTMLElement[];
+  pluginContextSnippets?: PluginContextSnippets[];
+  selectedComponents?: SelectedComponentWithCode[];
+  onComponentSelection?: (
+    result: ComponentSearchResult,
+    selected: boolean,
+  ) => void;
+  onFocusReturn?: () => void;
+  onFocusChange?: (
+    isFocused: boolean,
+    activeResult?: ComponentSearchResult,
+  ) => void;
 }
 
-function CreateCustomComponentCard({ 
-  searchQuery, 
-  results,
-  domContextElements = [],
-  pluginContextSnippets = [],
-  selectedComponents = []
-}: { 
-  searchQuery?: string
-  results: ComponentSearchResult[]
-  domContextElements?: HTMLElement[]
-  pluginContextSnippets?: PluginContextSnippets[]
-  selectedComponents?: any[]
+export interface SearchResultsRef {
+  focusOnResults: () => void;
+  selectActiveComponent: () => boolean;
+}
+
+// Mini component for small result cards
+function MiniComponentCard({
+  result,
+  isSelected,
+  isFocused,
+  onSelectionChange,
+}: {
+  result: ComponentSearchResult;
+  isSelected?: boolean;
+  isFocused?: boolean;
+  onSelectionChange?: (
+    result: ComponentSearchResult,
+    selected: boolean,
+  ) => void;
 }) {
-  const [isCreatingQuery, setIsCreatingQuery] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const { currentChatId, clearSelectedComponents, removeChatDomContext, setChatInput } = useChatState()
-  const { clearSelection } = useSelectedComponents()
+  const componentName = result.component_data.name || result.name;
 
-  const handleOpenMagicChat = async () => {
-    if (isCreatingQuery) return
-    
-    setIsCreatingQuery(true)
-    setError(null)
-    
-    try {
-      const finalPrompt = await createPrompt(
-        domContextElements,
-        searchQuery || 'Create a custom component based on the following context',
-        window.location.href,
-        pluginContextSnippets,
-        selectedComponents,
-      )
-
-      const response = await fetch(TWENTY_FIRST_URL + '/api/magic-chat/prefill-text', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: finalPrompt })
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const data = await response.json()
-      
-      if (!data.id) {
-        throw new Error('No ID returned from API')
-      }
-      
-      const url = TWENTY_FIRST_URL + `/magic-chat?q_key=${data.id}`
-      window.open(url, '_blank', 'noopener,noreferrer')
-      
-      // Clear everything after successful navigation - mimic message submission behavior
-      if (currentChatId) {
-        // Clear selected components from chat state
-        clearSelectedComponents(currentChatId)
-        
-        // Clear DOM context elements by removing each one
-        domContextElements.forEach(element => {
-          removeChatDomContext(currentChatId, element)
-        })
-        
-        // Clear chat input - mimic successful message submission
-        setChatInput(currentChatId, '')
-      }
-      
-      // Clear local selected components state
-      clearSelection()
-      
-    } catch (err) {
-      console.error('Error creating query:', err)
-      setError(err instanceof Error ? err.message : 'Failed to create query')
-    } finally {
-      setIsCreatingQuery(false)
+  const handleClick = useCallback(() => {
+    if (onSelectionChange) {
+      onSelectionChange(result, !isSelected);
     }
-  }
-  
+  }, [result, isSelected, onSelectionChange]);
+
   return (
     <button
-      onClick={handleOpenMagicChat}
-      disabled={isCreatingQuery}
-      className="w-full flex items-center gap-3 p-2 bg-white hover:bg-blue-50 rounded-lg transition-all duration-200 group border border-gray-200 hover:border-blue-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      type="button"
+      className={`flex w-full items-center gap-2 rounded-md border p-2 text-left text-xs transition-all duration-200 ${
+        isSelected
+          ? 'border-blue-300 bg-blue-50 ring-1 ring-blue-200'
+          : isFocused
+            ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-400'
+            : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+      }`}
+      onClick={handleClick}
     >
-      <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
-        {isCreatingQuery ? (
-          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        ) : (
-          <img 
-            src={LogoIcon} 
-            alt="21st Logo" 
-            className="w-10 h-10"
+      {/* Mini preview image */}
+      <div className="relative flex h-6 w-6 flex-shrink-0 items-center justify-center">
+        {result.preview_url ? (
+          <img
+            src={result.preview_url}
+            alt={componentName}
+            className="h-full w-full rounded border border-gray-200 object-cover"
+            loading="eager"
           />
+        ) : (
+          <div className="h-full w-full rounded border border-gray-200 bg-gray-100" />
         )}
       </div>
-      <div className="flex-1 min-w-0 text-left">
-        <h3 className="font-medium text-sm text-gray-900 group-hover:text-blue-900 transition-colors">
-          {isCreatingQuery ? 'Creating Query...' : 'Open in Magic Chat'}
-        </h3>
-        <p className="text-xs text-gray-600 group-hover:text-blue-700 transition-colors">
-          {error ? (
-            <span className="text-red-600">{error}</span>
-          ) : (
-            'Create a custom component with AI'
-          )}
-        </p>
-      </div>
-      <div className="text-blue-500 group-hover:text-blue-600 transition-colors">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+
+      {/* Component name only */}
+      <span
+        className={`flex-1 truncate text-left font-medium ${
+          isSelected
+            ? 'text-blue-900'
+            : isFocused
+              ? 'text-blue-800'
+              : 'text-gray-900'
+        }`}
+      >
+        {componentName || 'Unknown'}
+      </span>
+
+      {/* Checkbox */}
+      <div className="flex h-3 w-3 flex-shrink-0 items-center justify-center">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          readOnly
+          className="h-3 w-3 cursor-pointer rounded border-gray-300 bg-gray-100 text-blue-600"
+          onClick={(e) => e.stopPropagation()}
+        />
       </div>
     </button>
-  )
+  );
 }
 
-export function SearchResults({ 
-  results, 
-  isLoading, 
-  error, 
-  searchQuery, 
-  domContextElements, 
-  pluginContextSnippets,
-  onSelectionChange 
-}: SearchResultsProps) {
-  const {
-    selectedComponents,
-    addComponent,
-    removeComponent,
-    clearSelection
-  } = useSelectedComponents()
+export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
+  (
+    {
+      results,
+      isLoading,
+      error,
+      searchQuery,
+      domContextElements,
+      pluginContextSnippets,
+      selectedComponents = [],
+      onComponentSelection,
+      onFocusReturn,
+      onFocusChange,
+    },
+    ref,
+  ) => {
+    // Keyboard navigation state
+    const [activeIndex, setActiveIndex] = useState(-1);
+    const [startIndex, setStartIndex] = useState(0); // Start of the visible window
+    const [isFocused, setIsFocused] = useState(false);
+    const [isFirstAppearance, setIsFirstAppearance] = useState(true);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const availableResultsRef = useRef<ComponentSearchResult[]>([]);
 
-  // Use ref to track if we need to notify parent
-  const prevSelectedRef = useRef<number>(0)
-  
-  // Notify parent only when selection count changes
-  useEffect(() => {
-    if (onSelectionChange && selectedComponents.length !== prevSelectedRef.current) {
-      prevSelectedRef.current = selectedComponents.length
-      onSelectionChange(selectedComponents)
+    // Get all available results (not selected)
+    const allAvailableResults = useMemo(() => {
+      return results.filter(
+        (result) => !selectedComponents.some((c) => c.id === result.id),
+      );
+    }, [results, selectedComponents]);
+
+    // Show 3 results starting from startIndex
+    const visibleResults = useMemo(() => {
+      return allAvailableResults.slice(startIndex, startIndex + 3);
+    }, [allAvailableResults, startIndex]);
+
+    // Get the currently active result for preview
+    const activeResult = useMemo(() => {
+      if (
+        isFocused &&
+        activeIndex >= 0 &&
+        activeIndex < allAvailableResults.length
+      ) {
+        return allAvailableResults[activeIndex];
+      }
+      return null;
+    }, [isFocused, activeIndex, allAvailableResults]);
+
+    // Update ref when allAvailableResults changes
+    useEffect(() => {
+      availableResultsRef.current = allAvailableResults;
+    }, [allAvailableResults]);
+
+    // Handle staggered animation on first appearance
+    useEffect(() => {
+      if (visibleResults.length > 0 && isFirstAppearance) {
+        // Calculate total animation time: last element delay + animation duration
+        const totalAnimationTime = (visibleResults.length - 1) * 50 + 200;
+        const timer = setTimeout(() => {
+          setIsFirstAppearance(false);
+        }, totalAnimationTime);
+
+        return () => clearTimeout(timer);
+      }
+    }, [visibleResults.length, isFirstAppearance]);
+
+    // Reset first appearance when search query changes or when results become empty
+    useEffect(() => {
+      if (allAvailableResults.length === 0) {
+        setIsFirstAppearance(true);
+      }
+    }, [allAvailableResults.length, searchQuery]);
+
+    // Handle component selection
+    const handleComponentSelection = useCallback(
+      (result: ComponentSearchResult, selected: boolean) => {
+        if (onComponentSelection) {
+          onComponentSelection(result, selected);
+        }
+      },
+      [onComponentSelection],
+    );
+
+    // Expose methods to parent
+    useImperativeHandle(
+      ref,
+      () => ({
+        focusOnResults: () => {
+          if (allAvailableResults.length > 0 && !isFocused) {
+            setIsFocused(true);
+            setActiveIndex(0);
+            setStartIndex(0); // Reset to beginning
+            containerRef.current?.focus();
+          }
+        },
+        selectActiveComponent: () => {
+          if (
+            isFocused &&
+            activeIndex >= 0 &&
+            activeIndex < allAvailableResults.length
+          ) {
+            const activeResult = allAvailableResults[activeIndex];
+            handleComponentSelection(activeResult, true);
+            return true;
+          }
+          return false;
+        },
+      }),
+      [allAvailableResults, isFocused, activeIndex, handleComponentSelection],
+    );
+
+    // Keyboard navigation
+    const handleKeyDown = useCallback(
+      (e: KeyboardEvent) => {
+        const currentResults = availableResultsRef.current;
+
+        if (!isFocused || currentResults.length === 0) {
+          return;
+        }
+
+        switch (e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            setActiveIndex((prev) => {
+              const nextIndex = prev + 1;
+              const newIndex =
+                nextIndex < currentResults.length ? nextIndex : 0;
+
+              // Update startIndex to keep the active item visible
+              setStartIndex((currentStart) => {
+                if (newIndex === 0) {
+                  // Wrapped to beginning
+                  return 0;
+                } else if (newIndex >= currentStart + 3) {
+                  // Need to scroll down
+                  return Math.min(newIndex - 2, currentResults.length - 3);
+                }
+                return currentStart;
+              });
+
+              return newIndex;
+            });
+            break;
+          case 'ArrowUp':
+            e.preventDefault();
+            setActiveIndex((prev) => {
+              const newIndex = prev > 0 ? prev - 1 : currentResults.length - 1;
+
+              // Update startIndex to keep the active item visible
+              setStartIndex((currentStart) => {
+                if (newIndex === currentResults.length - 1) {
+                  // Wrapped to end
+                  return Math.max(0, currentResults.length - 3);
+                } else if (newIndex < currentStart) {
+                  // Need to scroll up
+                  return Math.max(0, newIndex);
+                }
+                return currentStart;
+              });
+
+              return newIndex;
+            });
+            break;
+          case 'Enter':
+            e.preventDefault();
+            setActiveIndex((prev) => {
+              if (prev >= 0 && prev < currentResults.length) {
+                const activeResult = currentResults[prev];
+                handleComponentSelection(activeResult, true);
+                // Return focus to textarea after selection
+                setTimeout(() => {
+                  setIsFocused(false);
+                  setActiveIndex(-1);
+                  setStartIndex(0);
+                  if (onFocusReturn) {
+                    onFocusReturn();
+                  }
+                }, 100);
+              }
+              return prev;
+            });
+            break;
+          case 'Escape':
+            e.preventDefault();
+            e.stopPropagation(); // Prevent toolbar from closing
+            setIsFocused(false);
+            setActiveIndex(-1);
+            setStartIndex(0);
+            // Notify parent that focus should be completely cleared
+            if (onFocusChange) {
+              onFocusChange(false);
+            }
+            if (onFocusReturn) {
+              onFocusReturn();
+            }
+            break;
+          default:
+            // If user types any character, return focus to textarea
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+              setIsFocused(false);
+              setActiveIndex(-1);
+              setStartIndex(0);
+              if (onFocusReturn) {
+                onFocusReturn();
+              }
+            }
+            break;
+        }
+      },
+      [isFocused, handleComponentSelection, onFocusReturn],
+    );
+
+    // Reset active index when results change
+    useEffect(() => {
+      if (activeIndex >= allAvailableResults.length) {
+        setActiveIndex(allAvailableResults.length > 0 ? 0 : -1);
+        setStartIndex(0); // Reset window to beginning
+      }
+    }, [allAvailableResults.length, activeIndex]);
+
+    // Add keyboard listeners
+    useEffect(() => {
+      if (isFocused) {
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+      }
+    }, [isFocused, handleKeyDown]);
+
+    const handleContainerFocus = useCallback(() => {
+      setIsFocused(true);
+    }, []);
+
+    const handleContainerBlur = useCallback(() => {
+      setTimeout(() => {
+        if (!containerRef.current?.contains(document.activeElement)) {
+          setIsFocused(false);
+          setActiveIndex(-1);
+          setStartIndex(0);
+        }
+      }, 100);
+    }, []);
+
+    // Reset activeIndex and startIndex when focus is lost
+    useEffect(() => {
+      if (!isFocused) {
+        setActiveIndex(-1);
+        setStartIndex(0);
+        // Reset first appearance for next time results are shown
+        if (allAvailableResults.length === 0) {
+          setIsFirstAppearance(true);
+        }
+      }
+    }, [isFocused, allAvailableResults.length]);
+
+    // Notify parent about focus changes
+    useEffect(() => {
+      if (onFocusChange) {
+        onFocusChange(isFocused, activeResult);
+      }
+    }, [isFocused, activeResult, onFocusChange]);
+
+    if (error) {
+      return (
+        <div className="rounded border border-red-200/50 bg-red-50/50 p-2 text-red-500 text-xs">
+          Search error: {error}
+        </div>
+      );
     }
-  }, [selectedComponents, onSelectionChange])
 
-  // Handle component selection - simplified without code fetching
-  const handleComponentSelection = useCallback((result: ComponentSearchResult, selected: boolean) => {
-    if (selected) {
-      addComponent(result)
-    } else {
-      removeComponent(result.id)
+    // Only hide if we're not loading AND have no results AND no search query
+    if (!isLoading && results.length === 0 && !searchQuery?.trim()) {
+      return null;
     }
-  }, [addComponent, removeComponent])
 
-  if (error) {
     return (
-      <div className="p-2 text-xs text-red-500 bg-red-50/50 rounded border border-red-200/50">
-        Search error: {error}
-      </div>
-    )
-  }
-
-  // Show CreateCustomComponentCard if there's a prompt or meaningful context
-  const hasPromptOrContext = (searchQuery && searchQuery.trim().length > 0) || 
-                            (pluginContextSnippets && pluginContextSnippets.length > 0) ||
-                            (domContextElements && domContextElements.length > 0);
-
-  // Don't render anything if not loading, no results, and no prompt/context
-  if (!isLoading && results.length === 0 && !hasPromptOrContext) {
-    return null
-  }
-
-  return (
-    <div>
-      {isLoading ? (
-        <div className="space-y-1">
-          <div className="flex items-center gap-3 px-1 py-2">
-            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-            <TextShimmer 
-              duration={1.5}
-              className="text-sm font-medium [--base-color:theme(colors.gray.600)] [--base-gradient-color:theme(colors.blue.600)]"
+      <div
+        ref={containerRef}
+        tabIndex={-1}
+        onFocus={handleContainerFocus}
+        onBlur={handleContainerBlur}
+        className="space-y-3 outline-none"
+      >
+        {/* Preview section at the top */}
+        {activeResult && activeResult.preview_url && (
+          <div
+            className={`flex justify-center transition-all duration-200 ease-out ${
+              isFirstAppearance
+                ? 'translate-y-1 scale-98 opacity-0 blur-sm'
+                : 'translate-y-0 scale-100 opacity-100 blur-0'
+            }`}
+          >
+            <div
+              style={{
+                position: 'relative',
+                display: 'block',
+                overflow: 'hidden',
+                borderRadius: '0.5rem',
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                boxShadow:
+                  '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                width: 200,
+                height: 150,
+                transition: 'box-shadow 0.15s ease-in-out',
+              }}
             >
-              Searching components...
-            </TextShimmer>
+              <img
+                src={activeResult.preview_url}
+                alt={`Preview for ${activeResult.component_data.name || activeResult.name}`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '0.5rem',
+                  display: 'block',
+                }}
+              />
+              <div className="absolute right-1 bottom-1 left-1 rounded bg-black/75 px-2 py-1 text-white text-xs backdrop-blur-sm">
+                {activeResult.component_data.name || activeResult.name}
+              </div>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="space-y-1">
-          {/* Show custom component card if there's a prompt or context elements */}
-          {hasPromptOrContext && (
-            <CreateCustomComponentCard 
-              searchQuery={searchQuery} 
-              results={results}
-              domContextElements={domContextElements}
-              pluginContextSnippets={pluginContextSnippets}
-              selectedComponents={selectedComponents}
-            />
-          )}
-          
-          {/* Previously Selected Components Section */}
-          {selectedComponents.length > 0 && (
+        )}
+
+        {isLoading ? (
+          <div className="fade-in animate-in space-y-1 duration-200">
+            <div className="flex items-center gap-3 px-1 py-2">
+              <div className="h-4 w-4 flex-shrink-0 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+              <TextShimmer
+                duration={1.5}
+                className="font-medium text-sm [--base-color:theme(colors.gray.600)] [--base-gradient-color:theme(colors.blue.600)]"
+              >
+                Searching components...
+              </TextShimmer>
+            </div>
+          </div>
+        ) : visibleResults.length > 0 ? (
+          <div className="space-y-2">
+            {/* Search Results Section - Scrollable window of 3 cards */}
             <div className="space-y-1">
+              <div ref={scrollContainerRef} className="space-y-1">
+                {visibleResults.map((result, index) => {
+                  // Calculate the actual index in all results
+                  const actualIndex = startIndex + index;
+                  const isItemFocused =
+                    isFocused && activeIndex === actualIndex;
+
+                  return (
+                    <div
+                      key={result.id}
+                      className={`transition-all duration-200 ease-out ${
+                        isFirstAppearance
+                          ? 'translate-y-1 scale-98 opacity-0 blur-sm'
+                          : 'translate-y-0 scale-100 opacity-100 blur-0'
+                      }`}
+                      style={{
+                        transitionDelay: isFirstAppearance
+                          ? `${index * 50}ms`
+                          : '0ms',
+                      }}
+                    >
+                      <MiniComponentCard
+                        result={result}
+                        isSelected={false}
+                        isFocused={isItemFocused}
+                        onSelectionChange={handleComponentSelection}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
               <div className="flex items-center justify-between px-1 py-1">
-                <h4 className="text-xs font-medium text-gray-700">Selected Components ({selectedComponents.length})</h4>
-                <button
-                  onClick={clearSelection}
-                  className="text-blue-600 hover:text-blue-800 underline text-xs"
-                >
-                  Clear all
-                </button>
-              </div>
-              <div className="space-y-1">
-                {selectedComponents.map((component) => (
-                  <ComponentResultButton 
-                    key={`selected-${component.id}`}
-                    result={component}
-                    isSelected={true}
-                    onSelectionChange={handleComponentSelection}
-                  />
-                ))}
-              </div>
-              {/* Divider between selected and search results */}
-              {results.length > 0 && (
-                <div className="border-t border-gray-200 my-2"></div>
-              )}
-            </div>
-          )}
-          
-          {/* Search Results Section */}
-          {results.length > 0 && (
-            <div className="space-y-1">
-              {selectedComponents.length > 0 && (
-                <h4 className="text-xs font-medium text-gray-700 px-1 py-1">Search Results</h4>
-              )}
-              <div className="max-h-[210px] overflow-y-auto space-y-1">
-                {results
-                  .filter(result => !selectedComponents.some(c => c.id === result.id)) // Don't show already selected components
-                  .map((result) => (
-                    <ComponentResultButton 
-                      key={result.id} 
-                      result={result}
-                      isSelected={false}
-                      onSelectionChange={handleComponentSelection}
-                    />
-                  ))}
+                {allAvailableResults.length > 3 && (
+                  <div className="text-gray-500 text-xs">
+                    {startIndex + 1}-
+                    {Math.min(startIndex + 3, allAvailableResults.length)} of{' '}
+                    {allAvailableResults.length}
+                  </div>
+                )}
+                <div className="ml-auto text-blue-600 text-xs">
+                  ↓ focus • ↑↓ navigate • ⏎ select • ⎋ close
+                </div>
               </div>
             </div>
-          )}
-        </div>
-      )}
-    </div>
-  )
-} 
+          </div>
+        ) : searchQuery?.trim() ? (
+          <div className="space-y-1">
+            <div className="px-1 py-2 text-gray-500 text-xs">
+              No components found for "{searchQuery}"
+            </div>
+          </div>
+        ) : null}
+      </div>
+    );
+  },
+);

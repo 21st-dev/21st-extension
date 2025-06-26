@@ -1,7 +1,6 @@
 import { useCyclicUpdate } from '@/hooks/use-cyclic-update';
 import { usePlugins } from '@/hooks/use-plugins';
 import { useWindowSize } from '@/hooks/use-window-size';
-import { PlusIcon } from 'lucide-react';
 import type { HTMLAttributes } from 'preact/compat';
 import { useCallback, useMemo, useRef } from 'preact/hooks';
 
@@ -80,7 +79,6 @@ export function ContextItemProposal({
             </div>
           ))}
       </div>
-      <PlusIcon className="size-6 drop-shadow-black drop-shadow-md" />
     </div>
   );
 }

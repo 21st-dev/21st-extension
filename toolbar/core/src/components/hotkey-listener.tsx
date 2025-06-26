@@ -1,59 +1,71 @@
-import { useEventListener } from '@/hooks/use-event-listener';
-import { useCallback, useMemo } from 'preact/hooks';
-import { hotkeyActionDefinitions, HotkeyActions } from '../utils';
-import { useChatState } from '@/hooks/use-chat-state';
-
-type StopPreventPropagation = boolean;
+import { useCallback } from 'preact/hooks';
+import { HotkeyActions, hotkeyActionDefinitions } from '../utils';
+import { useEventListener } from '../hooks/use-event-listener';
+import { useAppState } from '../hooks/use-app-state';
+import { useChatState } from '../hooks/use-chat-state';
 
 // This listener is responsible for listening to hotkeys and triggering the appropriate actions in the global app state.
-export function HotkeyListener() {
-  const { startPromptCreation, stopPromptCreation, isPromptCreationActive } =
-    useChatState();
+const HotkeyListener = () => {
+  const { minimized, expand, minimize } = useAppState();
+  const {
+    isPromptCreationActive,
+    stopPromptCreation,
+    startPromptCreation,
+    isSearchResultsFocused,
+    setSearchResultsFocused,
+  } = useChatState();
 
-  const hotKeyHandlerMap: Record<HotkeyActions, () => StopPreventPropagation> =
-    useMemo(
-      () => ({
-        // Functions that return true will prevent further propagation of the event.
-        [HotkeyActions.CTRL_ALT_C]: () => {
-          if (!isPromptCreationActive) {
+  useEventListener(
+    'keydown',
+    useCallback(
+      (event: KeyboardEvent) => {
+        if (
+          hotkeyActionDefinitions[HotkeyActions.ALT_PERIOD].isEventMatching(
+            event,
+          )
+        ) {
+          event.preventDefault();
+
+          // Если минимизирован - разворачиваем и открываем чат
+          if (minimized) {
+            expand();
+            setTimeout(() => startPromptCreation(), 100);
+          } else if (!isPromptCreationActive) {
+            // Если развернут но чат закрыт - открываем чат
             startPromptCreation();
-            return true;
           }
-          return false;
-        },
-        [HotkeyActions.ESC]: () => {
-          if (isPromptCreationActive) {
-            stopPromptCreation();
-            return true;
-          }
-          return false;
-        },
-      }),
-      [startPromptCreation, stopPromptCreation, isPromptCreationActive],
-    );
-
-  const hotKeyListener = useCallback(
-    (ev: KeyboardEvent) => {
-      // The first matching hotkey action will be executed and abort further processing of other hotkey actions.
-      for (const [action, definition] of Object.entries(
-        hotkeyActionDefinitions,
-      )) {
-        if (definition.isEventMatching(ev)) {
-          const matched =
-            hotKeyHandlerMap[action as unknown as HotkeyActions]();
-          if (matched) {
-            ev.preventDefault();
-            ev.stopPropagation();
-          }
-          break;
         }
-      }
-    },
-    [hotKeyHandlerMap],
+
+        if (hotkeyActionDefinitions[HotkeyActions.ESC].isEventMatching(event)) {
+          event.preventDefault();
+
+          // Если в фокусе search results - только убираем фокус
+          if (isSearchResultsFocused) {
+            setSearchResultsFocused(false);
+          }
+          // Если чат открыт - закрываем его
+          else if (isPromptCreationActive) {
+            stopPromptCreation();
+          } else if (!minimized) {
+            // Если нет чата но toolbar развернут - минимизируем
+            minimize();
+          }
+        }
+      },
+      [
+        minimized,
+        expand,
+        minimize,
+        isPromptCreationActive,
+        stopPromptCreation,
+        startPromptCreation,
+        isSearchResultsFocused,
+        setSearchResultsFocused,
+      ],
+    ),
   );
 
-  useEventListener('keydown', hotKeyListener, {
-    capture: true,
-  });
   return null;
-}
+};
+
+export default HotkeyListener;
