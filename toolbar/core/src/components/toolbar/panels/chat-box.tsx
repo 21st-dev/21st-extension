@@ -25,47 +25,42 @@ export function ToolbarChatArea() {
     [chatState.chats, chatState.currentChatId],
   );
 
-  const currentInput = useMemo(
-    () => {
-      const input = currentChat?.inputValue || '';
-      return input;
-    },
-    [currentChat?.inputValue],
-  );
+  const currentInput = useMemo(() => {
+    const input = currentChat?.inputValue || '';
+    return input;
+  }, [currentChat?.inputValue]);
 
   // Add component search hook
   const { results, isLoading, error } = useComponentSearch(currentInput);
 
   // Get DOM context elements from current chat
-  const domContextElements = useMemo(
-    () => {
-      const elements = currentChat?.domContextElements.map((e) => e.element) || [];
-      return elements;
-    },
-    [currentChat?.domContextElements],
-  );
+  const domContextElements = useMemo(() => {
+    const elements =
+      currentChat?.domContextElements.map((e) => e.element) || [];
+    return elements;
+  }, [currentChat?.domContextElements]);
 
   // Create plugin context snippets (simplified version for search results)
   const pluginContextSnippets = useMemo(() => {
     if (!currentChat?.domContextElements.length) {
       return [];
     }
-    
+
     const snippets = plugins
-      .filter(plugin => plugin.onContextElementSelect)
-      .map(plugin => ({
+      .filter((plugin) => plugin.onContextElementSelect)
+      .map((plugin) => ({
         pluginName: plugin.pluginName,
-        contextSnippets: currentChat.domContextElements
-          .flatMap(el => el.pluginContext
-            .filter(pc => pc.pluginName === plugin.pluginName)
-            .map(pc => ({
+        contextSnippets: currentChat.domContextElements.flatMap((el) =>
+          el.pluginContext
+            .filter((pc) => pc.pluginName === plugin.pluginName)
+            .map((pc) => ({
               promptContextName: 'element_context',
-              content: JSON.stringify(pc.context)
-            }))
-          )
+              content: JSON.stringify(pc.context),
+            })),
+        ),
       }))
-      .filter(snippet => snippet.contextSnippets.length > 0);
-    
+      .filter((snippet) => snippet.contextSnippets.length > 0);
+
     return snippets;
   }, [currentChat?.domContextElements, plugins]);
 
@@ -168,24 +163,34 @@ export function ToolbarChatArea() {
 
   const ctrlAltCText = useHotkeyListenerComboText(HotkeyActions.CTRL_ALT_C);
 
-  const handleSelectedComponentsChange = useCallback((selectedComponents: SelectedComponentWithCode[]) => {
-    if (chatState.currentChatId) {
-      chatState.addSelectedComponents(chatState.currentChatId, selectedComponents);
-    }
-  }, [chatState]);
+  const handleSelectedComponentsChange = useCallback(
+    (selectedComponents: SelectedComponentWithCode[]) => {
+      if (chatState.currentChatId) {
+        chatState.addSelectedComponents(
+          chatState.currentChatId,
+          selectedComponents,
+        );
+      }
+    },
+    [chatState],
+  );
 
   // Show search results when prompt creation is active and there are results/loading/error OR context elements
-  const shouldShowSearchResults = chatState.isPromptCreationActive && 
-    (results.length > 0 || isLoading || error || 
-     pluginContextSnippets.length > 0 || domContextElements.length > 0);
+  const shouldShowSearchResults =
+    chatState.isPromptCreationActive &&
+    (results.length > 0 ||
+      isLoading ||
+      error ||
+      pluginContextSnippets.length > 0 ||
+      domContextElements.length > 0);
 
   return (
     <div className="flex flex-col gap-2">
       {/* Search Results */}
       {shouldShowSearchResults && (
-        <SearchResults 
-          results={results} 
-          isLoading={isLoading} 
+        <SearchResults
+          results={results}
+          isLoading={isLoading}
           error={error}
           searchQuery={currentInput}
           domContextElements={domContextElements}
@@ -193,7 +198,7 @@ export function ToolbarChatArea() {
           onSelectionChange={handleSelectedComponentsChange}
         />
       )}
-      
+
       {/* Chat Input */}
       <div
         className={containerClassName}

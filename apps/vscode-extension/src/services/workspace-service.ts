@@ -46,8 +46,10 @@ export class WorkspaceService {
     const toolbarInstallations: Array<{ version: string; path: string }> = [];
 
     this.forEachWorkspaceFolderWithLockFile((dependencies, lockFilePath) => {
-      const toolbarPackages = Object.entries(dependencies).filter(([key]) =>
-        key.startsWith('@21st-extension/toolbar') || key.startsWith('@21st-extension/toolbar'),
+      const toolbarPackages = Object.entries(dependencies).filter(
+        ([key]) =>
+          key.startsWith('@21st-extension/toolbar') ||
+          key.startsWith('@21st-extension/toolbar'),
       );
 
       if (toolbarPackages.length > 0) {

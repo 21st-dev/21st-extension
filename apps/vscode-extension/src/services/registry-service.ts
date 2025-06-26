@@ -114,17 +114,17 @@ export class RegistryService {
           },
         },
       );
-      
+
       const versions = response.data?.versions;
       if (!versions || typeof versions !== 'object') {
         return null;
       }
-      
+
       const versionKeys = Object.keys(versions);
       if (versionKeys.length === 0) {
         return null;
       }
-      
+
       // Find the highest version using semantic version comparison
       return versionKeys.reduce((newest, current) => {
         return this.compareVersions(current, newest) > 0 ? current : newest;

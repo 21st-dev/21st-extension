@@ -56,7 +56,10 @@ interface ChatContext {
   addMessage: (chatId: ChatId, content: string) => void;
   addChatDomContext: (chatId: ChatId, element: HTMLElement) => void;
   removeChatDomContext: (chatId: ChatId, element: HTMLElement) => void;
-  addSelectedComponents: (chatId: ChatId, components: SelectedComponentWithCode[]) => void;
+  addSelectedComponents: (
+    chatId: ChatId,
+    components: SelectedComponentWithCode[],
+  ) => void;
   clearSelectedComponents: (chatId: ChatId) => void;
 
   // UI state
@@ -279,27 +282,28 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     [],
   );
 
-  const addSelectedComponents = useCallback((chatId: ChatId, components: SelectedComponentWithCode[]) => {
-    setChats((prev) =>
-      prev.map((chat) =>
-        chat.id === chatId
-          ? { ...chat, selectedComponents: components }
-          : chat,
-      ),
-    );
-  }, []);
+  const addSelectedComponents = useCallback(
+    (chatId: ChatId, components: SelectedComponentWithCode[]) => {
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.id === chatId
+            ? { ...chat, selectedComponents: components }
+            : chat,
+        ),
+      );
+    },
+    [],
+  );
 
   const clearSelectedComponents = useCallback((chatId: ChatId) => {
     setChats((prev) =>
       prev.map((chat) =>
-        chat.id === chatId
-          ? { ...chat, selectedComponents: [] }
-          : chat,
+        chat.id === chatId ? { ...chat, selectedComponents: [] } : chat,
       ),
     );
   }, []);
 
-  const addMessage = useCallback( 
+  const addMessage = useCallback(
     async (chatId: ChatId, content: string, pluginTriggered = false) => {
       if (!content.trim()) return;
 

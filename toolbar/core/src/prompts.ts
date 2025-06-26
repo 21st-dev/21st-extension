@@ -128,43 +128,55 @@ export interface PluginContextSnippets {
  * Formats selected components into a structured prompt format.
  * Fetches prompts from API for each component and includes them in the output.
  */
-async function formatSelectedComponents(components: SelectedComponentWithCode[]): Promise<string> {
+async function formatSelectedComponents(
+  components: SelectedComponentWithCode[],
+): Promise<string> {
   if (!components || components.length === 0) {
     return '';
   }
 
   // Fetch prompts for every selected component using Promise.allSettled
-  const promptPromises = components.map(component => 
-    fetch(TWENTY_FIRST_URL + "/api/prompts", {
-      method: "POST",
+  const promptPromises = components.map((component) =>
+    fetch(TWENTY_FIRST_URL + '/api/prompts', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        prompt_type: "extended",
+        prompt_type: 'extended',
         demo_id: component.id,
-        rule_id: null, 
+        rule_id: null,
         additional_context: null,
       }),
-    }).then(response => {
-      if (!response.ok) {
-        throw new Error(`Failed to fetch prompt for component ${component.id}: ${response.statusText}`);
-      }
-      return response.json();
-    }).then(data => {
-      // Extract the prompt from the response structure and add componentId
-      if (data && data.prompt) {
-        return {
-          prompt: data.prompt,
-          debug: data.debug,
-          componentId: component.id // Add componentId from the original component
-        };
-      }
-      throw new Error(`No prompt found in response for component ${component.id}`);
-    }).catch(error => {
-      console.warn(`Failed to fetch prompt for component ${component.id}:`, error);
-      return null; // Return null for failed requests
     })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch prompt for component ${component.id}: ${response.statusText}`,
+          );
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Extract the prompt from the response structure and add componentId
+        if (data && data.prompt) {
+          return {
+            prompt: data.prompt,
+            debug: data.debug,
+            componentId: component.id, // Add componentId from the original component
+          };
+        }
+        throw new Error(
+          `No prompt found in response for component ${component.id}`,
+        );
+      })
+      .catch((error) => {
+        console.warn(
+          `Failed to fetch prompt for component ${component.id}:`,
+          error,
+        );
+        return null; // Return null for failed requests
+      }),
   );
 
   // Wait for all prompt requests to settle (some may fail, some may succeed)
@@ -173,29 +185,36 @@ async function formatSelectedComponents(components: SelectedComponentWithCode[])
   // Create a map of component ID to prompt for easy lookup
   const promptMap = new Map<number, string>();
   promptResults
-    .filter((result): result is PromiseFulfilledResult<any> => 
-      result.status === 'fulfilled' && result.value !== null
+    .filter(
+      (result): result is PromiseFulfilledResult<any> =>
+        result.status === 'fulfilled' && result.value !== null,
     )
-    .forEach(result => {
+    .forEach((result) => {
       const data = result.value;
       if (data?.prompt && data?.componentId) {
         promptMap.set(data.componentId, data.prompt);
       }
     });
 
-  const formattedComponents = components.map((component, index) => {
-    const fetchedPrompt = promptMap.get(component.id);
-    
-    return `
+  const formattedComponents = components
+    .map((component, index) => {
+      const fetchedPrompt = promptMap.get(component.id);
+
+      return `
   <component index="${index + 1}">
     <name>${component.component_data.name || component.name || 'Unknown'}</name>
     <description>${component.component_data.description || 'No description available'}</description>
-    ${fetchedPrompt ? `
+    ${
+      fetchedPrompt
+        ? `
     <install_instructions>
 ${fetchedPrompt}
-    </install_instructions>` : ''}
+    </install_instructions>`
+        : ''
+    }
   </component>`;
-  }).join('\n');
+    })
+    .join('\n');
 
   return `
   <inspiration_components>
@@ -246,23 +265,25 @@ ${snippet.contextSnippets.map((snippet) => `    <${snippet.promptContextName}>${
     )
     .join('\n');
 
-  const selectedComponentsSection = selectedComponents && selectedComponents.length > 0 
-    ? await formatSelectedComponents(selectedComponents) 
-    : '';
+  const selectedComponentsSection =
+    selectedComponents && selectedComponents.length > 0
+      ? await formatSelectedComponents(selectedComponents)
+      : '';
 
   // Create fallback user_goal when no specific prompt is provided
   const getFallbackUserGoal = () => {
     const hasSelectedElements = selectedElements && selectedElements.length > 0;
-    const hasInspirationComponents = selectedComponents && selectedComponents.length > 0;
-    
+    const hasInspirationComponents =
+      selectedComponents && selectedComponents.length > 0;
+
     if (hasSelectedElements && hasInspirationComponents) {
-      return "You have html components that are selected on the website. Please improve their design using the provided inspiration_components as reference and guidance.";
+      return 'You have html components that are selected on the website. Please improve their design using the provided inspiration_components as reference and guidance.';
     } else if (hasSelectedElements) {
-      return "You have html components that are selected on the website. Please analyze and improve their design and functionality.";
+      return 'You have html components that are selected on the website. Please analyze and improve their design and functionality.';
     } else if (hasInspirationComponents) {
-      return "You have inspiration components available and instructions on how to use them. Combine them based on provided context.";
+      return 'You have inspiration components available and instructions on how to use them. Combine them based on provided context.';
     } else {
-      return "Please analyze the given context and generate design for it.";
+      return 'Please analyze the given context and generate design for it.';
     }
   };
 

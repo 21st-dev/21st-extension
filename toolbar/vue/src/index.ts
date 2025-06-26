@@ -3,4 +3,3 @@ import StagewiseToolbar from './StagewiseToolbar.vue';
 
 export { StagewiseToolbar };
 export type { ToolbarConfig };
-
