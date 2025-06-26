@@ -11,7 +11,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "@stagewise/toolbar/plugin-ui",
+    "jsxImportSource": "@21st-extension/toolbar/plugin-ui",
     "paths": {
       "@/*": ["./src/*"]
     }

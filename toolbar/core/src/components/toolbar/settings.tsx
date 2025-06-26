@@ -1,8 +1,8 @@
+import { useVSCode } from '@/hooks/use-vscode';
 import { Panel } from '@/plugin-ui/components/panel';
+import { RefreshCwIcon, SettingsIcon } from 'lucide-react';
 import { ToolbarButton } from './button';
 import { ToolbarSection } from './section';
-import { SettingsIcon, RefreshCwIcon } from 'lucide-react';
-import { useVSCode } from '@/hooks/use-vscode';
 import { useAppState } from '@/hooks/use-app-state';
 import { SelectNative } from '@/components/ui/select';
 import { cn } from '@/utils';
@@ -207,28 +207,54 @@ const ConnectionSettings = () => {
 };
 
 const ProjectInfoSection = () => (
-  <div className="flex items-center justify-between text-xs text-zinc-500">
-    <span>
-      Licensed under{' '}
+  <div className="flex flex-col gap-2 text-xs text-zinc-500">
+    <div className="flex items-center justify-between">
       <a
-        href="https://github.com/stagewise-io/stagewise/blob/main/LICENSE"
+        href="https://discord.gg/gkdGsDYaKA"
         target="_blank"
         rel="noopener noreferrer"
-        className="font-medium hover:underline"
+        className="flex items-center gap-1 text-indigo-700 hover:underline"
+        title="Join our Discord"
       >
-        AGPL v3
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M20.317 4.369A19.791 19.791 0 0 0 16.885 3.2a.117.117 0 0 0-.124.06c-.537.96-1.13 2.22-1.552 3.2a18.524 18.524 0 0 0-5.418 0c-.423-.98-1.016-2.24-1.553-3.2a.117.117 0 0 0-.124-.06A19.736 19.736 0 0 0 3.683 4.369a.105.105 0 0 0-.047.043C.533 9.043-.32 13.579.099 18.057a.12.12 0 0 0 .045.083c1.934 1.426 3.81 2.288 5.671 2.857a.116.116 0 0 0 .127-.043c.438-.602.827-1.24 1.165-1.908a.112.112 0 0 0-.062-.158c-.619-.234-1.205-.52-1.77-.853a.117.117 0 0 1-.012-.194c.119-.09.238-.183.353-.277a.112.112 0 0 1 .114-.013c3.747 1.71 7.789 1.71 11.533 0a.112.112 0 0 1 .115.012c.115.094.234.188.353.278a.117.117 0 0 1-.012.194c-.565.333-1.151.619-1.77.853a.112.112 0 0 0-.062.158c.34.668.728 1.306 1.165 1.908a.115.115 0 0 0 .127.043c1.861-.569 3.737-1.431 5.671-2.857a.12.12 0 0 0 .045-.083c.5-5.177-.838-9.673-3.636-13.645a.105.105 0 0 0-.047-.043zM8.02 15.331c-1.183 0-2.156-1.085-2.156-2.419 0-1.333.955-2.418 2.156-2.418 1.21 0 2.175 1.095 2.156 2.418 0 1.334-.955 2.419-2.156 2.419zm7.96 0c-1.183 0-2.156-1.085-2.156-2.419 0-1.333.955-2.418 2.156-2.418 1.21 0 2.175 1.095 2.156 2.418 0 1.334-.946 2.419-2.156 2.419z" />
+        </svg>
+        Discord
       </a>
-    </span>
-    <span>
-      Fork of{' '}
       <a
-        href="https://github.com/stagewise-io/stagewise"
+        href="https://marketplace.visualstudio.com/items?itemName=21st.21st-extension"
         target="_blank"
         rel="noopener noreferrer"
-        className="font-medium hover:underline"
+        className="flex items-center gap-1 text-violet-700 hover:underline"
+        title="VS Code Marketplace"
       >
-        Stagewise
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M21.805 2.29a2.25 2.25 0 0 0-2.45-.49l-7.5 3.25a2.25 2.25 0 0 0-1.31 2.06v1.13l-5.13 2.22a2.25 2.25 0 0 0-1.31 2.06v3.5a2.25 2.25 0 0 0 1.31 2.06l5.13 2.22v1.13a2.25 2.25 0 0 0 1.31 2.06l7.5 3.25a2.25 2.25 0 0 0 2.45-.49A2.25 2.25 0 0 0 23 20.25V3.75a2.25 2.25 0 0 0-1.195-1.46zM12 20.25v-16.5l7.5 3.25v10l-7.5 3.25z" />
+        </svg>
+        VS Code Marketplace
       </a>
-    </span>
+    </div>
+    <div className="mt-2">
+      <span className="font-semibold">Contact:</span>{' '}
+      <a
+        href="mailto:sales@stagewise.io"
+        className="text-blue-700 hover:underline"
+      >
+        sales@stagewise.io
+      </a>
+    </div>
+    <div className="text-zinc-500">
+      <span>
+        Licensed under AGPL v3.{' '}
+        <a
+          href="https://github.com/stagewise-io/stagewise/blob/main/LICENSE"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline"
+        >
+          View license
+        </a>
+      </span>
+    </div>
   </div>
 );

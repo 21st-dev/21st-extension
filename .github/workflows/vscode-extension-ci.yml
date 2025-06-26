@@ -20,7 +20,7 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build --filter stagewise-vscode-extension
+      - run: pnpm build --filter 21st-extension
 
   test:
     runs-on: ubuntu-latest
@@ -34,4 +34,4 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test --filter stagewise-vscode-extension || echo "No tests found" 
+      - run: pnpm test --filter 21st-extension || echo "No tests found" 

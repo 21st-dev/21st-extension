@@ -1,3 +1,3 @@
-# @stagewise/typescript-config
+# @21st-extension/typescript-config
 
 ## null

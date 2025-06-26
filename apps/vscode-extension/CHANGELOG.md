@@ -22,7 +22,7 @@
 - 2e121ac: Updated the README to clarify how framework-specific packages are named
 - 1b6e4a2: Fix package dependency parser in order to report correct toolbar version
 - Updated dependencies [2e121ac]
-  - @stagewise/extension-toolbar-srpc-contract@0.1.3
+  - @21st-extension/extension-toolbar-srpc-contract@0.1.3
 
 ## 0.5.0
 
@@ -35,7 +35,7 @@
 - 02bd300: Adding a window-select-hint when multiple windows are selected
 - d0fca4b: Add information about extension and toolbar version to telemetry
 - Updated dependencies [02bd300]
-  - @stagewise/extension-toolbar-srpc-contract@0.1.2
+  - @21st-extension/extension-toolbar-srpc-contract@0.1.2
 
 ## 0.4.4
 
@@ -44,7 +44,7 @@
 - d3a6569: Refactor application structure
 - 0c81ec9: Improved toolbar setup prompt
 - bef562d: Changed branding slogan
-  - @stagewise/extension-toolbar-srpc-contract@0.1.1
+  - @21st-extension/extension-toolbar-srpc-contract@0.1.1
 
 ## 0.4.3
 
@@ -86,7 +86,7 @@
 - Updated dependencies [1575df4]
 - Updated dependencies [058d70b]
 - Updated dependencies [79e11fa]
-  - @stagewise/extension-toolbar-srpc-contract@0.1.0
+  - @21st-extension/extension-toolbar-srpc-contract@0.1.0
 
 ## 0.4.0-alpha.2
 
@@ -97,7 +97,7 @@
 ### Patch Changes
 
 - Updated dependencies [f4b085d]
-  - @stagewise/extension-toolbar-srpc-contract@0.1.0-alpha.1
+  - @21st-extension/extension-toolbar-srpc-contract@0.1.0-alpha.1
 
 ## 0.3.1-alpha.1
 
@@ -126,7 +126,7 @@
 - Updated dependencies [1575df4]
 - Updated dependencies [058d70b]
 - Updated dependencies [79e11fa]
-  - @stagewise/extension-toolbar-srpc-contract@0.1.0-alpha.0
+  - @21st-extension/extension-toolbar-srpc-contract@0.1.0-alpha.0
 
 ## 0.2.2
 

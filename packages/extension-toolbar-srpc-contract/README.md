@@ -1,6 +1,6 @@
-# @stagewise/extension-toolbar-srpc-contract
+# @21st-extension/extension-toolbar-srpc-contract
 
-[![npm version](https://img.shields.io/npm/v/@stagewise/extension-toolbar-srpc-contract.svg)](https://www.npmjs.com/package/@stagewise/extension-toolbar-srpc-contract)
+[![npm version](https://img.shields.io/npm/v/@21st-extension/extension-toolbar-srpc-contract.svg)](https://www.npmjs.com/package/@21st-extension/extension-toolbar-srpc-contract)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 A communication contract between the stagewise VS Code extension and the stagewise toolbar.
@@ -28,14 +28,14 @@ This package defines the communication protocol between the stagewise VS Code ex
 ### Installation
 
 ```bash
-npm install @stagewise/extension-toolbar-srpc-contract
+npm install @21st-extension/extension-toolbar-srpc-contract
 ```
 
 ### Basic Usage
 
 ```typescript
 // Extension (server) side
-import { getExtensionBridge } from '@stagewise/extension-toolbar-srpc-contract';
+import { getExtensionBridge } from '@21st-extension/extension-toolbar-srpc-contract';
 import http from 'node:http';
 
 const httpServer = http.createServer();
@@ -48,7 +48,7 @@ bridge.register({
 });
 
 // Toolbar (client) side
-import { getToolbarBridge } from '@stagewise/extension-toolbar-srpc-contract';
+import { getToolbarBridge } from '@21st-extension/extension-toolbar-srpc-contract';
 
 const bridge = getToolbarBridge('ws://localhost:5746');
 await bridge.connect();
@@ -61,8 +61,8 @@ const result = await bridge.call.triggerAgentPrompt({
 
 ## Related Packages
 
-- [@stagewise/toolbar](https://www.npmjs.com/package/@stagewise/toolbar): The toolbar component for your web app
-- [@stagewise/srpc](https://www.npmjs.com/package/@stagewise/srpc): The underlying RPC framework
+- [@21st-extension/toolbar](https://www.npmjs.com/package/@21st-extension/toolbar): The toolbar component for your web app
+- [@21st-extension/srpc](https://www.npmjs.com/package/@21st-extension/srpc): The underlying RPC framework
 
 ## License
 

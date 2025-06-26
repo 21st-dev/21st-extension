@@ -36,7 +36,7 @@ body:
             --system \
             --binaries \
             --browsers \
-            --npmPackages "typescript,next,react,vue,@angular/core,@angular/cli,svelte,@sveltejs/kit,ember-source,preact,gatsby,nuxt,astro,@stagewise/toolbar,@stagewise/toolbar-next,@stagewise/toolbar-react,@stagewise/toolbar-vue,@stagewise/toolbar-angular,@stagewise/toolbar-svelte,@stagewise/toolbar-preact,@stagewise/toolbar-ember,@stagewise/toolbar-gatsby,@stagewise/toolbar-nuxt,@stagewise/toolbar-astro"
+            --npmPackages "typescript,next,react,vue,@angular/core,@angular/cli,svelte,@sveltejs/kit,ember-source,preact,gatsby,nuxt,astro,@21st-extension/toolbar,@21st-extension/toolbar-next,@21st-extension/toolbar-react,@21st-extension/toolbar-vue,@21st-extension/toolbar-angular,@21st-extension/toolbar-svelte,@21st-extension/toolbar-preact,@21st-extension/toolbar-ember,@21st-extension/toolbar-gatsby,@21st-extension/toolbar-nuxt,@21st-extension/toolbar-astro"
           ```
 
         To get the npm list result, run:

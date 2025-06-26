@@ -1,5 +1,5 @@
 {
-  "name": "@stagewise/toolbar-next",
+  "name": "@21st-extension/toolbar-next",
   "private": false,
   "version": "0.4.8",
   "type": "module",
@@ -7,6 +7,15 @@
     "dist"
   ],
   "license": "AGPL-3.0-only",
+  "author": "21st Labs Inc.",
+  "homepage": "https://21st.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/21st-dev/21st-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/21st-dev/21st-extension/issues"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -47,6 +56,6 @@
     "react": ">=18.0.0"
   },
   "dependencies": {
-    "@stagewise/toolbar-react": "workspace:*"
+    "@21st-extension/toolbar-react": "workspace:*"
   }
 }

@@ -1,33 +1,33 @@
+import {
+  DEFAULT_PORT,
+  getExtensionBridge,
+} from '@21st-extension/extension-toolbar-srpc-contract';
+import { AnalyticsService, EventName } from 'src/services/analytics-service';
+import { EnvironmentInfo } from 'src/services/environment-info';
+import { RegistryService } from 'src/services/registry-service';
+import { StorageService } from 'src/services/storage-service';
+import { ToolbarIntegrationNotificator } from 'src/services/toolbar-integration-notificator';
+import { ToolbarUpdateNotificator } from 'src/services/toolbar-update-notificator';
+import { VScodeContext } from 'src/services/vscode-context';
+import { WorkspaceService } from 'src/services/workspace-service';
+import { dispatchAgentCall } from 'src/utils/dispatch-agent-call';
+import { getCurrentIDE } from 'src/utils/get-current-ide';
 import * as vscode from 'vscode';
+import { setupToolbar } from '../auto-prompts/setup-toolbar';
 import { startServer, stopServer } from '../http-server/server';
 import { findAvailablePort } from '../utils/find-available-port';
-import {
-  getExtensionBridge,
-  DEFAULT_PORT,
-} from '@stagewise/extension-toolbar-srpc-contract';
-import { setupToolbar } from '../auto-prompts/setup-toolbar';
-import { getCurrentIDE } from 'src/utils/get-current-ide';
-import { dispatchAgentCall } from 'src/utils/dispatch-agent-call';
 import { getCurrentWindowInfo } from '../utils/window-discovery';
-import { AnalyticsService, EventName } from 'src/services/analytics-service';
 import {
   createGettingStartedPanel,
   shouldShowGettingStarted,
 } from '../webviews/getting-started';
-import { StorageService } from 'src/services/storage-service';
-import { VScodeContext } from 'src/services/vscode-context';
-import { EnvironmentInfo } from 'src/services/environment-info';
-import { ToolbarUpdateNotificator } from 'src/services/toolbar-update-notificator';
-import { ToolbarIntegrationNotificator } from 'src/services/toolbar-integration-notificator';
-import { WorkspaceService } from 'src/services/workspace-service';
-import { RegistryService } from 'src/services/registry-service';
 
 // Diagnostic collection specifically for our fake prompt
 const fakeDiagCollection =
-  vscode.languages.createDiagnosticCollection('stagewise');
+  vscode.languages.createDiagnosticCollection('21st-extension');
 
 // Create output channel for stagewise
-const outputChannel = vscode.window.createOutputChannel('stagewise');
+const outputChannel = vscode.window.createOutputChannel('21st-extension');
 
 // Dummy handler for the setupToolbar command
 async function setupToolbarHandler() {
@@ -63,7 +63,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const ide = getCurrentIDE();
     if (ide === 'UNKNOWN') {
       vscode.window.showInformationMessage(
-        'stagewise does not work for your current IDE.',
+        '21st Extension does not work for your current IDE.',
       );
       return;
     }
@@ -75,8 +75,8 @@ export async function activate(context: vscode.ExtensionContext) {
     // Add configuration change listener to track telemetry setting changes
     const configChangeListener = vscode.workspace.onDidChangeConfiguration(
       async (e) => {
-        if (e.affectsConfiguration('stagewise.telemetry.enabled')) {
-          const config = vscode.workspace.getConfiguration('stagewise');
+        if (e.affectsConfiguration('21st-extension.telemetry.enabled')) {
+          const config = vscode.workspace.getConfiguration('21st-extension');
           const telemetryEnabled = config.get<boolean>(
             'telemetry.enabled',
             true,
@@ -172,7 +172,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Register the setupToolbar command
     const setupToolbarCommand = vscode.commands.registerCommand(
-      'stagewise.setupToolbar',
+      '21st-extension.setupToolbar',
       async () => {
         try {
           analyticsService.trackEvent(EventName.TOOLBAR_AUTO_SETUP_STARTED);
@@ -190,7 +190,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Register the show getting started command
     const showGettingStartedCommand = vscode.commands.registerCommand(
-      'stagewise.showGettingStarted',
+      '21st-extension.showGettingStarted',
       async () => {
         try {
           analyticsService.trackEvent(

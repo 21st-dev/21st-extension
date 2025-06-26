@@ -1,10 +1,10 @@
 'use client';
 
-import * as React from 'react';
 import * as MenubarPrimitive from '@radix-ui/react-menubar';
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react';
+import * as React from 'react';
 
-import { cn } from '@stagewise/ui/lib/utils';
+import { cn } from '@21st-extension/ui/lib/utils';
 
 function Menubar({
   className,
@@ -257,20 +257,8 @@ function MenubarSubContent({
 }
 
 export {
-  Menubar,
-  MenubarPortal,
-  MenubarMenu,
-  MenubarTrigger,
-  MenubarContent,
-  MenubarGroup,
-  MenubarSeparator,
-  MenubarLabel,
-  MenubarItem,
-  MenubarShortcut,
-  MenubarCheckboxItem,
-  MenubarRadioGroup,
-  MenubarRadioItem,
-  MenubarSub,
-  MenubarSubTrigger,
-  MenubarSubContent,
+  Menubar, MenubarCheckboxItem, MenubarContent,
+  MenubarGroup, MenubarItem, MenubarLabel, MenubarMenu, MenubarPortal, MenubarRadioGroup,
+  MenubarRadioItem, MenubarSeparator, MenubarShortcut, MenubarSub, MenubarSubContent, MenubarSubTrigger, MenubarTrigger
 };
+

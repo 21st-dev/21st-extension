@@ -1,5 +1,4 @@
-import { RefreshCwIcon } from 'lucide-react';
-import { WifiOffIcon } from 'lucide-react';
+import { RefreshCwIcon, WifiOffIcon } from 'lucide-react';
 
 export function DisconnectedStatePanel({
   discover,
@@ -45,7 +44,7 @@ export function DisconnectedStatePanel({
 
         <div className="border-orange-200 border-t pt-2">
           <a
-            href="https://marketplace.visualstudio.com/items?itemName=stagewise.stagewise-vscode-extension"
+            href="https://marketplace.visualstudio.com/items?itemName=21st.21st-extension"
             target="_blank"
             rel="noopener noreferrer"
             className="text-orange-600 text-xs hover:text-orange-800 hover:underline"

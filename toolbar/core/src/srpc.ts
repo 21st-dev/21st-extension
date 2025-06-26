@@ -1,10 +1,10 @@
 import {
+  contract,
   DEFAULT_PORT,
   PING_ENDPOINT,
   PING_RESPONSE,
-} from '@stagewise/extension-toolbar-srpc-contract';
-import { createSRPCClientBridge } from '@stagewise/srpc/client';
-import { contract } from '@stagewise/extension-toolbar-srpc-contract';
+} from '@21st-extension/extension-toolbar-srpc-contract';
+import { createSRPCClientBridge } from '@21st-extension/srpc/client';
 import type { z } from 'zod';
 
 /**

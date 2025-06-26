@@ -1,4 +1,4 @@
-# @stagewise/extension-toolbar-srpc-contract
+# @21st-extension/extension-toolbar-srpc-contract
 
 ## 0.1.3
 
@@ -17,7 +17,7 @@
 ### Patch Changes
 
 - Updated dependencies [9e7610d]
-  - @stagewise/srpc@0.2.1
+  - @21st-extension/srpc@0.2.1
 
 ## 0.1.0
 
@@ -36,7 +36,7 @@
 - Updated dependencies [0092794]
 - Updated dependencies [c3559c8]
 - Updated dependencies [1575df4]
-  - @stagewise/srpc@0.2.0
+  - @21st-extension/srpc@0.2.0
 
 ## 0.1.0-alpha.1
 
@@ -58,4 +58,4 @@
 - 058d70b: Make extension-toolbar-srpc-contract tree-shakeable and restructure toolbar-plugin-architecture.
 - Updated dependencies [c3559c8]
 - Updated dependencies [1575df4]
-  - @stagewise/srpc@0.2.0-alpha.0
+  - @21st-extension/srpc@0.2.0-alpha.0

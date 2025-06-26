@@ -6,7 +6,7 @@ import type { ToolbarConfig } from './types';
 
 const DynamicToolbar = dynamic(
   () =>
-    import('@stagewise/toolbar-react').then((mod) => ({
+    import('@21st-extension/toolbar-react').then((mod) => ({
       default: mod.StagewiseToolbar,
     })),
   { ssr: false },

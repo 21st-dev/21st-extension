@@ -1,7 +1,7 @@
-import { initToolbar, type ToolbarConfig } from '@stagewise/toolbar';
+import { initToolbar, type ToolbarConfig } from '@21st-extension/toolbar';
 import { useEffect, useRef } from 'react';
 
-export type { ToolbarConfig } from '@stagewise/toolbar';
+export type { ToolbarConfig } from '@21st-extension/toolbar';
 
 export function StagewiseToolbar({
   config,

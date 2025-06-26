@@ -1,14 +1,14 @@
-import { getCurrentIDE } from './get-current-ide';
-import { callCursorAgent } from './call-cursor-agent';
-import { isCopilotChatInstalled } from './is-copilot-chat-installed';
-import { callCopilotAgent } from './call-copilot-agent';
-import { callWindsurfAgent } from './call-windsurf-agent';
-import { isRoocodeInstalled } from './is-roocode-installed';
-import { callRoocodeAgent } from './call-roocode-agent';
-import { callClineAgent } from './call-cline-agent';
+import type { PromptRequest } from '@21st-extension/extension-toolbar-srpc-contract';
 import * as vscode from 'vscode';
-import type { PromptRequest } from '@stagewise/extension-toolbar-srpc-contract';
+import { callClineAgent } from './call-cline-agent';
+import { callCopilotAgent } from './call-copilot-agent';
+import { callCursorAgent } from './call-cursor-agent';
+import { callRoocodeAgent } from './call-roocode-agent';
+import { callWindsurfAgent } from './call-windsurf-agent';
+import { getCurrentIDE } from './get-current-ide';
 import { isClineInstalled } from './is-cline-installed';
+import { isCopilotChatInstalled } from './is-copilot-chat-installed';
+import { isRoocodeInstalled } from './is-roocode-installed';
 
 export async function dispatchAgentCall(request: PromptRequest) {
   const ide = getCurrentIDE();

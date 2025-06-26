@@ -1,8 +1,8 @@
+import vue from '@vitejs/plugin-vue';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, type PluginOption } from 'vite';
 import dts from 'vite-plugin-dts';
-import vue from '@vitejs/plugin-vue';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -38,10 +38,10 @@ export default defineConfig({
         preserveModules: false,
         globals: {
           vue: 'vue',
-          '@stagewise/toolbar': '@stagewise/toolbar',
+          '@21st-extension/toolbar': '@21st-extension/toolbar',
         },
       },
-      external: ['@stagewise/toolbar', 'vue'],
+      external: ['@21st-extension/toolbar', 'vue'],
       treeshake: true,
     },
     minify: false,

@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
 
 declare module '*.vue' {
+  import type { ToolbarConfig } from '@21st-extension/toolbar';
   import type { DefineComponent } from 'vue';
-  import type { ToolbarConfig } from '@stagewise/toolbar';
   const component: DefineComponent<
     { config: ToolbarConfig },
     Record<string, never>,

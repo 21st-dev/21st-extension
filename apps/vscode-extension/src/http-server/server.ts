@@ -1,14 +1,14 @@
-import express from 'express';
-import type { Server } from 'node:http';
-import cors from 'cors';
-import { handleStreamableHttp } from './handlers/mcp';
-import { handleSse, handleSsePost } from './handlers/sse';
-import { errorHandler } from './middleware/error';
 import {
   DEFAULT_PORT,
   PING_ENDPOINT,
   PING_RESPONSE,
-} from '@stagewise/extension-toolbar-srpc-contract';
+} from '@21st-extension/extension-toolbar-srpc-contract';
+import cors from 'cors';
+import express from 'express';
+import type { Server } from 'node:http';
+import { handleStreamableHttp } from './handlers/mcp';
+import { handleSse, handleSsePost } from './handlers/sse';
+import { errorHandler } from './middleware/error';
 
 const createServer = (port: number) => {
   const app = express();

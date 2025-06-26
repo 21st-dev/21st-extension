@@ -1,5 +1,5 @@
 {
-  "name": "@stagewise/toolbar-react",
+  "name": "@21st-extension/toolbar-react",
   "private": false,
   "version": "0.4.8",
   "type": "module",
@@ -7,6 +7,15 @@
     "dist"
   ],
   "license": "AGPL-3.0-only",
+  "author": "21st Labs Inc.",
+  "homepage": "https://21st.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/21st-dev/21st-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/21st-dev/21st-extension/issues"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -27,7 +36,7 @@
     "build:toolbar": "tsc -b && vite build"
   },
   "dependencies": {
-    "@stagewise/toolbar": "workspace:*"
+    "@21st-extension/toolbar": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",

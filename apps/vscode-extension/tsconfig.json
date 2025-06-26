@@ -12,10 +12,10 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@stagewise/extension-toolbar-srpc-contract": [
+      "@21st-extension/extension-toolbar-srpc-contract": [
         "../packages/extension-toolbar-srpc-contract/dist"
       ],
-      "@stagewise/srpc": ["../packages/srpc/dist"]
+      "@21st-extension/srpc": ["../packages/srpc/dist"]
     }
   },
   "include": ["src", "scripts"],

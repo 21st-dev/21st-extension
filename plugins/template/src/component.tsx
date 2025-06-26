@@ -1,4 +1,4 @@
-import { Panel, Button, useToolbar } from '@stagewise/toolbar/plugin-ui';
+import { Button, Panel, useToolbar } from '@21st-extension/toolbar/plugin-ui';
 
 export const ExampleComponent = () => {
   const toolbar = useToolbar();

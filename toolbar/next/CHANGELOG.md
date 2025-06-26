@@ -1,4 +1,4 @@
-# @stagewise/toolbar-next
+# @21st-extension/toolbar-next
 
 ## 0.4.8
 
@@ -6,7 +6,7 @@
 
 - 33be114: add legacy module resolution support for older bundlers
 - Updated dependencies [33be114]
-  - @stagewise/toolbar-react@0.4.8
+  - @21st-extension/toolbar-react@0.4.8
 
 ## 0.4.7
 
@@ -16,13 +16,13 @@
 - 2e121ac: Updated the README to clarify how framework-specific packages are named
 - Updated dependencies [263c871]
 - Updated dependencies [2e121ac]
-  - @stagewise/toolbar-react@0.4.7
+  - @21st-extension/toolbar-react@0.4.7
 
 ## 0.4.6
 
 ### Patch Changes
 
-- @stagewise/toolbar-react@0.4.6
+- @21st-extension/toolbar-react@0.4.6
 
 ## 0.4.5
 
@@ -30,25 +30,25 @@
 
 - bef562d: Changed branding slogan
 - Updated dependencies [bef562d]
-  - @stagewise/toolbar-react@0.4.5
+  - @21st-extension/toolbar-react@0.4.5
 
 ## 0.4.4
 
 ### Patch Changes
 
-- @stagewise/toolbar-react@0.4.4
+- @21st-extension/toolbar-react@0.4.4
 
 ## 0.4.3
 
 ### Patch Changes
 
-- @stagewise/toolbar-react@0.4.3
+- @21st-extension/toolbar-react@0.4.3
 
 ## 0.4.2
 
 ### Patch Changes
 
-- @stagewise/toolbar-react@0.4.2
+- @21st-extension/toolbar-react@0.4.2
 
 ## 0.4.1
 
@@ -58,7 +58,7 @@
 - f44c5f2: Update README (removing example-plugin)
 - Updated dependencies [8f6f8ec]
 - Updated dependencies [f44c5f2]
-  - @stagewise/toolbar-react@0.4.1
+  - @21st-extension/toolbar-react@0.4.1
 
 ## 0.4.0
 
@@ -69,7 +69,7 @@
 ### Patch Changes
 
 - Updated dependencies [e8b0fd4]
-  - @stagewise/toolbar-react@0.3.0
+  - @21st-extension/toolbar-react@0.3.0
 
 ## 0.2.1
 
@@ -77,7 +77,7 @@
 
 - 3d8613e: Update the README agent list
 - Updated dependencies [3d8613e]
-  - @stagewise/toolbar-react@0.2.1
+  - @21st-extension/toolbar-react@0.2.1
 
 ## 0.2.0
 
@@ -101,13 +101,13 @@
 - Updated dependencies [8de8414]
 - Updated dependencies [92407bd]
 - Updated dependencies [9f36e3f]
-  - @stagewise/toolbar-react@0.2.0
+  - @21st-extension/toolbar-react@0.2.0
 
 ## 0.2.0-alpha.6
 
 ### Patch Changes
 
-- @stagewise/toolbar-react@0.2.0-alpha.6
+- @21st-extension/toolbar-react@0.2.0-alpha.6
 
 ## 0.2.0-alpha.5
 
@@ -115,7 +115,7 @@
 
 - 92407bd: Update license field in readme.
 - Updated dependencies [92407bd]
-  - @stagewise/toolbar-react@0.2.0-alpha.5
+  - @21st-extension/toolbar-react@0.2.0-alpha.5
 
 ## 0.2.0-alpha.4
 
@@ -129,7 +129,7 @@
 - a5c1d5b: Add a react plugin
 - Updated dependencies [3b637e8]
 - Updated dependencies [9f36e3f]
-  - @stagewise/toolbar-react@0.2.0-alpha.4
+  - @21st-extension/toolbar-react@0.2.0-alpha.4
 
 ## 0.2.0-alpha.3
 
@@ -140,19 +140,19 @@
 ### Patch Changes
 
 - Updated dependencies [8de8414]
-  - @stagewise/toolbar-react@0.2.0-alpha.3
+  - @21st-extension/toolbar-react@0.2.0-alpha.3
 
 ## 0.2.0-alpha.2
 
 ### Patch Changes
 
-- @stagewise/toolbar-react@0.2.0-alpha.2
+- @21st-extension/toolbar-react@0.2.0-alpha.2
 
 ## 0.2.0-alpha.1
 
 ### Patch Changes
 
-- @stagewise/toolbar-react@0.2.0-alpha.1
+- @21st-extension/toolbar-react@0.2.0-alpha.1
 
 ## 0.2.0-alpha.0
 
@@ -165,19 +165,19 @@
 - 938d2b9: enable toolbar only in development environment
 - Updated dependencies [938d2b9]
 - Updated dependencies [79e11fa]
-  - @stagewise/toolbar-react@0.2.0-alpha.0
+  - @21st-extension/toolbar-react@0.2.0-alpha.0
 
 ## 0.1.2
 
 ### Patch Changes
 
-- @stagewise/toolbar-react@0.1.2
+- @21st-extension/toolbar-react@0.1.2
 
 ## 0.1.1
 
 ### Patch Changes
 
-- @stagewise/toolbar-react@0.1.1
+- @21st-extension/toolbar-react@0.1.1
 
 ## 0.1.0
 

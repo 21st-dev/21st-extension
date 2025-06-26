@@ -1,4 +1,4 @@
-import type { PromptRequest } from '@stagewise/extension-toolbar-srpc-contract';
+import type { PromptRequest } from '@21st-extension/extension-toolbar-srpc-contract';
 import * as vscode from 'vscode';
 
 export async function callCopilotAgent(request: PromptRequest): Promise<void> {

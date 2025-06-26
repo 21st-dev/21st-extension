@@ -60,7 +60,7 @@ export default defineConfig({
     cssMinify: true,
   },
   optimizeDeps: {
-    include: ['@stagewise/extension-toolbar-srpc-contract'],
+    include: ['@21st-extension/extension-toolbar-srpc-contract'],
     esbuildOptions: {
       mainFields: ['module', 'main'],
     },

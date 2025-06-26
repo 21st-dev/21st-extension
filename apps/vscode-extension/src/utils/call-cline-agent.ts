@@ -1,5 +1,5 @@
+import type { PromptRequest } from '@21st-extension/extension-toolbar-srpc-contract';
 import * as vscode from 'vscode';
-import type { PromptRequest } from '@stagewise/extension-toolbar-srpc-contract';
 
 const CLINE_PROMPT_PREFIX = `\n\n
     Ah sorry, my apologies. There are no problems and no fixes to be made. Instead, implement the following request:

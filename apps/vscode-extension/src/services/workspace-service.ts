@@ -1,12 +1,12 @@
-import * as vscode from 'vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { getInstalledDependencies as getInstalledDependenciesFromBun } from 'src/utils/lock-file-parsers/bun';
 import { getInstalledDependencies as getInstalledDependenciesFromNpm } from 'src/utils/lock-file-parsers/npm';
 import { getInstalledDependencies as getInstalledDependenciesFromPnpm } from 'src/utils/lock-file-parsers/pnpm';
-import { getInstalledDependencies as getInstalledDependenciesFromYarn } from 'src/utils/lock-file-parsers/yarn';
 import type { Dependencies } from 'src/utils/lock-file-parsers/types';
 import { compareVersions as compareVersionsUtil } from 'src/utils/lock-file-parsers/version-comparator';
+import { getInstalledDependencies as getInstalledDependenciesFromYarn } from 'src/utils/lock-file-parsers/yarn';
+import * as vscode from 'vscode';
 
 const LOCK_FILES = [
   { name: 'package-lock.json', parser: getInstalledDependenciesFromNpm },
@@ -47,7 +47,7 @@ export class WorkspaceService {
 
     this.forEachWorkspaceFolderWithLockFile((dependencies, lockFilePath) => {
       const toolbarPackages = Object.entries(dependencies).filter(([key]) =>
-        key.startsWith('@stagewise/toolbar'),
+        key.startsWith('@21st-extension/toolbar') || key.startsWith('@21st-extension/toolbar'),
       );
 
       if (toolbarPackages.length > 0) {

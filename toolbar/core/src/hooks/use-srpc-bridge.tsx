@@ -1,6 +1,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import { contract } from '@21st-extension/extension-toolbar-srpc-contract';
+import { createSRPCClientBridge, type ZodClient } from '@21st-extension/srpc/client';
+import type { ComponentChildren } from 'preact';
 import {
   createContext,
   useCallback,
@@ -9,9 +12,6 @@ import {
   useRef,
   useState,
 } from 'preact/compat';
-import type { ComponentChildren } from 'preact';
-import { createSRPCClientBridge, type ZodClient } from '@stagewise/srpc/client';
-import { contract } from '@stagewise/extension-toolbar-srpc-contract';
 import { useVSCode } from './use-vscode';
 
 interface SRPCBridgeContextValue {

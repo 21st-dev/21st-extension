@@ -45,16 +45,16 @@ Install the extension here: https://marketplace.visualstudio.com/items?itemName=
 
 Or follow the manual way:
 
-Install [@stagewise/toolbar](https://www.npmjs.com/package/@stagewise/toolbar):
+Install [@21st-extension/toolbar](https://www.npmjs.com/package/@21st-extension/toolbar):
 ```bash
-pnpm i -D @stagewise/toolbar
+pnpm i -D @21st-extension/toolbar
 ```
 
 Inject the toolbar into your app dev-mode:
 
 ```ts
 // 1. Import the toolbar
-import { initToolbar } from '@stagewise/toolbar';
+import { initToolbar } from '@21st-extension/toolbar';
 
 // 2. Define your toolbar configuration
 const stagewiseConfig = {
@@ -85,19 +85,19 @@ setupStagewise();
 
 ### Framework-specific integration examples
 
-For easier integration, we provide framework-specific NPM packages that come with dedicated toolbar components (e.g., `<StagewiseToolbar>`). You can usually import these from `@stagewise/toolbar-[framework-name]`.
+For easier integration, we provide framework-specific NPM packages that come with dedicated toolbar components (e.g., `<StagewiseToolbar>`). You can usually import these from `@21st-extension/toolbar-[framework-name]`.
 
 <details>
 <summary>React.js</summary>
 
-We provide the `@stagewise/toolbar-react` package for React projects. Initialize the toolbar in your main entry file (e.g., `src/main.tsx`) by creating a separate React root for it. This ensures it doesn't interfere with your main application tree.
+We provide the `@21st-extension/toolbar-react` package for React projects. Initialize the toolbar in your main entry file (e.g., `src/main.tsx`) by creating a separate React root for it. This ensures it doesn't interfere with your main application tree.
 
 ```tsx
 // src/main.tsx
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
-import { StagewiseToolbar } from '@stagewise/toolbar-react';
+import { StagewiseToolbar } from '@21st-extension/toolbar-react';
 import './index.css';
 
 // Render the main app
@@ -129,11 +129,11 @@ document.addEventListener('DOMContentLoaded', () => {
 <details>
 <summary>Next.js</summary>
 
-Use the `@stagewise/toolbar-next` package for Next.js applications. Include the `<StagewiseToolbar>` component in your root layout file (`src/app/layout.tsx`).
+Use the `@21st-extension/toolbar-next` package for Next.js applications. Include the `<StagewiseToolbar>` component in your root layout file (`src/app/layout.tsx`).
 
 ```tsx
 // src/app/layout.tsx
-import { StagewiseToolbar } from '@stagewise/toolbar-next';
+import { StagewiseToolbar } from '@21st-extension/toolbar-next';
 
 export default function RootLayout({
   children,
@@ -160,12 +160,12 @@ export default function RootLayout({
 <details>
 <summary>Nuxt.js</summary>
 
-For Nuxt.js projects, you can use the `@stagewise/toolbar-vue` package. Place the `<StagewiseToolbar>` component in your `app.vue` or a relevant layout file.
+For Nuxt.js projects, you can use the `@21st-extension/toolbar-vue` package. Place the `<StagewiseToolbar>` component in your `app.vue` or a relevant layout file.
 
 ```vue
 // app.vue
 <script setup lang="ts">
-import { StagewiseToolbar, type ToolbarConfig } from '@stagewise/toolbar-vue';
+import { StagewiseToolbar, type ToolbarConfig } from '@21st-extension/toolbar-vue';
 
 const config: ToolbarConfig = {
   plugins: [], // Add your custom plugins here
@@ -188,12 +188,12 @@ const config: ToolbarConfig = {
 <details>
 <summary>Vue.js</summary>
 
-Use the `@stagewise/toolbar-vue` package for Vue.js projects. Add the `<StagewiseToolbar>` component to your main App component (e.g., `App.vue`).
+Use the `@21st-extension/toolbar-vue` package for Vue.js projects. Add the `<StagewiseToolbar>` component to your main App component (e.g., `App.vue`).
 
 ```vue
 // src/App.vue
 <script setup lang="ts">
-import { StagewiseToolbar, type ToolbarConfig } from '@stagewise/toolbar-vue';
+import { StagewiseToolbar, type ToolbarConfig } from '@21st-extension/toolbar-vue';
 
 const config: ToolbarConfig = {
   plugins: [], // Add your custom plugins here
@@ -213,15 +213,15 @@ const config: ToolbarConfig = {
 <details>
 <summary>SvelteKit</summary>
 
-For SvelteKit, you can integrate the toolbar using `@stagewise/toolbar` and Svelte's lifecycle functions, or look for a dedicated `@stagewise/toolbar-svelte` package if available. Create a component that conditionally renders/initializes the toolbar on the client side (e.g., `src/lib/components/StagewiseToolbarLoader.svelte` or directly in `src/routes/+layout.svelte`).
+For SvelteKit, you can integrate the toolbar using `@21st-extension/toolbar` and Svelte's lifecycle functions, or look for a dedicated `@21st-extension/toolbar-svelte` package if available. Create a component that conditionally renders/initializes the toolbar on the client side (e.g., `src/lib/components/StagewiseToolbarLoader.svelte` or directly in `src/routes/+layout.svelte`).
 
-**Using `onMount` in `+layout.svelte` (with `@stagewise/toolbar`):**
+**Using `onMount` in `+layout.svelte` (with `@21st-extension/toolbar`):**
 ```svelte
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
-  import { initToolbar, type ToolbarConfig } from '@stagewise/toolbar'; // Adjust path if needed
+  import { initToolbar, type ToolbarConfig } from '@21st-extension/toolbar'; // Adjust path if needed
 
   onMount(() => {
     if (browser) {
@@ -239,12 +239,12 @@ For SvelteKit, you can integrate the toolbar using `@stagewise/toolbar` and Svel
 ```
 
 **Using a loader component (example from repository):**
-The example repository uses a `ToolbarLoader.svelte` which wraps `ToolbarWrapper.svelte`. `ToolbarWrapper.svelte` would then call `initToolbar` from `@stagewise/toolbar`.
+The example repository uses a `ToolbarLoader.svelte` which wraps `ToolbarWrapper.svelte`. `ToolbarWrapper.svelte` would then call `initToolbar` from `@21st-extension/toolbar`.
 
 ```svelte
 <!-- examples/svelte-kit-example/src/lib/components/stagewise/ToolbarLoader.svelte -->
 <script lang="ts">
-import type { ToolbarConfig } from '@stagewise/toolbar';
+import type { ToolbarConfig } from '@21st-extension/toolbar';
 // ToolbarWrapper.svelte is a custom component that would call initToolbar
 import ToolbarWrapper from './ToolbarWrapper.svelte'; 
 import { browser } from '$app/environment';
