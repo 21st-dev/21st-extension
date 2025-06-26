@@ -1,9 +1,9 @@
-import { useWindowSize } from '@/hooks/use-window-size';
 import { useCyclicUpdate } from '@/hooks/use-cyclic-update';
-import { useCallback, useMemo, useRef } from 'preact/hooks';
-import type { HTMLAttributes } from 'preact/compat';
-import { PlusIcon } from 'lucide-react';
 import { usePlugins } from '@/hooks/use-plugins';
+import { useWindowSize } from '@/hooks/use-window-size';
+import { PlusIcon } from 'lucide-react';
+import type { HTMLAttributes } from 'preact/compat';
+import { useCallback, useMemo, useRef } from 'preact/hooks';
 
 export interface ItemProposalProps extends HTMLAttributes<HTMLDivElement> {
   refElement: HTMLElement;

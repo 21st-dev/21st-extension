@@ -45,11 +45,13 @@ export default defineConfig({
       formats: ['es', 'cjs'],
     },
     rollupOptions: {
+      external: ['@supabase/supabase-js'],
       output: {
         manualChunks: undefined,
         preserveModules: false,
         globals: {
           preact: 'Preact',
+          '@supabase/supabase-js': 'supabase',
         },
       },
       treeshake: true,

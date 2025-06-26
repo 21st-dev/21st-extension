@@ -1,11 +1,11 @@
-import { useWindowSize } from '@/hooks/use-window-size';
-import { useCyclicUpdate } from '@/hooks/use-cyclic-update';
-import { useCallback, useRef } from 'preact/hooks';
-import type { HTMLAttributes } from 'preact/compat';
-import { Trash2 } from 'lucide-react';
 import { useChatState } from '@/hooks/use-chat-state';
-import type { ContextElementContext } from '@/plugin';
+import { useCyclicUpdate } from '@/hooks/use-cyclic-update';
 import { usePlugins } from '@/hooks/use-plugins';
+import { useWindowSize } from '@/hooks/use-window-size';
+import type { ContextElementContext } from '@/plugin';
+import { Trash2 } from 'lucide-react';
+import type { HTMLAttributes } from 'preact/compat';
+import { useCallback, useRef } from 'preact/hooks';
 
 export interface ContextItemProps extends HTMLAttributes<HTMLDivElement> {
   refElement: HTMLElement;

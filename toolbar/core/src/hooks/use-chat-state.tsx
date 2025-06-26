@@ -1,12 +1,13 @@
-import { type ComponentChildren, createContext } from 'preact';
-import { useContext, useState, useCallback, useEffect } from 'preact/hooks';
-import { useSRPCBridge } from './use-srpc-bridge';
+import type { ContextElementContext } from '@/plugin';
 import { createPrompt, type PluginContextSnippets } from '@/prompts';
+import { generateId } from '@/utils';
+import { type ComponentChildren, createContext } from 'preact';
+import { useCallback, useContext, useEffect, useState } from 'preact/hooks';
 import { useAppState } from './use-app-state';
 import { usePlugins } from './use-plugins';
-import type { ContextElementContext } from '@/plugin';
+import type { SelectedComponentWithCode } from './use-selected-components';
+import { useSRPCBridge } from './use-srpc-bridge';
 import { useVSCode } from './use-vscode';
-import { generateId } from '@/utils';
 
 interface Message {
   id: string;
@@ -16,6 +17,14 @@ interface Message {
   timestamp: Date;
 }
 
+interface DomContextElement {
+  element: HTMLElement;
+  pluginContext: {
+    pluginName: string;
+    context: ContextElementContext;
+  }[];
+}
+
 type ChatId = string;
 
 interface Chat {
@@ -23,16 +32,11 @@ interface Chat {
   title: string | null;
   messages: Message[];
   inputValue: string;
-  domContextElements: {
-    element: HTMLElement;
-    pluginContext: {
-      pluginName: string;
-      context: ContextElementContext;
-    }[];
-  }[];
+  domContextElements: DomContextElement[];
+  selectedComponents: SelectedComponentWithCode[];
 }
 
-type ChatAreaState = 'hidden' | 'compact' | 'expanded';
+type ChatAreaState = 'hidden' | 'compact' | 'normal';
 
 // Add new prompt state type
 type PromptState = 'idle' | 'loading' | 'success' | 'error';
@@ -52,6 +56,8 @@ interface ChatContext {
   addMessage: (chatId: ChatId, content: string) => void;
   addChatDomContext: (chatId: ChatId, element: HTMLElement) => void;
   removeChatDomContext: (chatId: ChatId, element: HTMLElement) => void;
+  addSelectedComponents: (chatId: ChatId, components: SelectedComponentWithCode[]) => void;
+  clearSelectedComponents: (chatId: ChatId) => void;
 
   // UI state
   chatAreaState: ChatAreaState;
@@ -75,6 +81,8 @@ const ChatContext = createContext<ChatContext>({
   addChatDomContext: () => {},
   removeChatDomContext: () => {},
   addMessage: () => {},
+  addSelectedComponents: () => {},
+  clearSelectedComponents: () => {},
   chatAreaState: 'hidden',
   setChatAreaState: () => {},
   isPromptCreationActive: false,
@@ -96,6 +104,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
       title: 'New chat',
       inputValue: '',
       domContextElements: [],
+      selectedComponents: [],
     },
   ]);
   const [currentChatId, setCurrentChatId] = useState<ChatId>('new_chat');
@@ -134,6 +143,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
       messages: [],
       inputValue: '',
       domContextElements: [],
+      selectedComponents: [],
     };
     setChats((prev) => [...prev, newChat]);
     setCurrentChatId(newChatId);
@@ -152,6 +162,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
               title: 'New chat',
               inputValue: '',
               domContextElements: [],
+              selectedComponents: [],
             },
           ];
         }
@@ -268,7 +279,27 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     [],
   );
 
-  const addMessage = useCallback(
+  const addSelectedComponents = useCallback((chatId: ChatId, components: SelectedComponentWithCode[]) => {
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === chatId
+          ? { ...chat, selectedComponents: components }
+          : chat,
+      ),
+    );
+  }, []);
+
+  const clearSelectedComponents = useCallback((chatId: ChatId) => {
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === chatId
+          ? { ...chat, selectedComponents: [] }
+          : chat,
+      ),
+    );
+  }, []);
+
+  const addMessage = useCallback( 
     async (chatId: ChatId, content: string, pluginTriggered = false) => {
       if (!content.trim()) return;
 
@@ -334,13 +365,6 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
         }
       });
 
-      const prompt = createPrompt(
-        chat?.domContextElements.map((e) => e.element),
-        content,
-        window.location.href,
-        pluginContextSnippets,
-      );
-
       const newMessage: Message = {
         id: generateId(),
         content: content.trim(),
@@ -352,9 +376,18 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
       async function triggerAgentPrompt() {
         if (bridge) {
           try {
+            // Create prompt (API fetching is now handled inside formatSelectedComponents)
+            const finalPrompt = await createPrompt(
+              chat?.domContextElements.map((e) => e.element),
+              content,
+              window.location.href,
+              pluginContextSnippets,
+              chat?.selectedComponents,
+            );
+
             const result = await bridge.call.triggerAgentPrompt(
               {
-                prompt,
+                prompt: finalPrompt,
                 sessionId: selectedSession?.sessionId,
               },
               { onUpdate: (update) => {} },
@@ -474,6 +507,8 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     stopPromptCreation,
     addChatDomContext,
     removeChatDomContext,
+    addSelectedComponents,
+    clearSelectedComponents,
     promptState,
     resetPromptState,
   };

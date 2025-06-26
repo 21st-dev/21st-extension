@@ -81,5 +81,11 @@
     "vite-plugin-css-injected-by-js": "^3.5.2",
     "vite-plugin-dts": "^4.5.3",
     "zod": "^3.24.4"
+  },
+  "dependencies": {
+    "@radix-ui/react-hover-card": "^1.1.13",
+    "@supabase/supabase-js": "^2.50.1",
+    "framer-motion": "^12.19.1",
+    "qss": "^3.0.0"
   }
 }

@@ -1,3 +1,5 @@
+import { TWENTY_FIRST_URL } from '@/constants';
+import type { SelectedComponentWithCode } from './hooks/use-selected-components';
 import type { ContextSnippet } from './plugin';
 
 /**
@@ -123,20 +125,115 @@ export interface PluginContextSnippets {
 [];
 
 /**
+ * Formats selected components into a structured prompt format.
+ * Fetches prompts from API for each component and includes them in the output.
+ */
+async function formatSelectedComponents(components: SelectedComponentWithCode[]): Promise<string> {
+  if (!components || components.length === 0) {
+    return '';
+  }
+
+  // Fetch prompts for every selected component using Promise.allSettled
+  const promptPromises = components.map(component => 
+    fetch(TWENTY_FIRST_URL + "/api/prompts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt_type: "extended",
+        demo_id: component.id,
+        rule_id: null, 
+        additional_context: null,
+      }),
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch prompt for component ${component.id}: ${response.statusText}`);
+      }
+      return response.json();
+    }).then(data => {
+      // Extract the prompt from the response structure and add componentId
+      if (data && data.prompt) {
+        return {
+          prompt: data.prompt,
+          debug: data.debug,
+          componentId: component.id // Add componentId from the original component
+        };
+      }
+      throw new Error(`No prompt found in response for component ${component.id}`);
+    }).catch(error => {
+      console.warn(`Failed to fetch prompt for component ${component.id}:`, error);
+      return null; // Return null for failed requests
+    })
+  );
+
+  // Wait for all prompt requests to settle (some may fail, some may succeed)
+  const promptResults = await Promise.allSettled(promptPromises);
+
+  // Create a map of component ID to prompt for easy lookup
+  const promptMap = new Map<number, string>();
+  promptResults
+    .filter((result): result is PromiseFulfilledResult<any> => 
+      result.status === 'fulfilled' && result.value !== null
+    )
+    .forEach(result => {
+      const data = result.value;
+      if (data?.prompt && data?.componentId) {
+        promptMap.set(data.componentId, data.prompt);
+      }
+    });
+
+  const formattedComponents = components.map((component, index) => {
+    const fetchedPrompt = promptMap.get(component.id);
+    
+    return `
+  <component index="${index + 1}">
+    <name>${component.component_data.name || component.name || 'Unknown'}</name>
+    <description>${component.component_data.description || 'No description available'}</description>
+    ${fetchedPrompt ? `
+    <install_instructions>
+${fetchedPrompt}
+    </install_instructions>` : ''}
+  </component>`;
+  }).join('\n');
+
+  return `
+  <inspiration_components>
+    <instructions>
+      The user has selected the following UI components as inspiration or reference for achieving their goal.
+      Use these components in the following ways:
+      1. INSPIRATION: Use the design patterns, styling approaches, and component structure as inspiration
+      2. CODE REFERENCE: Extract and adapt the code from the component prompts to implement similar functionality
+      3. INTEGRATION: Incorporate elements from these components into your solution for the user's goal
+      4. BEST PRACTICES: Follow the coding patterns and conventions demonstrated in these components
+      
+      Each component includes:
+      - Component metadata (name, description, ID)
+      - Detailed implementation prompt with code examples and instructions
+      
+      IMPORTANT: The user's goal should be achieved by leveraging these selected components as building blocks or inspiration.
+    </instructions>
+${formattedComponents}
+  </inspiration_components>`;
+}
+
+/**
  * Creates a comprehensive prompt for a Coding Agent LLM.
  *
  * @param selectedElements - An array of HTMLElements the user interacted with.
  * @param userPrompt - The user's natural language instruction.
  * @param url - The URL of the page where the interaction occurred.
  * @param contextSnippets - An array of context snippets from a list of plugins.
+ * @param selectedComponents - An optional array of selected UI components (without code content).
  * @returns A formatted string prompt for the LLM.
  */
-export function createPrompt(
+export async function createPrompt(
   selectedElements: HTMLElement[],
   userPrompt: string,
   url: string,
   contextSnippets: PluginContextSnippets[],
-): string {
+  selectedComponents?: SelectedComponentWithCode[],
+): Promise<string> {
   const pluginContext = contextSnippets
     .map((snippet) =>
       `
@@ -149,12 +246,34 @@ ${snippet.contextSnippets.map((snippet) => `    <${snippet.promptContextName}>${
     )
     .join('\n');
 
+  const selectedComponentsSection = selectedComponents && selectedComponents.length > 0 
+    ? await formatSelectedComponents(selectedComponents) 
+    : '';
+
+  // Create fallback user_goal when no specific prompt is provided
+  const getFallbackUserGoal = () => {
+    const hasSelectedElements = selectedElements && selectedElements.length > 0;
+    const hasInspirationComponents = selectedComponents && selectedComponents.length > 0;
+    
+    if (hasSelectedElements && hasInspirationComponents) {
+      return "You have html components that are selected on the website. Please improve their design using the provided inspiration_components as reference and guidance.";
+    } else if (hasSelectedElements) {
+      return "You have html components that are selected on the website. Please analyze and improve their design and functionality.";
+    } else if (hasInspirationComponents) {
+      return "You have inspiration components available and instructions on how to use them. Combine them based on provided context.";
+    } else {
+      return "Please analyze the given context and generate design for it.";
+    }
+  };
+
+  const finalUserGoal = userPrompt.trim() || getFallbackUserGoal();
+
   if (!selectedElements || selectedElements.length === 0) {
     return `
     <request>
-      <user_goal>${userPrompt}</user_goal>
+      <user_goal>${finalUserGoal}</user_goal>
       <url>${url}</url>
-  <context>No specific element was selected on the page. Please analyze the page code in general or ask for clarification.</context>
+  <context>No specific element was selected on the page. Please analyze the page code in general or ask for clarification.</context>${selectedComponentsSection}
   ${pluginContext}
 </request>`.trim();
   }
@@ -166,11 +285,12 @@ ${snippet.contextSnippets.map((snippet) => `    <${snippet.promptContextName}>${
 
   return `
 <request>
-  <user_goal>${userPrompt}</user_goal>
+  <user_goal>${finalUserGoal}</user_goal>
   <url>${url}</url>
   <selected_elements>
     ${detailedContext.trim()}
   </selected_elements>
   ${pluginContext}
+  ${selectedComponentsSection}
 </request>`.trim();
 }
