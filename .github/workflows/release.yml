@@ -49,6 +49,7 @@ jobs:
           commit: "chore: release packages [skip ci]" # This commits the changes
           title: "Release: New Package Versions"
           createGitHubReleases: true
+          createPullRequest: false # Prevent PR creation
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_PUBLISH_ACCESS_TOKEN }} # Ensure secret name is correct

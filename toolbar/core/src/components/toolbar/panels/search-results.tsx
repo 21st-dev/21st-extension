@@ -4,6 +4,8 @@ import {
   useSelectedComponents,
   type SelectedComponentWithCode,
 } from '@/hooks/use-selected-components';
+import { useSRPCBridge } from '@/hooks/use-srpc-bridge';
+import { useVSCode } from '@/hooks/use-vscode';
 import { createPrompt, type PluginContextSnippets } from '@/prompts';
 import type { ComponentSearchResult } from '@/types/supabase';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
@@ -43,6 +45,8 @@ function CreateCustomComponentCard({
     setChatInput,
   } = useChatState();
   const { clearSelection } = useSelectedComponents();
+  const { bridge } = useSRPCBridge();
+  const { selectedSession } = useVSCode();
 
   const handleOpenMagicChat = async () => {
     if (isCreatingQuery) return;
@@ -82,7 +86,21 @@ function CreateCustomComponentCard({
       }
 
       const url = TWENTY_FIRST_URL + `/magic-chat?q_key=${data.id}`;
-      window.open(url, '_blank', 'noopener,noreferrer');
+
+      // Use SRPC openExternal instead of window.open
+      if (bridge && selectedSession) {
+        const openResult = await bridge.call.openExternal(
+          {
+            url,
+            sessionId: selectedSession.sessionId,
+          },
+          { onUpdate: () => {} },
+        );
+
+        if (!openResult.result.success) {
+          throw new Error(openResult.result.error || 'Failed to open URL');
+        }
+      }
 
       // Clear everything after successful navigation - mimic message submission behavior
       if (currentChatId) {

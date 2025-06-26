@@ -12,6 +12,7 @@ import { VScodeContext } from 'src/services/vscode-context';
 import { WorkspaceService } from 'src/services/workspace-service';
 import { dispatchAgentCall } from 'src/utils/dispatch-agent-call';
 import { getCurrentIDE } from 'src/utils/get-current-ide';
+import { openUrl } from 'src/utils/open-url';
 import * as vscode from 'vscode';
 import { setupToolbar } from '../auto-prompts/setup-toolbar';
 import { startServer, stopServer } from '../http-server/server';
@@ -128,25 +129,32 @@ export async function activate(context: vscode.ExtensionContext) {
         analyticsService.trackEvent(EventName.TOOLBAR_CONNECTED);
       });
 
+      const checkSessionId = (request: { sessionId?: string }) => {
+        // If sessionId is provided, validate it matches this window
+        // If no sessionId provided, accept the request (backward compatibility)
+        if (request.sessionId && request.sessionId !== vscode.env.sessionId) {
+          const error = `Session mismatch: Request for ${request.sessionId} but this window is ${vscode.env.sessionId}`;
+          console.warn(`[Stagewise] ${error}`);
+          return {
+            sessionId: vscode.env.sessionId,
+            result: {
+              success: false,
+              error: error,
+              errorCode: 'session_mismatch' as const,
+            },
+          };
+        }
+        return null; // Valid session
+      };
+
       bridge.register({
         getSessionInfo: async (request, sendUpdate) => {
           return getCurrentWindowInfo(port);
         },
         triggerAgentPrompt: async (request, sendUpdate) => {
-          // If sessionId is provided, validate it matches this window
-          // If no sessionId provided, accept the request (backward compatibility)
-          if (request.sessionId && request.sessionId !== vscode.env.sessionId) {
-            const error = `Session mismatch: Request for ${request.sessionId} but this window is ${vscode.env.sessionId}`;
-            console.warn(`[Stagewise] ${error}`);
-            return {
-              sessionId: vscode.env.sessionId,
-              result: {
-                success: false,
-                error: error,
-                errorCode: 'session_mismatch',
-              },
-            };
-          }
+          const sessionError = checkSessionId(request);
+          if (sessionError) return sessionError;
+
           analyticsService.trackEvent(EventName.AGENT_PROMPT_TRIGGERED);
 
           await dispatchAgentCall(request);
@@ -159,6 +167,37 @@ export async function activate(context: vscode.ExtensionContext) {
             sessionId: vscode.env.sessionId,
             result: { success: true },
           };
+        },
+        openExternal: async (request, sendUpdate) => {
+          const sessionError = checkSessionId(request);
+          if (sessionError) return sessionError;
+
+          try {
+            // Open the URL externally
+            await openUrl(request.url);
+
+            analyticsService.trackEvent(EventName.OPEN_EXTERNAL_URL);
+
+            return {
+              sessionId: vscode.env.sessionId,
+              result: { success: true },
+            };
+          } catch (error) {
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            console.error(
+              `[Stagewise] Failed to open external URL: ${errorMessage}`,
+            );
+
+            return {
+              sessionId: vscode.env.sessionId,
+              result: {
+                success: false,
+                error: errorMessage,
+                errorCode: 'open_failed' as const,
+              },
+            };
+          }
         },
       });
     } catch (error) {

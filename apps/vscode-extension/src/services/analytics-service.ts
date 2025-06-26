@@ -27,6 +27,7 @@ export enum EventName {
   TOOLBAR_CONNECTED = 'toolbar_connected',
 
   AGENT_PROMPT_TRIGGERED = 'agent_prompt_triggered',
+  OPEN_EXTERNAL_URL = 'open_external_url',
 
   SHOW_TOOLBAR_UPDATE_NOTIFICATION = 'show_toolbar_update_notification',
   TOOLBAR_UPDATE_NOTIFICATION_AUTO_UPDATE = 'toolbar_update_notification_auto_update',
