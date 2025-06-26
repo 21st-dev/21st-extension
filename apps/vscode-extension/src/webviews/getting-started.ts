@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import type { StorageService } from 'src/services/storage-service';
 import { AnalyticsService, EventName } from 'src/services/analytics-service';
+import type { StorageService } from 'src/services/storage-service';
+import * as vscode from 'vscode';
 
 export function createGettingStartedPanel(
   context: vscode.ExtensionContext,
@@ -8,8 +8,8 @@ export function createGettingStartedPanel(
   onSetupToolbar: () => Promise<void>,
 ): vscode.WebviewPanel {
   const panel = vscode.window.createWebviewPanel(
-    'stagewiseGettingStarted',
-    'Getting Started with stagewise',
+    'gettingStarted',
+    'Getting Started with 21st Extension',
     vscode.ViewColumn.One,
     {
       enableScripts: true,
@@ -19,7 +19,7 @@ export function createGettingStartedPanel(
   panel.webview.html = getWebviewContent(panel.webview, context);
 
   // Immediately mark as seen
-  storage.set('stagewise.hasSeenGettingStarted', true);
+  storage.set('21st-extension.hasSeenGettingStarted', true);
 
   // Handle messages from the webview
   panel.webview.onDidReceiveMessage(
@@ -161,5 +161,5 @@ export async function shouldShowGettingStarted(
   storage: StorageService,
 ): Promise<boolean> {
   // Show getting started panel if the user hasn't seen it before
-  return !(await storage.get('stagewise.hasSeenGettingStarted', false));
+  return !(await storage.get('21st-extension.hasSeenGettingStarted', false));
 }

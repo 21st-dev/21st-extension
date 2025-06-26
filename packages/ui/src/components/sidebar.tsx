@@ -1,29 +1,29 @@
 'use client';
 
-import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { type VariantProps, cva } from 'class-variance-authority';
 import { PanelLeftIcon } from 'lucide-react';
+import * as React from 'react';
 
-import { useIsMobile } from '@stagewise/ui/hooks/use-mobile';
-import { cn } from '@stagewise/ui/lib/utils';
-import { Button } from '@stagewise/ui/components/button';
-import { Input } from '@stagewise/ui/components/input';
-import { Separator } from '@stagewise/ui/components/separator';
+import { Button } from '@21st-extension/ui/components/button';
+import { Input } from '@21st-extension/ui/components/input';
+import { Separator } from '@21st-extension/ui/components/separator';
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@stagewise/ui/components/sheet';
-import { Skeleton } from '@stagewise/ui/components/skeleton';
+} from '@21st-extension/ui/components/sheet';
+import { Skeleton } from '@21st-extension/ui/components/skeleton';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@stagewise/ui/components/tooltip';
+} from '@21st-extension/ui/components/tooltip';
+import { useIsMobile } from '@21st-extension/ui/hooks/use-mobile';
+import { cn } from '@21st-extension/ui/lib/utils';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -722,5 +722,6 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
-  useSidebar,
+  useSidebar
 };
+

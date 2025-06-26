@@ -1,5 +1,5 @@
 'use client';
-import type { ToolbarPlugin } from '@stagewise/toolbar';
+import type { ToolbarPlugin } from '@21st-extension/toolbar';
 import { ExampleComponent } from './component';
 
 export const ExamplePlugin: ToolbarPlugin = {

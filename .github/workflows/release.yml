@@ -76,7 +76,7 @@ jobs:
           # Read the new version directly from the package.json at the release commit
           # Ensure we're in the workspace root for pnpm filter to work correctly
           cd $GITHUB_WORKSPACE
-          VERSION=$(pnpm --filter stagewise-vscode-extension exec node -p "require('./package.json').version")
+          VERSION=$(pnpm --filter 21st-extension exec node -p "require('./package.json').version")
 
           if [ -z "$VERSION" ]; then
             echo "Error: Could not read version from apps/vscode-extension/package.json"
@@ -85,8 +85,8 @@ jobs:
 
           # Store version for subsequent steps
           echo "VSCODE_EXTENSION_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "VSIX_FILENAME=stagewise-vscode-extension-$VERSION.vsix" >> $GITHUB_ENV
-          echo "TAG_NAME=stagewise-vscode-extension@$VERSION" >> $GITHUB_ENV
+          echo "VSIX_FILENAME=21st-extension-$VERSION.vsix" >> $GITHUB_ENV
+          echo "TAG_NAME=21st-extension@$VERSION" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -123,7 +123,7 @@ jobs:
         with:
           tag_name: ${{ env.TAG_NAME }}
           name: Release ${{ env.TAG_NAME }}
-          body: "Release of stagewise VSCode Extension version ${{ env.VSCODE_EXTENSION_VERSION }}. See CHANGELOG.md for details."
+          body: "Release of VSCode Extension version ${{ env.VSCODE_EXTENSION_VERSION }}. See CHANGELOG.md for details."
           draft: false
           prerelease: false
           files: apps/vscode-extension/${{ env.VSIX_FILENAME }}

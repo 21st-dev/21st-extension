@@ -1,9 +1,9 @@
+import react from '@vitejs/plugin-react-swc';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import preserveDirectives from 'rollup-preserve-directives';
 import { defineConfig, type PluginOption } from 'vite';
 import dts from 'vite-plugin-dts';
-import react from '@vitejs/plugin-react-swc';
-import preserveDirectives from 'rollup-preserve-directives';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -11,7 +11,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 export default defineConfig({
   plugins: [
     react({
-      jsxImportSource: '@stagewise/toolbar/plugin-ui',
+      jsxImportSource: '@21st-extension/toolbar/plugin-ui',
     }),
     dts({
       rollupTypes: true,
@@ -21,8 +21,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      'react/jsx-runtime': '@stagewise/toolbar/plugin-ui/jsx-runtime',
-      react: '@stagewise/toolbar/plugin-ui',
+      'react/jsx-runtime': '@21st-extension/toolbar/plugin-ui/jsx-runtime',
+      react: '@21st-extension/toolbar/plugin-ui',
     },
     mainFields: ['module', 'main'],
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
@@ -43,15 +43,15 @@ export default defineConfig({
         manualChunks: undefined,
         preserveModules: false,
         globals: {
-          react: '@stagewise/toolbar/plugin-ui',
-          'react/jsx-runtime': '@stagewise/toolbar/plugin-ui/jsx-runtime',
-          '@stagewise/toolbar': '@stagewise/toolbar',
+          react: '@21st-extension/toolbar/plugin-ui',
+          'react/jsx-runtime': '@21st-extension/toolbar/plugin-ui/jsx-runtime',
+          '@21st-extension/toolbar': '@21st-extension/toolbar',
         },
       },
       external: [
-        '@stagewise/toolbar',
-        '@stagewise/toolbar/plugin-ui',
-        '@stagewise/toolbar/plugin-ui/jsx-runtime',
+        '@21st-extension/toolbar',
+        '@21st-extension/toolbar/plugin-ui',
+        '@21st-extension/toolbar/plugin-ui/jsx-runtime',
       ],
       treeshake: true,
     },

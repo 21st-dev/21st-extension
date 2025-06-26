@@ -1,11 +1,20 @@
 {
-  "name": "@stagewise/srpc",
+  "name": "@21st-extension/srpc",
   "version": "0.2.1",
   "license": "AGPL-3.0-only",
   "type": "module",
   "private": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "author": "21st Labs Inc.",
+  "homepage": "https://21st.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/21st-dev/21st-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/21st-dev/21st-extension/issues"
+  },
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",

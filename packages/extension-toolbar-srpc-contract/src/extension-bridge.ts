@@ -1,4 +1,4 @@
-import { createSRPCServerBridge } from '@stagewise/srpc/server';
+import { createSRPCServerBridge } from '@21st-extension/srpc/server';
 import type { Server } from 'node:http';
 import { contract } from './contract';
 

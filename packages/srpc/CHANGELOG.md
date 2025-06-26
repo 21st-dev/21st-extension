@@ -1,4 +1,4 @@
-# @stagewise/srpc
+# @21st-extension/srpc
 
 ## 0.2.1
 

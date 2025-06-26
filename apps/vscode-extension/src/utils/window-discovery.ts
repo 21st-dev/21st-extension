@@ -1,5 +1,5 @@
+import type { VSCodeContext } from '@21st-extension/extension-toolbar-srpc-contract';
 import * as vscode from 'vscode';
-import type { VSCodeContext } from '@stagewise/extension-toolbar-srpc-contract';
 /**
  * Get detailed information about the current IDE window
  * This is used by the getSessionInfo RPC method

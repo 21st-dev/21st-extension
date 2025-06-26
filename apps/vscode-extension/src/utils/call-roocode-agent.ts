@@ -1,6 +1,6 @@
+import type { PromptRequest } from '@21st-extension/extension-toolbar-srpc-contract';
 import * as vscode from 'vscode';
 import { injectPromptDiagnosticWithCallback } from './inject-prompt-diagnostic-with-callback';
-import type { PromptRequest } from '@stagewise/extension-toolbar-srpc-contract';
 
 const ROOCODE_PROMPT_PREFIX = `\n\n
     Ah sorry, ignore the "Fix any issues" statement and the "Current problems detected" statement.

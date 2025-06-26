@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
-import { EnvironmentInfo } from './environment-info';
-import { AnalyticsService, EventName } from './analytics-service';
-import { getWorkspaceId } from 'src/utils/get-workspace-id';
 import { setupToolbar } from 'src/auto-prompts/setup-toolbar';
+import { getWorkspaceId } from 'src/utils/get-workspace-id';
+import * as vscode from 'vscode';
+import { AnalyticsService, EventName } from './analytics-service';
+import { EnvironmentInfo } from './environment-info';
 import { StorageService } from './storage-service';
 
 export class ToolbarIntegrationNotificator implements vscode.Disposable {
@@ -94,7 +94,7 @@ export class ToolbarIntegrationNotificator implements vscode.Disposable {
         const input = tab.input;
         if (
           input instanceof vscode.TabInputWebview &&
-          input.viewType === 'stagewiseGettingStarted'
+          input.viewType === 'gettingStarted'
         ) {
           return true;
         }

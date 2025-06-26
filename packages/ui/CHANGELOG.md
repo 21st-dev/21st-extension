@@ -1,3 +1,3 @@
-# @stagewise/ui
+# @21st-extension/ui
 
 ## null

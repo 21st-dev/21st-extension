@@ -1,10 +1,10 @@
+import type { ToolbarContext, ToolbarPlugin } from '@/plugin';
+import type { PromptRequest } from '@21st-extension/extension-toolbar-srpc-contract';
 import { type ComponentChildren, createContext } from 'preact';
 import { useContext, useEffect, useMemo, useRef } from 'preact/hooks';
-import type { ToolbarContext, ToolbarPlugin } from '@/plugin';
-import { useSRPCBridge } from './use-srpc-bridge';
-import type { PromptRequest } from '@stagewise/extension-toolbar-srpc-contract';
-import { useVSCode } from './use-vscode';
 import { useConfig } from './use-config';
+import { useSRPCBridge } from './use-srpc-bridge';
+import { useVSCode } from './use-vscode';
 
 export interface PluginContextType {
   plugins: ToolbarPlugin[];

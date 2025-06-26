@@ -1,9 +1,9 @@
 {
-  "extends": "@stagewise/typescript-config/react-library.json",
+  "extends": "@21st-extension/typescript-config/react-library.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@stagewise/ui/*": ["./src/*"]
+      "@21st-extension/ui/*": ["./src/*"]
     }
   },
   "include": ["."],

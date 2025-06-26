@@ -1,8 +1,8 @@
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
 import { defineBuildConfig } from 'unbuild';
-import { execSync } from 'node:child_process';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -59,7 +59,7 @@ function replaceWorkspaceWithLocalToolbarVersion(pkgJsonPath: string) {
     if (pkgJson[depType]) {
       for (const dep in pkgJson[depType]) {
         if (
-          dep === '@stagewise/toolbar' &&
+          dep === '@21st-extension/toolbar' &&
           pkgJson[depType][dep] === 'workspace:*' &&
           toolbarVersion
         ) {
@@ -73,7 +73,7 @@ function replaceWorkspaceWithLocalToolbarVersion(pkgJsonPath: string) {
   if (changed) {
     fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
     console.log(
-      `Replaced \"@stagewise/toolbar\": \"workspace:*\" with \"${toolbarVersion}\" in ${pkgJsonPath}`,
+      `Replaced \"@21st-extension/toolbar\": \"workspace:*\" with \"${toolbarVersion}\" in ${pkgJsonPath}`,
     );
   }
 }

@@ -150,7 +150,7 @@ export interface UIHandle {
   remove: () => void;
 }
 
-import type { PromptRequest } from '@stagewise/extension-toolbar-srpc-contract';
+import type { PromptRequest } from '@21st-extension/extension-toolbar-srpc-contract';
 import type { VNode } from 'preact';
 export interface ToolbarContext {
   sendPrompt: (prompt: string | PromptRequest) => void;

@@ -11,10 +11,10 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@stagewise/ui/components",
-    "utils": "@stagewise/ui/lib/utils",
-    "hooks": "@stagewise/ui/hooks",
-    "lib": "@stagewise/ui/lib",
-    "ui": "@stagewise/ui/components"
+    "components": "@21st-extension/ui/components",
+    "utils": "@21st-extension/ui/lib/utils",
+    "hooks": "@21st-extension/ui/hooks",
+    "lib": "@21st-extension/ui/lib",
+    "ui": "@21st-extension/ui/components"
   }
 }

@@ -1,8 +1,8 @@
-import type { ToolbarPlugin } from '@stagewise/toolbar';
+import type { ToolbarPlugin } from '@21st-extension/toolbar';
 import { AngularLogo } from './logo';
 import {
-  getSelectedElementsPrompt,
   getSelectedElementAnnotation,
+  getSelectedElementsPrompt,
 } from './utils';
 
 export const AngularPlugin: ToolbarPlugin = {

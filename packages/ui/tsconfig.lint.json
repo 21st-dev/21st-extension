@@ -1,5 +1,5 @@
 {
-  "extends": "@stagewise/typescript-config/react-library.json",
+  "extends": "@21st-extension/typescript-config/react-library.json",
   "compilerOptions": {
     "outDir": "dist"
   },

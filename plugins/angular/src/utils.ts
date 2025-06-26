@@ -1,4 +1,4 @@
-import type { ContextElementContext } from '@stagewise/toolbar';
+import type { ContextElementContext } from '@21st-extension/toolbar';
 
 interface AngularComponentInfo {
   name: string;

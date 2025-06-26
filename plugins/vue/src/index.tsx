@@ -1,4 +1,4 @@
-import type { ToolbarPlugin } from '@stagewise/toolbar';
+import type { ToolbarPlugin } from '@21st-extension/toolbar';
 import { VueLogo } from './logo';
 import {
   getSelectedElementAnnotation,

@@ -1,9 +1,9 @@
+import * as prompts from '@clack/prompts';
+import spawn from 'cross-spawn';
+import mri from 'mri';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import spawn from 'cross-spawn';
-import mri from 'mri';
-import * as prompts from '@clack/prompts';
 import colors from 'picocolors';
 
 const { yellow } = colors;
@@ -15,7 +15,7 @@ const cwd = process.cwd();
 const defaultTargetDir = 'stagewise-plugin';
 
 const helpMessage = `\
-Usage: create-stagewise-plugin [OPTION]... [DIRECTORY]
+Usage: create-21st-extension-plugin [OPTION]... [DIRECTORY]
 
 Create a new Stagewise plugin in TypeScript.
 

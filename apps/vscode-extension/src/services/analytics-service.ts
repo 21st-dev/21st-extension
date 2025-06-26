@@ -1,11 +1,11 @@
-import * as vscode from 'vscode';
-import { PostHog } from 'posthog-node';
 import { createHash } from 'node:crypto';
+import { PostHog } from 'posthog-node';
+import * as vscode from 'vscode';
 import { EnvironmentInfo } from './environment-info';
 import { VScodeContext } from './vscode-context';
 
 // Note: The API key should be your actual PostHog API key
-const SALT = 'stagewise';
+const SALT = '21st-extension';
 
 export enum EventName {
   EXTENSION_ACTIVATED = 'extension_activated',
@@ -87,7 +87,7 @@ export class AnalyticsService {
   }
 
   private isAnalyticsEnabled(): boolean {
-    const config = vscode.workspace.getConfiguration('stagewise');
+    const config = vscode.workspace.getConfiguration('21st-extension');
     return config.get<boolean>('telemetry.enabled', true);
   }
 

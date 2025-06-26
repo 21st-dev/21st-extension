@@ -14,7 +14,7 @@ A TypeScript framework for type-safe, schema-validated Remote Procedure Calls (R
 ## Installation
 
 ```bash
-npm install @stagewise/srpc zod
+npm install @21st-extension/srpc zod
 ```
 
 ## Quick Start
@@ -23,7 +23,7 @@ npm install @stagewise/srpc zod
 
 ```typescript
 import { z } from 'zod';
-import { createBridgeContract } from '@stagewise/srpc';
+import { createBridgeContract } from '@21st-extension/srpc';
 
 const contract = createBridgeContract({
   server: {
@@ -62,7 +62,7 @@ const contract = createBridgeContract({
 
 ```typescript
 import http from 'node:http';
-import { createSRPCServerBridge } from '@stagewise/srpc';
+import { createSRPCServerBridge } from '@21st-extension/srpc';
 
 const httpServer = http.createServer();
 const server = createSRPCServerBridge(httpServer, contract);
@@ -92,7 +92,7 @@ httpServer.listen(3000);
 3. Set up the client:
 
 ```typescript
-import { createSRPCClientBridge } from '@stagewise/srpc';
+import { createSRPCClientBridge } from '@21st-extension/srpc';
 
 const client = createSRPCClientBridge('ws://localhost:3000', contract);
 

@@ -1,24 +1,24 @@
 {
-  "name": "@stagewise/plugin-example",
+  "name": "@21st-extension/plugin-example",
   "version": "0.4.8",
   "private": true,
   "type": "module",
   "keywords": [
-    "stagewise",
+    "21st-extension",
     "toolbar",
     "ai",
     "devtool",
     "agent",
     "interaction"
   ],
-  "author": "tiq UG (haftungsbeschränkt)",
-  "homepage": "https://stagewise.io",
+  "author": "21st Labs Inc.",
+  "homepage": "https://21st.dev/",
   "bugs": {
-    "url": "https://github.com/stagewise-io/stagewise/issues"
+    "url": "https://github.com/21st-dev/21st-extension/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/stagewise-io/stagewise.git",
+    "url": "https://github.com/21st-dev/21st-extension.git",
     "directory": "packages/toolbar"
   },
   "exports": {
@@ -42,12 +42,12 @@
     "build": "tsc -b && vite build --mode production"
   },
   "peerDependencies": {
-    "@stagewise/toolbar": "workspace:*",
+    "@21st-extension/toolbar": "workspace:*",
     "preact": "^10.20.0"
   },
   "dependencies": {},
   "devDependencies": {
-    "@stagewise/toolbar": "workspace:*",
+    "@21st-extension/toolbar": "workspace:*",
     "preact": "^10.20.0",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",

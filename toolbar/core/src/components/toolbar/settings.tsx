@@ -1,8 +1,8 @@
+import { useVSCode } from '@/hooks/use-vscode';
 import { Panel } from '@/plugin-ui/components/panel';
+import { RefreshCwIcon, SettingsIcon } from 'lucide-react';
 import { ToolbarButton } from './button';
 import { ToolbarSection } from './section';
-import { SettingsIcon, RefreshCwIcon } from 'lucide-react';
-import { useVSCode } from '@/hooks/use-vscode';
 
 export const SettingsButton = ({
   onOpenPanel,
@@ -158,7 +158,7 @@ const ProjectInfoSection = () => (
         Discord
       </a>
       <a
-        href="https://marketplace.visualstudio.com/items?itemName=stagewise.stagewise-vscode-extension"
+        href="https://marketplace.visualstudio.com/items?itemName=21st.21st-extension"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-1 text-violet-700 hover:underline"

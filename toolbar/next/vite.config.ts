@@ -1,9 +1,9 @@
+import react from '@vitejs/plugin-react-swc';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import preserveDirectives from 'rollup-preserve-directives';
 import { defineConfig, type PluginOption } from 'vite';
 import dts from 'vite-plugin-dts';
-import react from '@vitejs/plugin-react-swc';
-import preserveDirectives from 'rollup-preserve-directives';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -41,13 +41,13 @@ export default defineConfig({
         globals: {
           react: 'react',
           'react-dom': 'react-dom',
-          '@stagewise/toolbar-react': '@stagewise/toolbar-react',
-          '@stagewise/toolbar': '@stagewise/toolbar',
+          '@21st-extension/toolbar-react': '@21st-extension/toolbar-react',
+          '@21st-extension/toolbar': '@21st-extension/toolbar',
         },
       },
       external: [
-        '@stagewise/toolbar-react',
-        '@stagewise/toolbar',
+        '@21st-extension/toolbar-react',
+        '@21st-extension/toolbar',
         'next',
         'next/dynamic',
         'react',

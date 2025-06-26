@@ -1,11 +1,12 @@
 {
-  "name": "stagewise-vscode-extension",
-  "displayName": "stagewise",
+  "name": "21st-extension",
+  "displayName": "21st.dev",
   "private": true,
-  "description": "Visual vibe coding. Right in your codebase.",
-  "version": "0.5.2",
-  "publisher": "stagewise",
+  "description": "21st.dev Extension",
+  "version": "0.0.1",
+  "publisher": "21st-dev",
   "icon": "icon.png",
+  "author": "21st Labs Inc.",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -23,23 +24,23 @@
   "contributes": {
     "commands": [
       {
-        "command": "stagewise.setupToolbar",
-        "title": "Auto-setup the stagewise toolbar (AI-Assisted)",
-        "category": "stagewise"
+        "command": "21st-extension.setupToolbar",
+        "title": "Auto-setup the toolbar (AI-Assisted)",
+        "category": "21st-extension"
       },
       {
-        "command": "stagewise.showGettingStarted",
+        "command": "21st-extension.showGettingStarted",
         "title": "Show Getting Started Guide",
-        "category": "stagewise"
+        "category": "21st-extension"
       }
     ],
     "configuration": {
-      "title": "stagewise",
+      "title": "21st-extension",
       "type": "object",
       "properties": {
-        "stagewise.telemetry.enabled": {
+        "21st-extension.telemetry.enabled": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Enable anonymous usage data collection to help improve the product. No personal data is collected.",
           "tags": [
             "telemetry",
@@ -50,16 +51,16 @@
       }
     }
   },
-  "homepage": "https://stagewise.io",
+  "homepage": "https://21st.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stagewise-io/stagewise.git"
+    "url": "https://github.com/21st-dev/21st-extension.git"
   },
   "bugs": {
-    "url": "https://github.com/stagewise-io/stagewise/issues"
+    "url": "https://github.com/21st-dev/21st-extension/issues"
   },
   "keywords": [
-    "stagewise",
+    "21st-extension",
     "vscode",
     "extension",
     "ai",
@@ -96,7 +97,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.12.1",
-    "@stagewise/extension-toolbar-srpc-contract": "workspace:*",
+    "@21st-extension/extension-toolbar-srpc-contract": "workspace:*",
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.1",
     "@types/js-yaml": "^4.0.9",

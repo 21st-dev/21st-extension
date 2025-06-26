@@ -1,10 +1,19 @@
 {
-  "name": "@stagewise/extension-toolbar-srpc-contract",
+  "name": "@21st-extension/extension-toolbar-srpc-contract",
   "description": "SRPC contract implementation for VS Code extension and toolbar communication",
   "version": "0.1.3",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "private": true,
+  "author": "21st Labs Inc.",
+  "homepage": "https://21st.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/21st-dev/21st-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/21st-dev/21st-extension/issues"
+  },
   "scripts": {
     "build": "tsup",
     "clean": "rimraf dist",
@@ -13,7 +22,7 @@
     "format": "biome format --write \"**/*.{ts,tsx,md}\""
   },
   "dependencies": {
-    "@stagewise/srpc": "workspace:*",
+    "@21st-extension/srpc": "workspace:*",
     "zod": "^3.24.4"
   },
   "devDependencies": {

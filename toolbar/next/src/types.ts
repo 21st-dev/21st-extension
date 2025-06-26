@@ -1,1 +1,1 @@
-export type { ToolbarConfig } from '@stagewise/toolbar-react';
+export type { ToolbarConfig } from '@21st-extension/toolbar-react';

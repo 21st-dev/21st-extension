@@ -1,4 +1,4 @@
-# @stagewise/toolbar
+# @21st-extension/toolbar
 
 ## 0.4.8
 

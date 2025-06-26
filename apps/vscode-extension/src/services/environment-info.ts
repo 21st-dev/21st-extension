@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
 import { compareVersions as compareVersionsUtil } from 'src/utils/lock-file-parsers/version-comparator';
+import * as vscode from 'vscode';
+import { AnalyticsService, EventName } from './analytics-service';
 import { RegistryService } from './registry-service';
 import { WorkspaceService } from './workspace-service';
-import { AnalyticsService, EventName } from './analytics-service';
 
 export class EnvironmentInfo {
   private static instance: EnvironmentInfo;
@@ -111,7 +111,7 @@ export class EnvironmentInfo {
   public getExtensionVersion(): string {
     try {
       const extension = vscode.extensions.getExtension(
-        'stagewise.stagewise-vscode-extension',
+        '21st.21st-extension',
       );
       if (!extension) {
         console.warn('Stagewise extension not found');

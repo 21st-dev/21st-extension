@@ -16,7 +16,7 @@ export class RegistryService {
   public async getLatestToolbarVersion(): Promise<string | null> {
     try {
       const response = await axios.get(
-        'https://registry.npmjs.org/@stagewise/toolbar/latest',
+        'https://registry.npmjs.org/@21st-extension/toolbar/latest',
         { timeout: 5000 },
       );
       return response.data.version;
@@ -66,7 +66,7 @@ export class RegistryService {
               criteria: [
                 {
                   filterType: 7, // ExtensionName
-                  value: 'stagewise.stagewise-vscode-extension',
+                  value: '21st.21st-extension',
                 },
               ],
               pageSize: 1,
@@ -106,7 +106,7 @@ export class RegistryService {
   private async fetchFromOpenVSX(): Promise<string | null> {
     try {
       const response = await axios.get(
-        'https://open-vsx.org/api/stagewise/stagewise-vscode-extension/latest',
+        'https://open-vsx.org/api/21st-dev/21st-extension/versions',
         {
           timeout: 5000,
           headers: {
@@ -114,7 +114,21 @@ export class RegistryService {
           },
         },
       );
-      return response.data?.version || null;
+      
+      const versions = response.data?.versions;
+      if (!versions || typeof versions !== 'object') {
+        return null;
+      }
+      
+      const versionKeys = Object.keys(versions);
+      if (versionKeys.length === 0) {
+        return null;
+      }
+      
+      // Find the highest version using semantic version comparison
+      return versionKeys.reduce((newest, current) => {
+        return this.compareVersions(current, newest) > 0 ? current : newest;
+      }, versionKeys[0]);
     } catch (error) {
       console.error('Failed to fetch from Open VSX Registry:', error);
       return null;

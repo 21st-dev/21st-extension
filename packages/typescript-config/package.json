@@ -1,7 +1,16 @@
 {
-  "name": "@stagewise/typescript-config",
+  "name": "@21st-extension/typescript-config",
   "private": true,
   "license": "MIT",
+  "author": "21st Labs Inc.",
+  "homepage": "https://21st.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/21st-dev/21st-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/21st-dev/21st-extension/issues"
+  },
   "publishConfig": {
     "access": "public"
   },
