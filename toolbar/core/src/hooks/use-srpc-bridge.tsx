@@ -2,7 +2,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { contract } from '@21st-extension/extension-toolbar-srpc-contract';
-import { createSRPCClientBridge, type ZodClient } from '@21st-extension/srpc/client';
+import {
+  createSRPCClientBridge,
+  type ZodClient,
+} from '@21st-extension/srpc/client';
 import type { ComponentChildren } from 'preact';
 import {
   createContext,

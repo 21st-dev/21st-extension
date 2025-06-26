@@ -1,73 +1,85 @@
-import type { ComponentSearchResult } from '@/types/supabase'
-import { useCallback, useEffect, useState } from 'preact/hooks'
-import { HoverPeek } from '../../ui/link-preview'
+import type { ComponentSearchResult } from '@/types/supabase';
+import { useCallback, useEffect, useState } from 'preact/hooks';
+import { HoverPeek } from '../../ui/link-preview';
 
 // Cache for failed image loads to avoid retrying
-const imageErrorCache = new Set<string>()
+const imageErrorCache = new Set<string>();
 
 interface ComponentResultButtonProps {
-  result: ComponentSearchResult
-  isSelected?: boolean
-  onSelectionChange?: (result: ComponentSearchResult, selected: boolean) => void
+  result: ComponentSearchResult;
+  isSelected?: boolean;
+  onSelectionChange?: (
+    result: ComponentSearchResult,
+    selected: boolean,
+  ) => void;
 }
 
-export function ComponentResultButton({ result, isSelected = false, onSelectionChange }: ComponentResultButtonProps) {
-  const previewUrl = result.preview_url
-  const hasImageError = previewUrl ? imageErrorCache.has(previewUrl) : false
-  const componentName = result.component_data.name || result.name
-  const [showPreview, setShowPreview] = useState(false)
-  const [hoverTimeout, setHoverTimeout] = useState<ReturnType<typeof setTimeout> | null>(null)
+export function ComponentResultButton({
+  result,
+  isSelected = false,
+  onSelectionChange,
+}: ComponentResultButtonProps) {
+  const previewUrl = result.preview_url;
+  const hasImageError = previewUrl ? imageErrorCache.has(previewUrl) : false;
+  const componentName = result.component_data.name || result.name;
+  const [showPreview, setShowPreview] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   const handleImageError = useCallback(() => {
     if (previewUrl) {
-      imageErrorCache.add(previewUrl)
+      imageErrorCache.add(previewUrl);
     }
-  }, [previewUrl])
+  }, [previewUrl]);
 
-  const handleSelectionToggle = useCallback((e: Event) => {
-    e.stopPropagation()
-    if (onSelectionChange) {
-      onSelectionChange(result, !isSelected)
-    }
-  }, [result, isSelected, onSelectionChange])
+  const handleSelectionToggle = useCallback(
+    (e: Event) => {
+      e.stopPropagation();
+      if (onSelectionChange) {
+        onSelectionChange(result, !isSelected);
+      }
+    },
+    [result, isSelected, onSelectionChange],
+  );
 
   const handleButtonClick = useCallback(() => {
     if (onSelectionChange) {
-      onSelectionChange(result, !isSelected)
+      onSelectionChange(result, !isSelected);
     }
-  }, [result, isSelected, onSelectionChange])
+  }, [result, isSelected, onSelectionChange]);
 
   const handleMouseEnter = useCallback(() => {
     if (previewUrl && !hasImageError) {
       const timeout = setTimeout(() => {
-        setShowPreview(true)
-      }, 1000) // 1 second delay
-      setHoverTimeout(timeout)
+        setShowPreview(true);
+      }, 1000); // 1 second delay
+      setHoverTimeout(timeout);
     }
-  }, [previewUrl, hasImageError])
+  }, [previewUrl, hasImageError]);
 
   const handleMouseLeave = useCallback(() => {
     if (hoverTimeout) {
-      clearTimeout(hoverTimeout)
-      setHoverTimeout(null)
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
     }
-    setShowPreview(false)
-  }, [hoverTimeout])
+    setShowPreview(false);
+  }, [hoverTimeout]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (hoverTimeout) {
-        clearTimeout(hoverTimeout)
+        clearTimeout(hoverTimeout);
       }
-    }
-  }, [hoverTimeout])
+    };
+  }, [hoverTimeout]);
 
   const button = (
-    <button 
+    <button
       className={`flex items-center gap-3 p-2 w-full text-sm rounded-lg transition-all duration-200 text-left border shadow-sm ${
-        isSelected 
-          ? 'bg-blue-50 hover:bg-blue-100 border-blue-300 ring-1 ring-blue-200' 
+        isSelected
+          ? 'bg-blue-50 hover:bg-blue-100 border-blue-300 ring-1 ring-blue-200'
           : 'bg-white hover:bg-gray-100 border-gray-200 hover:border-gray-300'
       }`}
       onClick={handleButtonClick}
@@ -91,15 +103,19 @@ export function ComponentResultButton({ result, isSelected = false, onSelectionC
 
       {/* Component info */}
       <div className="flex flex-col items-start flex-1 min-w-0">
-        <span className={`truncate text-left font-medium ${
-          isSelected ? 'text-blue-900' : 'text-gray-900'
-        }`}>
+        <span
+          className={`truncate text-left font-medium ${
+            isSelected ? 'text-blue-900' : 'text-gray-900'
+          }`}
+        >
           {componentName || 'Unknown'}
         </span>
         {result.component_data.description && (
-          <span className={`text-xs truncate max-w-full ${
-            isSelected ? 'text-blue-700' : 'text-gray-600'
-          }`}>
+          <span
+            className={`text-xs truncate max-w-full ${
+              isSelected ? 'text-blue-700' : 'text-gray-600'
+            }`}
+          >
             {result.component_data.description}
           </span>
         )}
@@ -116,7 +132,7 @@ export function ComponentResultButton({ result, isSelected = false, onSelectionC
         />
       </div>
     </button>
-  )
+  );
 
   // If there's a preview URL and we should show preview, wrap with HoverPeek
   if (previewUrl && !hasImageError && showPreview) {
@@ -133,8 +149,8 @@ export function ComponentResultButton({ result, isSelected = false, onSelectionC
       >
         {button}
       </HoverPeek>
-    )
+    );
   }
 
-  return button
-} 
+  return button;
+}
