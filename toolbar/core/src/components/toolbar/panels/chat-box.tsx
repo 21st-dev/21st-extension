@@ -388,6 +388,27 @@ export function ToolbarChatArea() {
     return 'to close chat';
   }, [isSearchResultsFocused, chatState.isDomSelectorActive]);
 
+  // Get Magic Chat button text based on context
+  const getMagicChatButtonText = useCallback(() => {
+    const hasText = currentInput.trim().length > 0;
+    const hasSelectedElements =
+      (currentChat?.domContextElements &&
+        currentChat.domContextElements.length > 0) ||
+      selectedComponents.length > 0;
+
+    // If no text but has selected elements/components, show "Refine with Magic"
+    if (!hasText && hasSelectedElements) {
+      return 'Refine with Magic';
+    }
+
+    // Default to "Create with Magic"
+    return 'Create with Magic';
+  }, [
+    currentInput,
+    currentChat?.domContextElements,
+    selectedComponents.length,
+  ]);
+
   const handleComponentSelection = useCallback(
     (result: ComponentSearchResult, selected: boolean) => {
       if (selected) {
@@ -755,7 +776,8 @@ export function ToolbarChatArea() {
                       '!py-0 gap-0.5 border-none bg-transparent text-[10px] hover:bg-transparent',
                       (currentInput.trim().length > 0 ||
                         (currentChat?.domContextElements &&
-                          currentChat.domContextElements.length > 0)) &&
+                          currentChat.domContextElements.length > 0) ||
+                        selectedComponents.length > 0) &&
                         chatState.promptState !== 'loading'
                         ? 'text-black hover:text-gray-800'
                         : 'cursor-not-allowed text-gray-400',
@@ -763,19 +785,21 @@ export function ToolbarChatArea() {
                     disabled={
                       (currentInput.trim().length === 0 &&
                         (!currentChat?.domContextElements ||
-                          currentChat.domContextElements.length === 0)) ||
+                          currentChat.domContextElements.length === 0) &&
+                        selectedComponents.length === 0) ||
                       chatState.promptState === 'loading'
                     }
                     onClick={handleMagicChatSubmit}
                   >
                     <span className="mr-1 font-semibold">
-                      Create with Magic
+                      {getMagicChatButtonText()}
                     </span>
                     <span
                       className={cn(
                         (currentInput.trim().length > 0 ||
                           (currentChat?.domContextElements &&
-                            currentChat.domContextElements.length > 0)) &&
+                            currentChat.domContextElements.length > 0) ||
+                          selectedComponents.length > 0) &&
                           chatState.promptState !== 'loading'
                           ? 'text-gray-600'
                           : 'text-gray-400',
@@ -787,7 +811,8 @@ export function ToolbarChatArea() {
                       className={cn(
                         (currentInput.trim().length > 0 ||
                           (currentChat?.domContextElements &&
-                            currentChat.domContextElements.length > 0)) &&
+                            currentChat.domContextElements.length > 0) ||
+                          selectedComponents.length > 0) &&
                           chatState.promptState !== 'loading'
                           ? 'text-gray-600'
                           : 'text-gray-400',
