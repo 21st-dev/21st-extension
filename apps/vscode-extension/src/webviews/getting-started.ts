@@ -52,6 +52,10 @@ export function createGettingStartedPanel(
           );
           panel.reveal();
           break;
+        case 'openUrl':
+          vscode.env.openExternal(vscode.Uri.parse(message.data.url));
+          panel.reveal();
+          break;
         case 'captureFeedback':
           // Create posthog event
           AnalyticsService.getInstance().trackEvent(
@@ -93,20 +97,20 @@ function getWebviewContent(
 ): string {
   const stagewiseUrl =
     context.extensionMode === vscode.ExtensionMode.Development
-      ? 'http://localhost:3000/vscode-extension/welcome'
-      : 'https://stagewise.io/vscode-extension/welcome';
+      ? 'http://localhost:3000/extension/welcome'
+      : 'https://21st.dev/extension/welcome';
 
   const cspDomain =
     context.extensionMode === vscode.ExtensionMode.Development
       ? 'http://localhost:3000'
-      : 'https://stagewise.io';
+      : 'https://21st.dev';
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src ${webview.cspSource} ${cspDomain}; style-src ${webview.cspSource} 'unsafe-inline' ${cspDomain}; script-src ${webview.cspSource} 'unsafe-inline' ${cspDomain};">
+    <!--<meta http-equiv="Content-Security-Policy" content="default-src ${webview.cspSource} ${cspDomain}; style-src ${webview.cspSource} 'unsafe-inline' ${cspDomain}; script-src ${webview.cspSource} 'unsafe-inline' ${cspDomain};"> -->
     <title>Getting Started with stagewise</title>
     <style>
         html, body {
