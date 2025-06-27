@@ -1,4 +1,4 @@
-# <img src="https://21st.dev/brand/21st-logo-dark.svg" alt="logo" width="48" height="48" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;" /> 21st.dev VSCode Extension
+# <img src="https://21st.dev/brand/21st-logo-dark.png" alt="logo" width="48" height="48" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;" /> 21st.dev VSCode Extension
 
 [![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/21st-dev.21st-extension?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=21st-dev.21st-extension) [![GitHub Repo stars](https://img.shields.io/github/stars/21st-dev/21st-extension)](https://github.com/21st-dev/21st-extension) [![Join us on Discord](https://img.shields.io/discord/1229378372141056010?label=Discord&logo=discord&logoColor=white)](https://discord.gg/Qx4rFunHfm) <!-- [![Build Status](https://img.shields.io/github/actions/workflow/status/stagewise-io/stagewise/ci.yml?branch=main)](https://github.com/stagewise-io/stagewise/actions) -->
 
@@ -31,7 +31,8 @@ The Toolbar makes it incredibly easy to edit your frontend code with AI agents:
 
 ### 1. 🧩 **Install the code editor extension (Cursor, Windsurf, VS Code)**
 
-Install from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=21st-dev.21st-extension) (VS Code) OR [Open VSX](https://open-vsx.org/extension/21st-dev/21st-extension) (Cursor, Windsurf, etc.)
+- **VS Code**: install from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=21st-dev.21st-extension) or Extensions tab in IDE
+- **Cursor, Windsurf, etc.**: install from Extensions tab in IDE or manually from [Open VSX](https://open-vsx.org/extension/21st-dev/21st-extension) → Open file in editor → Right click → Install Extension
 
 ### 2. 👨🏽‍💻 **Install and inject the toolbar**
 
