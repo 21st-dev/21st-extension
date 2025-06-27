@@ -48,6 +48,16 @@
   }
 }
 
+@keyframes text-shimmer {
+  0% {
+    background-position: 100% center;
+  }
+
+  100% {
+    background-position: 0% center;
+  }
+}
+
 stagewise-companion-anchor {
   all: initial;
   @apply text-zinc-950;
@@ -108,7 +118,6 @@ stagewise-companion-anchor {
       linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6) border-box;
     background-size: auto, 400% 400%;
     animation: gradient-animation 2s ease infinite;
-    border: 2px solid transparent;
   }
 
   /* Success and error animations */
@@ -142,6 +151,23 @@ stagewise-companion-anchor {
     100% {
       box-shadow: 0 0 0 2px rgba(239, 68, 68, 0);
     }
+  }
+
+  /* Draggable chat box styles */
+  .draggable-chat-container.dragging {
+    cursor: grabbing !important;
+    user-select: none;
+  }
+
+  /* Drag border areas - only show cursor on hover */
+  .drag-border-area {
+    pointer-events: auto !important;
+    cursor: grab !important;
+    z-index: 10;
+  }
+
+  .drag-border-area:active {
+    cursor: grabbing !important;
   }
 }
 

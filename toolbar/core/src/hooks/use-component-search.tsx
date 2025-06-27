@@ -1,7 +1,7 @@
 import { TWENTY_FIRST_URL } from '@/constants';
 import { supabase } from '@/services/supabase';
 import type { ComponentSearchResult } from '@/types/supabase';
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState, useRef } from 'preact/hooks';
 
 interface UseComponentSearchReturn {
   results: ComponentSearchResult[];
@@ -17,24 +17,32 @@ export function useComponentSearch(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const extractIntent = useCallback(async (text: string): Promise<string> => {
-    const url = TWENTY_FIRST_URL + '/api/search/extract-intent';
+  // Track current search to cancel previous requests
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const currentQueryRef = useRef<string>('');
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ text }),
-    });
+  const extractIntent = useCallback(
+    async (text: string, signal?: AbortSignal): Promise<string> => {
+      const url = TWENTY_FIRST_URL + '/api/search/extract-intent';
 
-    if (!response.ok) {
-      throw new Error(`Intent extraction failed: ${response.statusText}`);
-    }
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text }),
+        signal, // Pass AbortSignal to fetch
+      });
 
-    const data = await response.json();
-    return data.searchQuery || text; // Fallback to original text if no searchQuery
-  }, []);
+      if (!response.ok) {
+        throw new Error(`Intent extraction failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.searchQuery || text; // Fallback to original text if no searchQuery
+    },
+    [],
+  );
 
   const searchComponents = useCallback(
     async (searchQuery: string) => {
@@ -42,8 +50,24 @@ export function useComponentSearch(
         setResults([]);
         setIsLoading(false);
         setError(null);
+        // Cancel any pending request
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+          abortControllerRef.current = null;
+        }
+        currentQueryRef.current = '';
         return;
       }
+
+      // Cancel previous request if it exists
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Create new AbortController for this request
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      currentQueryRef.current = searchQuery;
 
       setIsLoading(true);
       setError(null);
@@ -51,7 +75,13 @@ export function useComponentSearch(
       try {
         // Use pre-extracted intent if available, otherwise extract it
         const extractedQuery =
-          preExtractedIntent || (await extractIntent(searchQuery));
+          preExtractedIntent ||
+          (await extractIntent(searchQuery, controller.signal));
+
+        // Check if request was cancelled after intent extraction
+        if (controller.signal.aborted) {
+          return;
+        }
 
         const { data: searchResults, error } = await supabase.functions.invoke(
           'search_demos_ai_oai_extended',
@@ -62,6 +92,14 @@ export function useComponentSearch(
             },
           },
         );
+
+        // Check if this is still the current search query
+        if (
+          currentQueryRef.current !== searchQuery ||
+          controller.signal.aborted
+        ) {
+          return;
+        }
 
         if (error) throw error;
 
@@ -85,15 +123,43 @@ export function useComponentSearch(
             usage_data: result.usage_data,
           }));
 
-        setResults(transformedResults);
+        // Final check if this is still the current search query
+        if (
+          currentQueryRef.current === searchQuery &&
+          !controller.signal.aborted
+        ) {
+          setResults(transformedResults);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Search failed');
-        setResults([]);
+        // Ignore aborted requests
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
+
+        // Only update error if this is still the current search query
+        if (
+          currentQueryRef.current === searchQuery &&
+          !controller.signal.aborted
+        ) {
+          setError(err instanceof Error ? err.message : 'Search failed');
+          setResults([]);
+        }
       } finally {
-        setIsLoading(false);
+        // Only update loading state if this is still the current search query
+        if (
+          currentQueryRef.current === searchQuery &&
+          !controller.signal.aborted
+        ) {
+          setIsLoading(false);
+        }
+
+        // Clear the controller reference if this was the active request
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
       }
     },
-    [extractIntent],
+    [extractIntent, preExtractedIntent],
   );
 
   // Debounced search with 1s delay, but immediate if we have preExtractedIntent
@@ -105,6 +171,16 @@ export function useComponentSearch(
 
     return () => clearTimeout(timeoutId);
   }, [query, preExtractedIntent, searchComponents]);
+
+  // Cleanup: cancel any pending request on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, []);
 
   return { results, isLoading, error };
 }

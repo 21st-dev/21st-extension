@@ -15,16 +15,30 @@ export function InlineSuggestion({
   className,
 }: InlineSuggestionProps) {
   const [showSuggestion, setShowSuggestion] = useState(false);
+  const [isFirstAppearance, setIsFirstAppearance] = useState(true);
 
   useEffect(() => {
     if (visible && suggestion) {
       // Small delay to make it feel more natural
-      const timer = setTimeout(() => setShowSuggestion(true), 200);
+      const timer = setTimeout(() => {
+        setShowSuggestion(true);
+      }, 200);
       return () => clearTimeout(timer);
     } else {
       setShowSuggestion(false);
+      setIsFirstAppearance(true);
     }
   }, [visible, suggestion]);
+
+  useEffect(() => {
+    if (showSuggestion) {
+      // Start animation after showing
+      const animationTimer = setTimeout(() => {
+        setIsFirstAppearance(false);
+      }, 50);
+      return () => clearTimeout(animationTimer);
+    }
+  }, [showSuggestion]);
 
   if (!showSuggestion || !suggestion) {
     return null;
@@ -48,13 +62,15 @@ export function InlineSuggestion({
       {/* Suggestion text */}
       <span
         className={cn(
-          'fade-in-0 slide-in-from-left-2 animate-in duration-500',
           'inline-flex items-center gap-1 font-medium text-gray-400',
-          'rounded border border-gray-200/50 bg-gray-50/90 px-1.5 py-0.5 backdrop-blur-sm',
-          'ml-1', // Small gap from text
+          'rounded border border-gray-200/50 bg-gray-50/90 px-1 py-0.5 backdrop-blur-sm',
+          'ml-0.5 transition-all duration-200 ease-out',
+          isFirstAppearance
+            ? 'translate-x-1 scale-98 opacity-0 blur-sm'
+            : 'translate-x-0 scale-100 opacity-100 blur-0',
         )}
       >
-        <span className="rounded bg-gray-200 px-1 py-0.5 font-mono text-[10px] text-gray-600 leading-none">
+        <span className="rounded-[2px] bg-gray-200 p-0.5 font-bold text-[10px] text-gray-600 leading-none">
           Tab
         </span>
         <span className="text-[11px] leading-none">to search 21st.dev</span>

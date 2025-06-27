@@ -3,7 +3,7 @@ import { cn } from '@/utils';
 import { useCallback } from 'preact/hooks';
 import { XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { HoverCard } from '@/components/ui/hover-card';
+import { HoverPeek } from '@/components/ui/link-preview';
 import type { SelectedComponentWithCode } from '@/hooks/use-selected-components';
 
 interface SelectedDomElementsProps {
@@ -105,18 +105,23 @@ export function SelectedDomElements({
       {selectedComponents.map((component) => {
         const componentName =
           component.component_data?.name || component.name || 'Component';
+        const avatarLetter = componentName.charAt(0).toUpperCase();
 
         return (
-          <HoverCard
+          <HoverPeek
             key={`component-${component.id}`}
-            content={{
-              name: componentName,
-              preview_url: component.preview_url,
-            }}
+            url="#"
+            isStatic={true}
+            imageSrc={component.preview_url}
+            peekWidth={240}
+            peekHeight={180}
+            enableMouseFollow={false}
+            enableLensEffect={false}
+            side="top"
           >
             <div
               className={cn(
-                'flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-xs',
+                'group flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-xs',
                 'transition-all duration-150 hover:border-blue-300 hover:bg-blue-100',
                 compact && 'px-1 py-0.5 text-xs',
               )}
@@ -126,16 +131,42 @@ export function SelectedDomElements({
                 variant="ghost"
                 size="icon"
                 onClick={() => handleRemoveComponent(component.id.toString())}
-                className="h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 rounded-[2px] text-[8px] text-blue-400 leading-none hover:bg-blue-200 hover:text-blue-900"
+                className="relative h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 overflow-hidden rounded-[2px] text-[8px] leading-none hover:bg-blue-200"
                 title="Remove component"
               >
-                <XIcon className="h-2.5 min-h-2.5 w-2.5 min-w-2.5 text-blue-400 hover:text-blue-900" />
+                {/* Avatar - показывается по умолчанию */}
+                <div className="absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:scale-75 group-hover:opacity-0">
+                  {component.preview_url ? (
+                    <img
+                      src={component.preview_url}
+                      alt={componentName}
+                      className="h-full w-full rounded-[1px] object-cover"
+                      onError={(e) => {
+                        // Fallback to letter if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `<div class="bg-blue-200 text-blue-700 font-medium text-[7px] h-full w-full flex items-center justify-center">${avatarLetter}</div>`;
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-blue-200 font-medium text-[7px] text-blue-700">
+                      {avatarLetter}
+                    </div>
+                  )}
+                </div>
+                {/* X Icon - показывается при ховере */}
+                <div className="absolute inset-0 flex scale-125 items-center justify-center opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
+                  <XIcon className="h-2.5 w-2.5 text-blue-400 group-hover:text-blue-900" />
+                </div>
               </Button>
               <span className="min-w-0 truncate font-medium text-blue-700">
                 {componentName}
               </span>
             </div>
-          </HoverCard>
+          </HoverPeek>
         );
       })}
     </div>

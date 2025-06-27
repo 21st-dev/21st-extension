@@ -29,6 +29,7 @@ interface SearchResultsProps {
     isFocused: boolean,
     activeResult?: ComponentSearchResult,
   ) => void;
+  onCloseSearch?: () => void;
 }
 
 export interface SearchResultsRef {
@@ -66,7 +67,7 @@ function MiniComponentCard({
         isSelected
           ? 'border-blue-300 bg-blue-50 ring-1 ring-blue-200'
           : isFocused
-            ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-400'
+            ? 'border-blue-500 bg-blue-50'
             : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
       }`}
       onClick={handleClick}
@@ -97,17 +98,6 @@ function MiniComponentCard({
       >
         {componentName || 'Unknown'}
       </span>
-
-      {/* Checkbox */}
-      <div className="flex h-3 w-3 flex-shrink-0 items-center justify-center">
-        <input
-          type="checkbox"
-          checked={isSelected}
-          readOnly
-          className="h-3 w-3 cursor-pointer rounded border-gray-300 bg-gray-100 text-blue-600"
-          onClick={(e) => e.stopPropagation()}
-        />
-      </div>
     </button>
   );
 }
@@ -125,6 +115,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
       onComponentSelection,
       onFocusReturn,
       onFocusChange,
+      onCloseSearch,
     },
     ref,
   ) => {
@@ -192,8 +183,14 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
         if (onComponentSelection) {
           onComponentSelection(result, selected);
         }
+        // Close search after selection
+        if (selected && onCloseSearch) {
+          setTimeout(() => {
+            onCloseSearch();
+          }, 100);
+        }
       },
-      [onComponentSelection],
+      [onComponentSelection, onCloseSearch],
     );
 
     // Expose methods to parent
@@ -201,9 +198,9 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
       ref,
       () => ({
         focusOnResults: () => {
-          if (allAvailableResults.length > 0 && !isFocused) {
+          if (!isFocused) {
             setIsFocused(true);
-            setActiveIndex(0);
+            setActiveIndex(allAvailableResults.length > 0 ? 0 : -1);
             setStartIndex(0); // Reset to beginning
             containerRef.current?.focus();
           }
@@ -282,11 +279,14 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
               if (prev >= 0 && prev < currentResults.length) {
                 const activeResult = currentResults[prev];
                 handleComponentSelection(activeResult, true);
-                // Return focus to textarea after selection
+                // Close search and return focus to textarea after selection
                 setTimeout(() => {
                   setIsFocused(false);
                   setActiveIndex(-1);
                   setStartIndex(0);
+                  if (onCloseSearch) {
+                    onCloseSearch();
+                  }
                   if (onFocusReturn) {
                     onFocusReturn();
                   }
@@ -297,7 +297,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
             break;
           case 'Escape':
             e.preventDefault();
-            e.stopPropagation(); // Prevent toolbar from closing
+            // Don't stop propagation - let hotkey listener handle it too
             setIsFocused(false);
             setActiveIndex(-1);
             setStartIndex(0);
@@ -332,6 +332,32 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
         setStartIndex(0); // Reset window to beginning
       }
     }, [allAvailableResults.length, activeIndex]);
+
+    // Auto-set activeIndex when results appear and component is focused
+    useEffect(() => {
+      if (
+        isFocused &&
+        allAvailableResults.length > 0 &&
+        activeIndex === -1 &&
+        isFirstAppearance
+      ) {
+        // Wait for animation to complete before setting activeIndex
+        const totalAnimationTime =
+          (Math.min(allAvailableResults.length, 3) - 1) * 50 + 200;
+        const timer = setTimeout(() => {
+          setActiveIndex(0);
+        }, totalAnimationTime);
+        return () => clearTimeout(timer);
+      } else if (
+        isFocused &&
+        allAvailableResults.length > 0 &&
+        activeIndex === -1 &&
+        !isFirstAppearance
+      ) {
+        // If no animation, set immediately
+        setActiveIndex(0);
+      }
+    }, [isFocused, allAvailableResults.length, activeIndex, isFirstAppearance]);
 
     // Add keyboard listeners
     useEffect(() => {
@@ -437,19 +463,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
           </div>
         )}
 
-        {isLoading ? (
-          <div className="fade-in animate-in space-y-1 duration-200">
-            <div className="flex items-center gap-3 px-1 py-2">
-              <div className="h-4 w-4 flex-shrink-0 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-              <TextShimmer
-                duration={1.5}
-                className="font-medium text-sm [--base-color:theme(colors.gray.600)] [--base-gradient-color:theme(colors.blue.600)]"
-              >
-                Searching components...
-              </TextShimmer>
-            </div>
-          </div>
-        ) : visibleResults.length > 0 ? (
+        {visibleResults.length > 0 ? (
           <div className="space-y-2">
             {/* Search Results Section - Scrollable window of 3 cards */}
             <div className="space-y-1">
@@ -486,19 +500,41 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
               </div>
               <div className="flex items-center justify-between px-1 py-1">
                 {allAvailableResults.length > 3 && (
-                  <div className="text-gray-500 text-xs">
+                  <div
+                    className={`text-gray-500 text-xs transition-all duration-200 ease-out ${
+                      isFirstAppearance
+                        ? 'translate-y-1 scale-98 opacity-0 blur-sm'
+                        : 'translate-y-0 scale-100 opacity-100 blur-0'
+                    }`}
+                    style={{
+                      transitionDelay: isFirstAppearance
+                        ? `${visibleResults.length * 50 + 50}ms`
+                        : '0ms',
+                    }}
+                  >
                     {startIndex + 1}-
                     {Math.min(startIndex + 3, allAvailableResults.length)} of{' '}
                     {allAvailableResults.length}
                   </div>
                 )}
-                <div className="ml-auto text-blue-600 text-xs">
-                  ↓ focus • ↑↓ navigate • ⏎ select • ⎋ close
+                <div
+                  className={`ml-auto text-blue-600 text-xs transition-all duration-200 ease-out ${
+                    isFirstAppearance
+                      ? 'translate-y-1 scale-98 opacity-0 blur-sm'
+                      : 'translate-y-0 scale-100 opacity-100 blur-0'
+                  }`}
+                  style={{
+                    transitionDelay: isFirstAppearance
+                      ? `${visibleResults.length * 50 + 100}ms`
+                      : '0ms',
+                  }}
+                >
+                  ↑↓ navigate
                 </div>
               </div>
             </div>
           </div>
-        ) : searchQuery?.trim() ? (
+        ) : searchQuery?.trim() && !isLoading ? (
           <div className="space-y-1">
             <div className="px-1 py-2 text-gray-500 text-xs">
               No components found for "{searchQuery}"

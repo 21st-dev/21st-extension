@@ -9,7 +9,7 @@ export function SelectorCanvas() {
     chats,
     currentChatId,
     addChatDomContext,
-    isPromptCreationActive,
+    isDomSelectorActive,
     promptState,
   } = useChatState();
 
@@ -18,7 +18,7 @@ export function SelectorCanvas() {
     [currentChatId, chats],
   );
 
-  const shouldShow = isPromptCreationActive && promptState !== 'loading';
+  const shouldShow = isDomSelectorActive && promptState !== 'loading';
 
   const contextElements = useMemo(() => {
     return currentChat?.domContextElements || [];

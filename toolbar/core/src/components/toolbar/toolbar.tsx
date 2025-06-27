@@ -22,7 +22,6 @@ import type { VNode } from 'preact';
 import { SettingsPanel } from './settings';
 import { useVSCode } from '@/hooks/use-vscode';
 import { DisconnectedStatePanel } from './panels/disconnected-state';
-import { ConnectingStatePanel } from './panels/connecting-state';
 import { WindowSelectionPanel } from './panels/window-selection';
 import { NormalStateButtons } from './contents/normal';
 import { DisconnectedStateButtons } from './contents/disconnected';
@@ -112,15 +111,6 @@ export function ToolbarBox() {
 
   // Theme classes based on state
   const getThemeClasses = () => {
-    if (isLoadingState) {
-      return {
-        border: 'border-blue-300',
-        bg: 'bg-blue-100/80',
-        divideBorder: 'divide-blue-200',
-        buttonBg: 'bg-blue-600',
-        buttonColor: 'text-blue-700',
-      };
-    }
     if (isDisconnectedState) {
       return {
         border: 'border-orange-300',
@@ -130,12 +120,12 @@ export function ToolbarBox() {
         buttonColor: 'text-orange-700',
       };
     }
-    // Connected state (default)
+    // Connected state (default) - используем одинаковые стили для обычного и loading состояния
     return {
       border: 'border-border/30',
       bg: 'bg-zinc-50/80',
       divideBorder: 'divide-border/20',
-      buttonBg: 'bg-zinc-950', // Чисто черный фон
+      buttonBg: 'bg-zinc-950', // Чисто черный фон для всех состояний
       buttonColor: 'stroke-zinc-950',
     };
   };
@@ -174,57 +164,8 @@ export function ToolbarBox() {
 
   return (
     <div className={`fixed z-50 ${getPositionClasses()}`}>
-      {/* Центрированный чат снизу с отступом */}
-      {isConnectedState && !minimized && (
-        <div className="-translate-x-1/2 fixed bottom-24 left-1/2 z-40">
-          <div
-            className={cn(
-              'w-[400px] max-w-[80vw] transition-all duration-300 ease-out', // Увеличиваем ширину
-              chatState.isPromptCreationActive
-                ? 'pointer-events-auto scale-100 opacity-100 blur-none'
-                : 'pointer-events-none scale-95 opacity-0 blur-md', // Менее навязчивое масштабирование
-            )}
-          >
-            <div className="flex flex-col gap-2">
-              <ToolbarChatArea />
-              {/* Settings and plugins buttons under chat */}
-              <div className="flex justify-center gap-2">
-                {/* Plugin buttons */}
-                {plugins
-                  .filter((plugin) => plugin.onActionClick)
-                  .map((plugin) => (
-                    <ToolbarButton
-                      key={plugin.pluginName}
-                      onClick={handleButtonClick(() => {
-                        if (pluginBox?.pluginName !== plugin.pluginName) {
-                          const component = plugin.onActionClick();
-                          if (component) {
-                            setPluginBox({
-                              component: plugin.onActionClick(),
-                              pluginName: plugin.pluginName,
-                            });
-                          }
-                        } else {
-                          setPluginBox(null);
-                        }
-                      })}
-                      active={pluginBox?.pluginName === plugin.pluginName}
-                      className="opacity-60 transition-opacity hover:opacity-100"
-                    >
-                      {plugin.iconSvg ? (
-                        <span className="size-4 stroke-zinc-950 text-zinc-950 *:size-full">
-                          {plugin.iconSvg}
-                        </span>
-                      ) : (
-                        <PuzzleIcon className="size-4" />
-                      )}
-                    </ToolbarButton>
-                  ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Draggable Chat Area - positioned independently */}
+      {isConnectedState && !minimized && <ToolbarChatArea />}
 
       {/* Plugin box / info panel рядом с кнопкой */}
       {(pluginBox ||
@@ -249,8 +190,7 @@ export function ToolbarBox() {
                 : 'left-0', // Левый край панели = левый край тулбара
             )}
           >
-            {/* Render content based on state */}
-            {isLoadingState && <ConnectingStatePanel />}
+            {/* Render content based on state - убираем ConnectingStatePanel */}
             {isDisconnectedState && (
               <DisconnectedStatePanel
                 discover={discover}

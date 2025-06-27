@@ -1,4 +1,5 @@
 import { RefreshCwIcon, WifiOffIcon } from 'lucide-react';
+import { useState } from 'preact/hooks';
 
 export function DisconnectedStatePanel({
   discover,
@@ -7,52 +8,77 @@ export function DisconnectedStatePanel({
   discover: () => Promise<void>;
   discoveryError: string | null;
 }) {
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    try {
+      await discover();
+    } finally {
+      // Add a small delay to show the loading state
+      setTimeout(() => {
+        setIsRetrying(false);
+      }, 500);
+    }
+  };
+
   return (
-    <div className="rounded-lg border border-orange-200 bg-orange-50/90 p-4 shadow-lg backdrop-blur">
-      <div className="mb-3 flex items-center gap-3">
-        <WifiOffIcon className="size-5 text-orange-600" />
-        <h3 className="font-semibold text-orange-800">Not Connected</h3>
+    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-2xl border border-border/30 bg-zinc-50/80 shadow-md backdrop-blur-md">
+      <div className="flex items-center justify-between px-4 pt-3 pb-3">
+        <div className="flex items-center gap-3">
+          <WifiOffIcon className="size-5 text-zinc-600" />
+          <h2 className="font-medium text-base text-zinc-950">Not Connected</h2>
+        </div>
       </div>
 
-      <div className="space-y-3 text-orange-700 text-sm">
-        <p>The stagewise toolbar isn&apos;t connected to any IDE window.</p>
+      <div className="flex flex-col border-border/30 border-t px-4 py-3 text-zinc-950">
+        <div className="space-y-4">
+          <p className="text-sm text-zinc-600">
+            The 21st.dev toolbar isn't connected to any IDE window.
+          </p>
 
-        {discoveryError && (
-          <div className="rounded border border-red-200 bg-red-100 p-2 text-red-700">
-            <strong>Error:</strong> {discoveryError}
+          {discoveryError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+              <p className="text-red-700 text-sm">
+                <span className="font-medium">Error:</span> {discoveryError}
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <p className="font-medium text-sm text-zinc-700">To connect:</p>
+            <ol className="list-inside list-decimal space-y-2 text-sm text-zinc-600">
+              <li>Open your IDE (Cursor, Windsurf, etc.)</li>
+              <li>Install the 21st.dev extension</li>
+              <li>Make sure the extension is active</li>
+              <li>Click retry below</li>
+            </ol>
           </div>
-        )}
 
-        <div className="space-y-2">
-          <p className="font-medium">To connect:</p>
-          <ol className="list-inside list-decimal space-y-1 pl-2 text-xs">
-            <li>Open your IDE (Cursor, Windsurf, etc.)</li>
-            <li>Install the stagewise extension</li>
-            <li>Make sure the extension is active</li>
-            <li>Click refresh below</li>
-          </ol>
-        </div>
-
-        <button
-          type="button"
-          onClick={discover}
-          className="flex w-full items-center justify-center gap-2 rounded-md bg-orange-600 px-3 py-2 font-medium text-sm text-white transition-colors hover:bg-orange-700"
-        >
-          <RefreshCwIcon className="size-4" />
-          Retry Connection
-        </button>
-
-        <div className="border-orange-200 border-t pt-2">
-          <a
-            href="https://marketplace.visualstudio.com/items?itemName=21st.21st-extension"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-orange-600 text-xs hover:text-orange-800 hover:underline"
+          <button
+            type="button"
+            onClick={handleRetry}
+            disabled={isRetrying}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 font-medium text-sm text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Get VS Code Extension →
-          </a>
+            <RefreshCwIcon
+              className={`size-4 ${isRetrying ? 'animate-spin' : ''}`}
+            />
+            {isRetrying ? 'Connecting...' : 'Retry Connection'}
+          </button>
+
+          <div className="border-zinc-200 border-t pt-3">
+            <a
+              href="https://marketplace.visualstudio.com/items?itemName=21st-dev.21st-extension"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-zinc-600 hover:text-zinc-800 hover:underline"
+            >
+              Get 21st.dev Extension →
+            </a>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

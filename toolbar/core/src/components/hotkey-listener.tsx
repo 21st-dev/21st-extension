@@ -1,4 +1,4 @@
-import { useCallback } from 'preact/hooks';
+import { useCallback, useEffect, useRef } from 'preact/hooks';
 import { HotkeyActions, hotkeyActionDefinitions } from '../utils';
 import { useEventListener } from '../hooks/use-event-listener';
 import { useAppState } from '../hooks/use-app-state';
@@ -12,8 +12,34 @@ const HotkeyListener = () => {
     stopPromptCreation,
     startPromptCreation,
     isSearchResultsFocused,
-    setSearchResultsFocused,
+    closeSearchResults,
+    isDomSelectorActive,
+    startDomSelector,
+    stopDomSelector,
   } = useChatState();
+
+  // Use refs to store current state for immediate access in event handlers
+  const stateRef = useRef({
+    isSearchResultsFocused,
+    isDomSelectorActive,
+    isPromptCreationActive,
+    minimized,
+  });
+
+  // Update ref whenever state changes
+  useEffect(() => {
+    stateRef.current = {
+      isSearchResultsFocused,
+      isDomSelectorActive,
+      isPromptCreationActive,
+      minimized,
+    };
+  }, [
+    isSearchResultsFocused,
+    isDomSelectorActive,
+    isPromptCreationActive,
+    minimized,
+  ]);
 
   useEventListener(
     'keydown',
@@ -36,31 +62,63 @@ const HotkeyListener = () => {
           }
         }
 
+        if (
+          hotkeyActionDefinitions[HotkeyActions.CMD_OPT_PERIOD].isEventMatching(
+            event,
+          )
+        ) {
+          event.preventDefault();
+
+          // Если чат не активен - сначала открываем чат
+          if (!isPromptCreationActive) {
+            if (minimized) {
+              expand();
+            }
+            startPromptCreation();
+            // Активируем DOM селектор с небольшой задержкой
+            setTimeout(() => startDomSelector(), 100);
+          } else {
+            // Если чат уже активен - переключаем состояние DOM селектора
+            if (isDomSelectorActive) {
+              stopDomSelector();
+            } else {
+              startDomSelector();
+            }
+          }
+        }
+
         if (hotkeyActionDefinitions[HotkeyActions.ESC].isEventMatching(event)) {
           event.preventDefault();
 
-          // Если в фокусе search results - только убираем фокус
-          if (isSearchResultsFocused) {
-            setSearchResultsFocused(false);
+          // Get current state from ref to avoid stale closures
+          const currentState = stateRef.current;
+
+          // Если в фокусе search results - полностью закрываем поиск
+          if (currentState.isSearchResultsFocused) {
+            closeSearchResults();
+          }
+          // Если активен DOM селектор - деактивируем его
+          else if (currentState.isDomSelectorActive) {
+            stopDomSelector();
           }
           // Если чат открыт - закрываем его
-          else if (isPromptCreationActive) {
+          else if (currentState.isPromptCreationActive) {
             stopPromptCreation();
-          } else if (!minimized) {
+          } else if (!currentState.minimized) {
             // Если нет чата но toolbar развернут - минимизируем
             minimize();
           }
         }
       },
       [
-        minimized,
         expand,
         minimize,
-        isPromptCreationActive,
         stopPromptCreation,
         startPromptCreation,
-        isSearchResultsFocused,
-        setSearchResultsFocused,
+        closeSearchResults,
+        startDomSelector,
+        stopDomSelector,
+        stateRef,
       ],
     ),
   );

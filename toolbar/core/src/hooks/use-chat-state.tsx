@@ -72,6 +72,14 @@ interface ChatContext {
   // Search results focus state
   isSearchResultsFocused: boolean;
   setSearchResultsFocused: (focused: boolean) => void;
+  isSearchActivated: boolean;
+  setSearchActivated: (activated: boolean) => void;
+  closeSearchResults: () => void;
+
+  // DOM selector state
+  isDomSelectorActive: boolean;
+  startDomSelector: () => void;
+  stopDomSelector: () => void;
 
   // Prompt state
   promptState: PromptState;
@@ -97,6 +105,12 @@ const ChatContext = createContext<ChatContext>({
   stopPromptCreation: () => {},
   isSearchResultsFocused: false,
   setSearchResultsFocused: () => {},
+  isSearchActivated: false,
+  setSearchActivated: () => {},
+  closeSearchResults: () => {},
+  isDomSelectorActive: false,
+  startDomSelector: () => {},
+  stopDomSelector: () => {},
   promptState: 'idle',
   resetPromptState: () => {},
 });
@@ -126,6 +140,13 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
   const [isSearchResultsFocused, setIsSearchResultsFocused] =
     useState<boolean>(false);
 
+  // Add search activation state
+  const [isSearchActivated, setIsSearchActivated] = useState<boolean>(false);
+
+  // Add DOM selector state
+  const [isDomSelectorActive, setIsDomSelectorActive] =
+    useState<boolean>(false);
+
   // Add prompt state management
   const [promptState, setPromptState] = useState<PromptState>('idle');
 
@@ -142,6 +163,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
   useEffect(() => {
     if (minimized) {
       setIsPromptCreationMode(false);
+      setIsDomSelectorActive(false);
       internalSetChatAreaState('hidden');
     }
   }, [minimized]);
@@ -220,6 +242,11 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     setIsPromptCreationMode(false);
     // Reset prompt state when stopping prompt creation
     setPromptState('idle');
+    // Also stop DOM selector when stopping prompt creation
+    setIsDomSelectorActive(false);
+    // Reset search state when stopping prompt creation
+    setIsSearchActivated(false);
+    setIsSearchResultsFocused(false);
     // clear dom context for this chat so that it doesn't get too weird when re-starting prompt creation mode
     setChats((prev) =>
       prev.map((chat) =>
@@ -506,6 +533,19 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     ],
   );
 
+  const startDomSelector = useCallback(() => {
+    setIsDomSelectorActive(true);
+  }, []);
+
+  const stopDomSelector = useCallback(() => {
+    setIsDomSelectorActive(false);
+  }, []);
+
+  const closeSearchResults = useCallback(() => {
+    setIsSearchActivated(false);
+    setIsSearchResultsFocused(false);
+  }, []);
+
   const value: ChatContext = {
     chats,
     currentChatId,
@@ -525,8 +565,14 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     clearSelectedComponents,
     isSearchResultsFocused,
     setSearchResultsFocused: setIsSearchResultsFocused,
+    isSearchActivated,
+    setSearchActivated: setIsSearchActivated,
+    closeSearchResults,
     promptState,
     resetPromptState,
+    isDomSelectorActive,
+    startDomSelector,
+    stopDomSelector,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
