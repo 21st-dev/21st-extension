@@ -5,7 +5,10 @@ import {
 } from 'lucide-react';
 import * as React from 'react';
 
-import { type Button, buttonVariants } from '@21st-extension/ui/components/button';
+import {
+  type Button,
+  buttonVariants,
+} from '@21st-extension/ui/components/button';
 import { cn } from '@21st-extension/ui/lib/utils';
 
 function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
@@ -117,6 +120,10 @@ function PaginationEllipsis({
 
 export {
   Pagination,
-  PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 };
-

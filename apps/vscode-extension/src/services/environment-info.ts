@@ -110,9 +110,7 @@ export class EnvironmentInfo {
 
   public getExtensionVersion(): string {
     try {
-      const extension = vscode.extensions.getExtension(
-        '21st.21st-extension',
-      );
+      const extension = vscode.extensions.getExtension('21st.21st-extension');
       if (!extension) {
         console.warn('Stagewise extension not found');
         return 'unknown';
