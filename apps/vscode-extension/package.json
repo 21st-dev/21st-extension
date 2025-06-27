@@ -71,7 +71,9 @@
   "scripts": {
     "vscode:prepublish": "pnpm run build",
     "run-server": "node ./out/server.js",
-    "build": "webpack --mode production --config webpack.config.js"
+    "build": "webpack --mode production --config webpack.config.js",
+    "watch": "webpack --mode development --watch --config webpack.config.js",
+    "dev": "webpack --mode development --watch --config webpack.config.js"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",

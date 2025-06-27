@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { TWENTY_FIRST_URL } from '@/constants';
 import { createPrompt } from '@/prompts';
 import { useVSCode } from '@/hooks/use-vscode';
+import { useSRPCBridge } from '@/hooks/use-srpc-bridge';
 import { getIDENameFromAppName } from '@/utils/get-ide-name';
 import {
   useCallback,
@@ -29,7 +30,8 @@ export function ToolbarChatArea() {
   const chatState = useChatState();
   const [isComposing, setIsComposing] = useState(false);
   const { plugins } = usePlugins();
-  const { appName } = useVSCode();
+  const { appName, selectedSession } = useVSCode();
+  const { bridge } = useSRPCBridge();
   const { selectedComponents, removeComponent, addComponent } =
     useSelectedComponents();
 
@@ -154,7 +156,21 @@ export function ToolbarChatArea() {
       }
 
       const url = TWENTY_FIRST_URL + `/magic-chat?q_key=${data.id}`;
-      window.open(url, '_blank', 'noopener,noreferrer');
+
+      // Use SRPC openExternal instead of window.open
+      if (bridge && selectedSession) {
+        const openResult = await bridge.call.openExternal(
+          {
+            url,
+            sessionId: selectedSession.sessionId,
+          },
+          { onUpdate: () => {} },
+        );
+
+        if (!openResult.result.success) {
+          throw new Error(openResult.result.error || 'Failed to open URL');
+        }
+      }
 
       // Clear everything after successful navigation
       if (chatState.currentChatId) {

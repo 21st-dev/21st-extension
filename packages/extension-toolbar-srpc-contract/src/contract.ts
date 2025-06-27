@@ -60,6 +60,23 @@ export const contract = createBridgeContract({
         updateText: z.string(),
       }),
     },
+    openExternal: {
+      request: z.object({
+        url: z.string().url().describe('The URL to open externally'),
+        sessionId: z.string().optional().describe('Session ID for validation'),
+      }),
+      response: z.object({
+        sessionId: z.string().optional(),
+        result: z.object({
+          success: z.boolean(),
+          error: z.string().optional(),
+          errorCode: z
+            .enum(['session_mismatch', 'invalid_url', 'open_failed'])
+            .optional(),
+        }),
+      }),
+      update: z.object({}),
+    },
   },
 });
 
@@ -69,4 +86,12 @@ export type PromptRequest = z.infer<
 
 export type VSCodeContext = z.infer<
   typeof contract.server.getSessionInfo.response
+>;
+
+export type OpenExternalRequest = z.infer<
+  typeof contract.server.openExternal.request
+>;
+
+export type OpenExternalResponse = z.infer<
+  typeof contract.server.openExternal.response
 >;
