@@ -30,6 +30,7 @@ interface SearchResultsProps {
     activeResult?: ComponentSearchResult,
   ) => void;
   onCloseSearch?: () => void;
+  onReady?: () => void;
 }
 
 export interface SearchResultsRef {
@@ -53,6 +54,10 @@ function MiniComponentCard({
   ) => void;
 }) {
   const componentName = result.component_data.name || result.name;
+  const demoName = result.component_data.name ? result.name : null; // Only show demo name if component name exists separately
+  const authorName = result.user_data.display_name || result.user_data.name;
+  const authorAvatar =
+    result.user_data.display_image_url || result.user_data.image_url;
 
   const handleClick = useCallback(() => {
     if (onSelectionChange) {
@@ -86,18 +91,44 @@ function MiniComponentCard({
         )}
       </div>
 
-      {/* Component name only */}
-      <span
-        className={`flex-1 truncate text-left font-medium ${
-          isSelected
-            ? 'text-blue-900'
-            : isFocused
-              ? 'text-blue-800'
-              : 'text-gray-900'
-        }`}
-      >
-        {componentName || 'Unknown'}
-      </span>
+      {/* Component name and demo */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 items-center gap-1">
+          <span
+            className={`truncate text-left font-medium ${
+              isSelected
+                ? 'text-blue-900'
+                : isFocused
+                  ? 'text-blue-800'
+                  : 'text-gray-900'
+            }`}
+          >
+            {componentName || 'Unknown'}
+          </span>
+          {demoName && (
+            <span className="truncate text-[10px] text-gray-400">
+              {demoName}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Author info */}
+      <div className="flex flex-shrink-0 items-center gap-1">
+        {authorAvatar && (
+          <img
+            src={authorAvatar}
+            alt={authorName}
+            className="h-4 w-4 rounded-full border border-gray-200"
+            loading="eager"
+          />
+        )}
+        {authorName && (
+          <span className="max-w-16 truncate text-[10px] text-gray-500">
+            {authorName}
+          </span>
+        )}
+      </div>
     </button>
   );
 }
@@ -116,6 +147,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
       onFocusReturn,
       onFocusChange,
       onCloseSearch,
+      onReady,
     },
     ref,
   ) => {
@@ -164,11 +196,23 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
         const totalAnimationTime = (visibleResults.length - 1) * 50 + 200;
         const timer = setTimeout(() => {
           setIsFirstAppearance(false);
+          // Notify parent when animation completed
+          if (onReady) {
+            onReady();
+          }
         }, totalAnimationTime);
 
         return () => clearTimeout(timer);
       }
-    }, [visibleResults.length, isFirstAppearance]);
+    }, [visibleResults.length, isFirstAppearance, onReady]);
+
+    // If there is no first appearance animation (e.g., already rendered), ensure onReady is called
+    useEffect(() => {
+      if (!isFirstAppearance) {
+        onReady?.();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFirstAppearance]);
 
     // Reset first appearance when search query changes or when results become empty
     useEffect(() => {
@@ -422,46 +466,61 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
         className="space-y-3 outline-none"
       >
         {/* Preview section at the top */}
-        {activeResult && activeResult.preview_url && (
-          <div
-            className={`flex justify-center transition-all duration-200 ease-out ${
-              isFirstAppearance
-                ? 'translate-y-1 scale-98 opacity-0 blur-sm'
-                : 'translate-y-0 scale-100 opacity-100 blur-0'
-            }`}
-          >
+        {activeResult &&
+          (activeResult.preview_url || activeResult.video_url) && (
             <div
-              style={{
-                position: 'relative',
-                display: 'block',
-                overflow: 'hidden',
-                borderRadius: '0.5rem',
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
-                boxShadow:
-                  '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-                width: 200,
-                height: 150,
-                transition: 'box-shadow 0.15s ease-in-out',
-              }}
+              className={`flex justify-center transition-all duration-200 ease-out ${
+                isFirstAppearance
+                  ? 'translate-y-1 scale-98 opacity-0 blur-sm'
+                  : 'translate-y-0 scale-100 opacity-100 blur-0'
+              }`}
             >
-              <img
-                src={activeResult.preview_url}
-                alt={`Preview for ${activeResult.component_data.name || activeResult.name}`}
+              <div
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  borderRadius: '0.5rem',
+                  position: 'relative',
                   display: 'block',
+                  overflow: 'hidden',
+                  borderRadius: '0.5rem',
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  boxShadow:
+                    '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                  width: 200,
+                  height: 150,
+                  transition: 'box-shadow 0.15s ease-in-out',
                 }}
-              />
-              <div className="absolute right-1 bottom-1 left-1 rounded bg-black/75 px-2 py-1 text-white text-xs backdrop-blur-sm">
-                {activeResult.component_data.name || activeResult.name}
+              >
+                {activeResult.video_url ? (
+                  <video
+                    src={activeResult.video_url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '0.5rem',
+                      display: 'block',
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={activeResult.preview_url}
+                    alt={`Preview for ${activeResult.component_data.name || activeResult.name}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '0.5rem',
+                      display: 'block',
+                    }}
+                  />
+                )}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
         {visibleResults.length > 0 ? (
           <div className="space-y-2">
@@ -512,8 +571,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
                         : '0ms',
                     }}
                   >
-                    {startIndex + 1}-
-                    {Math.min(startIndex + 3, allAvailableResults.length)} of{' '}
+                    {activeIndex >= 0 ? activeIndex + 1 : 1} of{' '}
                     {allAvailableResults.length}
                   </div>
                 )}

@@ -26,9 +26,6 @@ export interface AppState {
   setPosition: (
     position: 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight',
   ) => void;
-
-  githubUsername: string;
-  setGithubUsername: (username: string) => void;
 }
 
 interface InternalAppState extends AppState {
@@ -77,7 +74,6 @@ export function AppStateProvider({
       toolbarBoxRef: createRef(),
       minimized: storedState.minimized ?? true,
       position: storedState.position ?? 'bottomLeft',
-      githubUsername: storedState.githubUsername ?? '',
       requestMainAppBlock: () => 0,
       requestMainAppUnblock: () => 0,
       discardMainAppBlock: () => {},
@@ -87,7 +83,6 @@ export function AppStateProvider({
       minimize: () => {},
       expand: () => {},
       setPosition: () => {},
-      setGithubUsername: () => {},
     };
   });
 
@@ -96,9 +91,8 @@ export function AppStateProvider({
     saveStateToStorage({
       minimized: state.minimized,
       position: state.position,
-      githubUsername: state.githubUsername,
     });
-  }, [state.minimized, state.position, state.githubUsername]);
+  }, [state.minimized, state.position]);
 
   const requestMainAppBlock = useCallback(() => {
     let newHandleValue = 0;
@@ -181,10 +175,6 @@ export function AppStateProvider({
     [],
   );
 
-  const setGithubUsername = useCallback((username: string) => {
-    setState((prev) => ({ ...prev, githubUsername: username }));
-  }, []);
-
   const value: AppState = {
     requestMainAppBlock,
     requestMainAppUnblock,
@@ -199,8 +189,6 @@ export function AppStateProvider({
     expand,
     position: state.position,
     setPosition,
-    githubUsername: state.githubUsername,
-    setGithubUsername,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

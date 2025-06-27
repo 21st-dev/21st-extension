@@ -56,19 +56,19 @@ export function ContextItemProposal({
     <div
       {...props}
       className={
-        'fixed flex items-center justify-center rounded-lg border-2 border-blue-600/80 bg-blue-600/20 text-white transition-all duration-100'
+        'fixed flex items-center justify-center rounded-sm border border-blue-600/80 bg-blue-600/20 text-white transition-all duration-100'
       }
       style={{ zIndex: 1000 }}
       ref={boxRef}
     >
       <div className="absolute top-0.5 left-0.5 flex w-full flex-row items-start justify-start gap-1">
-        <div className="flex flex-row items-center justify-center gap-0.5 overflow-hidden rounded-md bg-zinc-700/80 px-1 py-0 font-medium text-white text-xs">
+        <div className="flex flex-row items-center justify-center gap-0.5 overflow-hidden rounded-sm bg-zinc-700/80 px-1 py-0 font-medium text-white text-xs">
           <span className="truncate">{refElement.tagName.toLowerCase()}</span>
         </div>
         {hoveredElementPluginContext
           .filter((plugin) => plugin.context.annotation)
           .map((plugin) => (
-            <div className="flex flex-row items-center justify-center gap-0.5 overflow-hidden rounded-md bg-zinc-700/80 px-1 py-0 font-medium text-white text-xs">
+            <div className="flex flex-row items-center justify-center gap-0.5 overflow-hidden rounded-sm bg-zinc-700/80 px-1 py-0 font-medium text-white text-xs">
               <span className="size-3 shrink-0 stroke-white text-white *:size-full">
                 {
                   plugins.find((p) => p.pluginName === plugin.pluginName)

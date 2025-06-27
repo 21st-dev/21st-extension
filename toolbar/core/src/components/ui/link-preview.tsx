@@ -240,7 +240,10 @@ export const HoverPeek = ({
           sideOffset={12} // A little gap between trigger and card.
           // This is a bit tricky: if the lens is on, we disable pointer events on the *wrapper*
           // so that hover events are only detected on the link/image inside it for the lens effect.
-          style={{ pointerEvents: enableLensEffect ? 'none' : 'auto' }}
+          style={{
+            pointerEvents: enableLensEffect ? 'none' : 'auto',
+            opacity: 1,
+          }}
         >
           {/* No animations - just show/hide based on isPeeking */}
           {isPeeking && (
@@ -249,6 +252,8 @@ export const HoverPeek = ({
               style={{
                 transform: `translate(${enableMouseFollow && (followAxis === 'x' || followAxis === 'both') ? followX : 0}px, ${enableMouseFollow && (followAxis === 'y' || followAxis === 'both') ? followY : 0}px)`,
                 pointerEvents: 'auto',
+                // Ensure the preview is fully opaque regardless of external styles
+                opacity: 1,
               }}
             >
               {/* The link wrapping the preview image. It also acts as the lens trigger area. */}
@@ -268,6 +273,7 @@ export const HoverPeek = ({
                   width: peekWidth,
                   height: peekHeight,
                   transition: 'box-shadow 0.15s ease-in-out',
+                  opacity: 1, // Force full opacity
                 }}
                 // Attach lens handlers here.
                 onMouseEnter={handleLensMouseEnter}

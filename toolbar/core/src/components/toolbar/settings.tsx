@@ -43,10 +43,6 @@ export const SettingsPanel = ({ onClose }: { onClose?: () => void }) => {
       </div>
 
       <div className="flex flex-col border-border/30 border-t px-4 py-3 text-zinc-950">
-        <GitHubUsernameSettings />
-      </div>
-
-      <div className="flex flex-col border-border/30 border-t px-4 py-3 text-zinc-950">
         <ConnectionSettings />
       </div>
 
@@ -97,50 +93,6 @@ const PositionSettings = () => {
             </option>
           ))}
         </SelectNative>
-      </div>
-    </div>
-  );
-};
-
-const GitHubUsernameSettings = () => {
-  const { githubUsername, setGithubUsername } = useAppState();
-
-  const handleGithubUsernameChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    setGithubUsername(e.currentTarget.value);
-  };
-
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex-1">
-        <label
-          htmlFor="github-username"
-          className="mb-1 block font-medium text-sm text-zinc-700"
-        >
-          GitHub Username
-        </label>
-        <p className="text-xs text-zinc-600 leading-relaxed">
-          Enter your GitHub username.
-        </p>
-      </div>
-      <div className="flex-shrink-0">
-        <input
-          id="github-username"
-          type="text"
-          value={githubUsername}
-          onChange={handleGithubUsernameChange}
-          placeholder="your-username"
-          className={cn(
-            'inline-flex h-9 w-44 appearance-none items-center rounded-lg px-3 py-2',
-            'border border-zinc-300 bg-background text-foreground text-sm',
-            'shadow-black/5 shadow-sm transition-shadow',
-            'focus-visible:border-zinc-400 focus-visible:outline-none',
-            'focus-visible:ring-[3px] focus-visible:ring-zinc-400/20',
-            'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
-            'placeholder:text-muted-foreground',
-          )}
-        />
       </div>
     </div>
   );
