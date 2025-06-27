@@ -28,9 +28,7 @@ export class RegistryService {
 
   public async getLatestExtensionVersion(): Promise<string | null> {
     try {
-      const versions = await Promise.allSettled([
-        this.fetchFromOpenVSX(),
-      ]);
+      const versions = await Promise.allSettled([this.fetchFromOpenVSX()]);
 
       const validVersions = versions
         .filter(
