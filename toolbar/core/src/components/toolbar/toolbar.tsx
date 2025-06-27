@@ -158,7 +158,7 @@ export function ToolbarBox() {
       case 'topRight':
         return 'top-4 right-4';
       default:
-        return 'bottom-4 left-4';
+        return 'bottom-4 right-4';
     }
   };
 

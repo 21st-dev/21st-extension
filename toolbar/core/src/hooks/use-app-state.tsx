@@ -73,7 +73,7 @@ export function AppStateProvider({
       isMainAppBlocked: false,
       toolbarBoxRef: createRef(),
       minimized: storedState.minimized ?? true,
-      position: storedState.position ?? 'bottomLeft',
+      position: storedState.position ?? 'bottomRight',
       requestMainAppBlock: () => 0,
       requestMainAppUnblock: () => 0,
       discardMainAppBlock: () => {},

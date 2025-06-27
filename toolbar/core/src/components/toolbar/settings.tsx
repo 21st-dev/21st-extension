@@ -1,10 +1,11 @@
 import { useVSCode } from '@/hooks/use-vscode';
 import { Panel } from '@/plugin-ui/components/panel';
-import { RefreshCwIcon, SettingsIcon } from 'lucide-react';
+import { RefreshCwIcon, SettingsIcon, X } from 'lucide-react';
 import { ToolbarButton } from './button';
 import { ToolbarSection } from './section';
 import { useAppState } from '@/hooks/use-app-state';
 import { SelectNative } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/utils';
 import { useState } from 'preact/hooks';
 
@@ -25,16 +26,17 @@ export const SettingsButton = ({
 export const SettingsPanel = ({ onClose }: { onClose?: () => void }) => {
   return (
     <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-2xl border border-border/30 bg-zinc-50/80 shadow-md backdrop-blur-md">
-      <div className="flex items-center justify-between px-4 pt-3 pb-3">
+      <div className="flex items-center justify-between px-4 py-2">
         <h2 className="font-medium text-base text-zinc-950">Preferences</h2>
         {onClose && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="rounded-md p-1 text-sm text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+            className="h-8 w-8 rounded-md text-zinc-500 hover:text-zinc-700"
           >
-            ✕
-          </button>
+            <X className="h-4 min-h-4 w-4 min-w-4" />
+          </Button>
         )}
       </div>
 
