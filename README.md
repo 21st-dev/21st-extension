@@ -1,16 +1,14 @@
-# <img src="https://github.com/stagewise-io/assets/blob/main/media/logo.png?raw=true" alt="stagewise logo" width="48" height="48" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;" /> stagewise
+# <img src="https://21st.dev/brand/21st-logo-dark.svg" alt="logo" width="48" height="48" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;" /> 21st.dev VSCode Extension
 
-# Visual vibe coding. Right in your codebase.
+[![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/21st-dev.21st-extension?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=21st-dev.21st-extension) [![GitHub Repo stars](https://img.shields.io/github/stars/21st-dev/21st-extension)](https://github.com/21st-dev/21st-extension) [![Join us on Discord](https://img.shields.io/discord/1229378372141056010?label=Discord&logo=discord&logoColor=white)](https://discord.gg/Qx4rFunHfm) <!-- [![Build Status](https://img.shields.io/github/actions/workflow/status/stagewise-io/stagewise/ci.yml?branch=main)](https://github.com/stagewise-io/stagewise/actions) -->
 
-[![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/stagewise.stagewise-vscode-extension?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=stagewise.stagewise-vscode-extension) [![GitHub Repo stars](https://img.shields.io/github/stars/stagewise-io/stagewise)](https://github.com/stagewise-io/stagewise) [![Join us on Discord](https://img.shields.io/discord/1229378372141056010?label=Discord&logo=discord&logoColor=white)](https://discord.gg/gkdGsDYaKA) <!-- [![Build Status](https://img.shields.io/github/actions/workflow/status/stagewise-io/stagewise/ci.yml?branch=main)](https://github.com/stagewise-io/stagewise/actions) -->
+Forked from [stagewise-io/stagewise](https://github.com/stagewise-io/stagewise)
 
-
-![stagewise demo](https://github.com/stagewise-io/assets/blob/main/media/demo.gif?raw=true)
-
+![demo](https://github.com/stagewise-io/assets/blob/main/media/demo.gif?raw=true)
 
 ## About the project
 
-**stagewise is a browser toolbar that connects your frontend UI to your code ai agents in your code editor.**
+**This extension is a browser toolbar that connects your frontend UI to your code ai agents in your code editor.**
 
 * 🧠 Select any element(s) in your web app
 * 💬 Leave a comment on it
@@ -21,7 +19,7 @@
 
 ## ✨ Features
 
-The stagewise Toolbar makes it incredibly easy to edit your frontend code with AI agents:
+The Toolbar makes it incredibly easy to edit your frontend code with AI agents:
 
 * ⚡ Works out of the box
 * 🧩 Customise and extend functionality with Plugins
@@ -33,7 +31,7 @@ The stagewise Toolbar makes it incredibly easy to edit your frontend code with A
 
 ### 1. 🧩 **Install the code editor extension (Cursor, Windsurf, VS Code)**
 
-Install the extension here: https://marketplace.visualstudio.com/items?itemName=stagewise.stagewise-vscode-extension
+Install from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=21st-dev.21st-extension) (VS Code) OR [Open VSX](https://open-vsx.org/extension/21st-dev/21st-extension) (Cursor, Windsurf, etc.)
 
 ### 2. 👨🏽‍💻 **Install and inject the toolbar**
 
@@ -275,33 +273,14 @@ You would then use `StagewiseToolbarLoader` in your `src/routes/+layout.svelte`.
 | Cline          | ✅             |
 | Roo Code       | ✅             |
 
-
-## 🛣️ Roadmap
-
-Check out our [project roadmap](./.github/ROADMAP.md) for upcoming features, bug fixes, and progress.
-
 ## 📜 License
 
-stagewise is developed by tiq UG (haftungsbeschränkt) and offerend under the AGPLv3 license.
+21st.dev Extension is developed by 21st Labs Inc. and offerend under the AGPLv3 license.
 
 For more information on the license model, visit the [FAQ about the GNU Licenses](https://www.gnu.org/licenses/gpl-faq.html).
-
 For use cases that fall outside the scope permitted by the AGPLv3 license, feel free to [📬 Contact Us](#contact-us-section).
-
-## 🤝 Contributing
-
-We're just getting started and love contributions! Check out our [CONTRIBUTING.md](https://github.com/stagewise-io/stagewise/blob/main/CONTRIBUTING.md) guide to get involved. For bugs and fresh ideas, please [Open an issue!](https://github.com/stagewise-io/stagewise/issues) 
-
-## 💬 Community & Support 
-
-* 👾 [Join our Discord](https://discord.gg/gkdGsDYaKA)
-* 📖 Open an [issue on GitHub](https://github.com/stagewise-io/stagewise/issues) for dev support.
-
 
 ## 📬 Contact Us
 
-Got questions or want to license stagewise for commercial or enterprise use?
-
-📧 **[sales@stagewise.io](mailto:sales@stagewise.io)**
-
-
+* 👾 [Join our Discord](https://discord.gg/Qx4rFunHfm)
+* 📧 [support@21st.dev](mailto:support@21st.dev)
