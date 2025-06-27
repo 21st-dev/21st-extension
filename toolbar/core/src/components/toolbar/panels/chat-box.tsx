@@ -54,7 +54,7 @@ export function ToolbarChatArea() {
   const { plugins } = usePlugins();
   const { appName, selectedSession } = useVSCode();
   const { bridge } = useSRPCBridge();
-  const { selectedComponents, removeComponent, addComponent } =
+  const { selectedComponents, removeComponent, addComponent, clearSelection } =
     useSelectedComponents();
 
   // Draggable refs
@@ -96,6 +96,9 @@ export function ToolbarChatArea() {
   const [searchDisabled, setSearchDisabled] = useState(false);
   const [intentInvalidated, setIntentInvalidated] = useState(false);
   const previousInputRef = useRef('');
+
+  // Track readiness of search results after animation
+  const [isSearchResultsReady, setIsSearchResultsReady] = useState(false);
 
   // Determine IDE name using the same logic as get-current-ide.ts
   const ideName = useMemo(() => {
@@ -255,6 +258,8 @@ export function ToolbarChatArea() {
       // Clear everything after successful navigation
       if (chatState.currentChatId) {
         chatState.clearSelectedComponents(chatState.currentChatId);
+        // Also clear local selected components state
+        clearSelection();
         currentChat.domContextElements.forEach((elementData) => {
           chatState.removeChatDomContext(
             chatState.currentChatId,
@@ -268,7 +273,13 @@ export function ToolbarChatArea() {
     } catch (err) {
       console.error('Error opening Magic Chat:', err);
     }
-  }, [currentChat, currentInput, pluginContextSnippets, chatState]);
+  }, [
+    currentChat,
+    currentInput,
+    pluginContextSnippets,
+    chatState,
+    clearSelection,
+  ]);
 
   const handleCompositionStart = useCallback(() => {
     setIsComposing(true);
@@ -280,6 +291,28 @@ export function ToolbarChatArea() {
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const searchResultsRef = useRef<SearchResultsRef>(null);
+
+  // Ref and state for dynamic positioning of search results
+  const selectedElementsContainerRef = useRef<HTMLDivElement>(null);
+  const [selectedElementsHeight, setSelectedElementsHeight] =
+    useState<number>(0);
+
+  // Update height whenever selected DOM elements or components change
+  useEffect(() => {
+    if (selectedElementsContainerRef.current) {
+      setSelectedElementsHeight(
+        selectedElementsContainerRef.current.offsetHeight || 0,
+      );
+    } else {
+      setSelectedElementsHeight(0);
+    }
+  }, [currentChat?.domContextElements?.length, selectedComponents.length]);
+
+  // Style object to lift search results above selected elements block
+  const searchResultsTranslateStyle = useMemo<React.CSSProperties>(
+    () => ({ transform: `translateY(-${selectedElementsHeight - 8}px)` }),
+    [selectedElementsHeight],
+  );
 
   useEffect(() => {
     const blurHandler = () => inputRef.current?.focus();
@@ -320,11 +353,7 @@ export function ToolbarChatArea() {
 
     switch (chatState.promptState) {
       case 'loading':
-        return cn(
-          baseClasses,
-          'border border-transparent bg-zinc-50/80',
-          'chat-loading-gradient',
-        );
+        return cn(baseClasses, 'border border-transparent bg-zinc-50/80');
       case 'success':
         return cn(
           baseClasses,
@@ -362,19 +391,58 @@ export function ToolbarChatArea() {
   const handleComponentSelection = useCallback(
     (result: ComponentSearchResult, selected: boolean) => {
       if (selected) {
-        // Add component to selected components
+        // Add component to selected components (local state)
         addComponent(result);
+
+        // Also add to chat state for addMessage to use
+        if (chatState.currentChatId) {
+          const currentComponents = currentChat?.selectedComponents || [];
+          const newComponent: SelectedComponentWithCode = {
+            ...result, // Copy all properties from ComponentSearchResult
+          };
+          const updatedComponents = [...currentComponents, newComponent];
+          chatState.addSelectedComponents(
+            chatState.currentChatId,
+            updatedComponents,
+          );
+        }
       } else {
         // Remove component (if needed)
         removeComponent(result.id);
+
+        // Also remove from chat state
+        if (chatState.currentChatId) {
+          const currentComponents = currentChat?.selectedComponents || [];
+          const updatedComponents = currentComponents.filter(
+            (c) => c.id !== result.id,
+          );
+          chatState.addSelectedComponents(
+            chatState.currentChatId,
+            updatedComponents,
+          );
+        }
       }
     },
-    [addComponent, removeComponent],
+    [addComponent, removeComponent, chatState, currentChat],
   );
 
   const handleRemoveComponent = useCallback(
     (componentId: string) => {
-      removeComponent(Number.parseInt(componentId, 10));
+      const numericId = Number.parseInt(componentId, 10);
+      removeComponent(numericId);
+
+      // Also remove from chat state
+      if (chatState.currentChatId) {
+        const currentComponents = currentChat?.selectedComponents || [];
+        const updatedComponents = currentComponents.filter(
+          (c) => c.id !== numericId,
+        );
+        chatState.addSelectedComponents(
+          chatState.currentChatId,
+          updatedComponents,
+        );
+      }
+
       // Return focus to input, close search results and disable search
       setSearchDisabled(true);
       setSearchActivated(false);
@@ -383,13 +451,20 @@ export function ToolbarChatArea() {
         setSearchResultsFocused(false);
       }, 100);
     },
-    [removeComponent, setSearchResultsFocused],
+    [removeComponent, setSearchResultsFocused, chatState, currentChat],
   );
 
   // Show search results only when search is activated (Tab pressed)
   // Results are pre-loaded in background when searchIntent is available
   const shouldShowSearchResults =
     !searchDisabled && isSearchActivated && chatState.isPromptCreationActive;
+
+  // Reset readiness when search results hidden or disabled
+  useEffect(() => {
+    if (!shouldShowSearchResults) {
+      setIsSearchResultsReady(false);
+    }
+  }, [shouldShowSearchResults]);
 
   // Show inline suggestion when there's search intent but search not activated
   const shouldShowInlineSuggestion =
@@ -500,7 +575,12 @@ export function ToolbarChatArea() {
 
     // Normal submit behavior
     if (!currentChat || !currentInput.trim()) return;
+    // Send message to IDE
     chatState.addMessage(currentChat.id, currentInput);
+
+    // Clear selected components (both chat state and local hook)
+    chatState.clearSelectedComponents(currentChat.id);
+    clearSelection();
   }, [
     isSearchResultsFocused,
     currentChat,
@@ -508,6 +588,7 @@ export function ToolbarChatArea() {
     chatState,
     handleFocusReturn,
     shouldShowOpenInspector,
+    clearSelection,
   ]);
 
   const handleKeyDown = useCallback(
@@ -565,7 +646,7 @@ export function ToolbarChatArea() {
           {shouldShowSearchResults && (
             <div
               className="absolute right-0 bottom-full left-0 z-50 mb-2"
-              style={{ transform: 'translateY(0)' }}
+              style={searchResultsTranslateStyle}
             >
               <SearchResults
                 ref={searchResultsRef}
@@ -580,6 +661,7 @@ export function ToolbarChatArea() {
                 onFocusReturn={handleFocusReturn}
                 onFocusChange={handleSearchResultsFocusChange}
                 onCloseSearch={handleCloseSearch}
+                onReady={() => setIsSearchResultsReady(true)}
               />
             </div>
           )}
@@ -590,7 +672,10 @@ export function ToolbarChatArea() {
             selectedComponents.length > 0) && (
             <div className="absolute right-0 bottom-full left-0 z-40">
               <div className="slide-in-from-top-2 animate-in duration-200 ease-out">
-                <div className="-mb-2 rounded-t-2xl border-border/30 border-x border-t bg-zinc-50/80 px-2 pt-2 backdrop-blur">
+                <div
+                  ref={selectedElementsContainerRef}
+                  className="-mb-2 rounded-t-2xl border-border/30 border-x border-t bg-zinc-50/80 px-2 pt-2 backdrop-blur"
+                >
                   <SelectedDomElements
                     elements={currentChat?.domContextElements || []}
                     selectedComponents={selectedComponents}
@@ -717,8 +802,12 @@ export function ToolbarChatArea() {
                     size="sm"
                     className={cn(
                       'gap-0.5 border-none py-0.5 text-[10px] transition-all duration-200',
+                      // Loading state – show animated gradient on the button itself
+                      chatState.promptState === 'loading' &&
+                        'chat-loading-gradient cursor-not-allowed border border-transparent text-white',
                       // Add to context state (keep original blue)
                       isSearchResultsFocused &&
+                        isSearchResultsReady &&
                         'bg-blue-500 text-white hover:bg-blue-600',
                       // Open Inspector state (green background, white text)
                       !isSearchResultsFocused &&
@@ -731,24 +820,24 @@ export function ToolbarChatArea() {
                         currentInput.trim().length > 0 &&
                         chatState.promptState !== 'loading' &&
                         'bg-black text-white hover:bg-gray-800 hover:text-white',
-                      // Disabled state
-                      (currentInput.trim().length === 0 &&
-                        !isSearchResultsFocused &&
-                        !shouldShowOpenInspector) ||
-                        chatState.promptState === 'loading'
-                        ? 'cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300 hover:text-gray-500'
-                        : '',
+                      // Disabled state (only when not loading)
+                      chatState.promptState !== 'loading' &&
+                        (currentInput.trim().length === 0 &&
+                        (!isSearchResultsFocused || !isSearchResultsReady) &&
+                        !shouldShowOpenInspector
+                          ? 'cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300 hover:text-gray-500'
+                          : ''),
                     )}
                     disabled={
                       (currentInput.trim().length === 0 &&
-                        !isSearchResultsFocused &&
+                        (!isSearchResultsFocused || !isSearchResultsReady) &&
                         !shouldShowOpenInspector) ||
                       chatState.promptState === 'loading'
                     }
                     onClick={handleSubmitOrAddToContext}
                   >
                     <span className="mr-1 font-semibold">
-                      {isSearchResultsFocused
+                      {isSearchResultsFocused && isSearchResultsReady
                         ? 'Add to context'
                         : shouldShowOpenInspector
                           ? 'Open Inspector'
