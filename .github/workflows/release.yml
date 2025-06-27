@@ -53,29 +53,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_PUBLISH_ACCESS_TOKEN }} # Ensure secret name is correct
 
-      - name: Check for VSCode Extension Version Change and Release
-        # This step runs after changesets/action has committed the version bump
+      - name: Check for VSCode Extension Version and Release if Not Released
+        # This step checks if the current version from package.json is already released
         run: |
-          # Get the SHA of the commit made by changesets/action (should be HEAD)
-          RELEASE_COMMIT_SHA=$(git rev-parse HEAD)
-          echo "Checking for changes to VSCode extension in commit $RELEASE_COMMIT_SHA"
-
-          # Check if the specific package.json was changed in this commit compared to its parent
-          # Use exit code: 0 = no changes, 1 = changes.
-          # Use git diff-tree to check files changed in the commit.
-          # The `!` negates the exit code, so the block executes if grep finds the file (exit code 0 -> !0 -> true)
-          if ! git diff-tree --no-commit-id --name-only -r $RELEASE_COMMIT_SHA | grep -q "^apps/vscode-extension/package.json$"; then
-            echo "VSCode extension package.json not modified in this release commit. Skipping VSCode extension release."
-            echo "VSCODE_EXTENSION_CHANGED=false" >> $GITHUB_ENV
-            exit 0 # Exit successfully, no release needed
-          fi
-
-          echo "VSCode extension package.json was modified. Proceeding with VSCode extension release."
-          echo "VSCODE_EXTENSION_CHANGED=true" >> $GITHUB_ENV
-
-          # Read the new version directly from the package.json at the release commit
-          # Ensure we're in the workspace root for pnpm filter to work correctly
-          cd $GITHUB_WORKSPACE
+          # Read the current version from package.json
+          cd $GITHUB_WORKSPACE  
           VERSION=$(pnpm --filter 21st-extension exec node -p "require('./package.json').version")
 
           if [ -z "$VERSION" ]; then
@@ -83,10 +65,23 @@ jobs:
             exit 1 # Exit with error
           fi
 
+          echo "Current VSCode extension version: $VERSION"
+          TAG_NAME="21st-extension@$VERSION"
+          
+          # Check if this version tag already exists
+          if git tag -l | grep -q "^$TAG_NAME$"; then
+            echo "Version $VERSION is already released (tag $TAG_NAME exists). Skipping VSCode extension release."
+            echo "VSCODE_EXTENSION_CHANGED=false" >> $GITHUB_ENV
+            exit 0 # Exit successfully, no release needed
+          fi
+
+          echo "Version $VERSION is not yet released (tag $TAG_NAME does not exist). Proceeding with VSCode extension release."
+          echo "VSCODE_EXTENSION_CHANGED=true" >> $GITHUB_ENV
+
           # Store version for subsequent steps
           echo "VSCODE_EXTENSION_VERSION=$VERSION" >> $GITHUB_ENV
           echo "VSIX_FILENAME=21st-extension-$VERSION.vsix" >> $GITHUB_ENV
-          echo "TAG_NAME=21st-extension@$VERSION" >> $GITHUB_ENV
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
