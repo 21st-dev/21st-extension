@@ -1,5 +1,7 @@
 import { RefreshCwIcon } from 'lucide-react';
 import { useVSCode } from '@/hooks/use-vscode';
+import { SelectNative } from '@/components/ui/select';
+import { useState } from 'preact/hooks';
 
 export function WindowSelectionPanel() {
   const {
@@ -12,96 +14,109 @@ export function WindowSelectionPanel() {
     appName,
   } = useVSCode();
 
-  const handleSessionChange = (e: Event) => {
-    const target = e.target as HTMLSelectElement;
-    const selectedSessionId = target.value === '' ? undefined : target.value;
+  const [showRefreshed, setShowRefreshed] = useState(false);
+
+  const handleSessionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedSessionId =
+      e.currentTarget.value === '' ? undefined : e.currentTarget.value;
     selectSession(selectedSessionId);
   };
 
   const handleRefresh = () => {
     discover();
+    setShowRefreshed(true);
+    setTimeout(() => {
+      setShowRefreshed(false);
+    }, 1000);
   };
 
   return (
-    <div className="rounded-lg border border-blue-200 bg-blue-50/90 p-4 shadow-lg backdrop-blur">
-      <div className="mb-3">
-        <h3 className="font-semibold text-blue-800">Select IDE Window</h3>
+    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-2xl border border-border/30 bg-zinc-50/80 shadow-md backdrop-blur-md">
+      <div className="flex items-center justify-between px-4 pt-3 pb-3">
+        <h2 className="font-medium text-base text-zinc-950">
+          Select IDE Window
+        </h2>
       </div>
 
-      <div className="space-y-3">
-        <div>
-          <label
-            htmlFor="window-selection-select"
-            className="mb-2 block font-medium text-blue-700 text-sm"
-          >
-            IDE Window {appName && `(${appName})`}
-          </label>
-          <div className="flex w-full items-center space-x-2">
-            <select
-              id="window-selection-select"
-              value={selectedSession?.sessionId || ''}
-              onChange={handleSessionChange}
-              className="h-8 min-w-0 flex-1 rounded-lg border border-blue-300 bg-white/80 px-3 text-sm backdrop-saturate-150 focus:border-blue-500 focus:outline-none"
-              disabled={isDiscovering}
-            >
-              <option value="" disabled>
-                {windows.length > 0
-                  ? 'Select an IDE window...'
-                  : 'No windows available'}
-              </option>
-              {windows.map((window) => (
-                <option key={window.sessionId} value={window.sessionId}>
-                  {window.displayName} - Port {window.port}
+      <div className="flex flex-col border-border/30 border-t px-4 py-3 text-zinc-950">
+        <div className="space-y-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="mb-1 flex items-center gap-2">
+                <label
+                  htmlFor="window-selection-select"
+                  className="font-medium text-sm text-zinc-700"
+                >
+                  IDE Window
+                </label>
+                <button
+                  type="button"
+                  onClick={handleRefresh}
+                  className="border-none bg-transparent p-0 font-normal text-xs text-zinc-500 hover:text-zinc-700"
+                >
+                  {showRefreshed ? 'Refreshed' : 'Refresh'}
+                </button>
+              </div>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                Connect to your code editor workspace.
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <SelectNative
+                id="window-selection-select"
+                value={selectedSession?.sessionId || ''}
+                onChange={handleSessionChange}
+                className="w-44 text-sm"
+                disabled={isDiscovering}
+              >
+                <option value="" disabled>
+                  {windows.length > 0
+                    ? 'Select an IDE window...'
+                    : 'No windows available'}
                 </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={handleRefresh}
-              disabled={isDiscovering}
-              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100/80 backdrop-saturate-150 transition-colors hover:bg-blue-200/80 disabled:opacity-50"
-              title="Refresh window list"
-            >
-              <RefreshCwIcon
-                className={`size-4 text-blue-600 ${isDiscovering ? 'animate-spin' : ''}`}
-              />
-            </button>
+                {windows.map((window) => (
+                  <option key={window.sessionId} value={window.sessionId}>
+                    {window.displayName} - Port {window.port}
+                  </option>
+                ))}
+              </SelectNative>
+            </div>
           </div>
 
           {discoveryError && (
-            <p className="mt-1 text-red-600 text-sm">
+            <p className="text-red-600 text-sm">
               Error discovering windows: {discoveryError}
             </p>
           )}
-
           {!isDiscovering && windows.length === 0 && !discoveryError && (
-            <p className="mt-1 text-blue-600 text-sm">
+            <p className="text-sm text-zinc-500">
               No IDE windows found. Make sure the Stagewise extension is
               installed and running.
             </p>
           )}
+
+          {selectedSession && (
+            <div className="rounded-lg bg-zinc-100/80 p-3">
+              <p className="text-sm text-zinc-800">
+                <span className="font-medium">Connected:</span>{' '}
+                {selectedSession.displayName}
+              </p>
+              <p className="mt-1 text-xs text-zinc-600">
+                Session ID: {selectedSession.sessionId.substring(0, 8)}...
+              </p>
+            </div>
+          )}
+
+          {!selectedSession && windows.length > 0 && (
+            <div className="rounded-lg border border-zinc-300/50 bg-zinc-100/80 p-3">
+              <p className="text-sm text-zinc-700">
+                <span className="font-medium">No window selected:</span> Please
+                select an IDE window above to connect.
+              </p>
+            </div>
+          )}
         </div>
-
-        {selectedSession && (
-          <div className="rounded-lg bg-blue-100/80 p-3">
-            <p className="text-blue-800 text-sm">
-              <strong>Selected:</strong> {selectedSession.displayName}
-            </p>
-            <p className="mt-1 text-blue-600 text-xs">
-              Session ID: {selectedSession.sessionId.substring(0, 8)}...
-            </p>
-          </div>
-        )}
-
-        {!selectedSession && (
-          <div className="rounded-lg border border-blue-200 bg-white/90 p-3">
-            <p className="text-blue-800 text-sm">
-              <strong>No window selected:</strong> Please select an IDE window
-              above to connect.
-            </p>
-          </div>
-        )}
       </div>
-    </div>
+    </section>
   );
 }
