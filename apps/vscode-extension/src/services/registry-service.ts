@@ -29,7 +29,6 @@ export class RegistryService {
   public async getLatestExtensionVersion(): Promise<string | null> {
     try {
       const versions = await Promise.allSettled([
-        this.fetchFromVSCodeMarketplace(),
         this.fetchFromOpenVSX(),
       ]);
 
@@ -52,53 +51,6 @@ export class RegistryService {
       }, validVersions[0]);
     } catch (error) {
       console.error('Failed to fetch latest extension version:', error);
-      return null;
-    }
-  }
-
-  private async fetchFromVSCodeMarketplace(): Promise<string | null> {
-    try {
-      const response = await axios.post(
-        'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery?api-version=3.0-preview.1',
-        {
-          filters: [
-            {
-              criteria: [
-                {
-                  filterType: 7, // ExtensionName
-                  value: '21st.21st-extension',
-                },
-              ],
-              pageSize: 1,
-              pageNumber: 1,
-            },
-          ],
-          flags: 0x200, // IncludeVersions flag
-        },
-        {
-          timeout: 5000,
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      const extensions = response.data?.results?.[0]?.extensions;
-      if (extensions && extensions.length > 0) {
-        const versions = extensions[0].versions;
-        if (versions && versions.length > 0) {
-          const newest = versions.reduce(
-            (a: { version: string }, b: { version: string }) =>
-              this.compareVersions(a.version, b.version) > 0 ? a : b,
-          ).version;
-          return newest;
-        }
-      }
-
-      return null;
-    } catch (error) {
-      console.error('Failed to fetch from VS Code Marketplace:', error);
       return null;
     }
   }
