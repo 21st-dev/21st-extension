@@ -3,7 +3,7 @@
   "displayName": "21st.dev",
   "private": true,
   "description": "21st.dev Extension",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "publisher": "21st-dev",
   "icon": "icon.png",
   "author": "21st Labs Inc.",
@@ -40,13 +40,13 @@
       "properties": {
         "21st-extension.telemetry.enabled": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "Enable anonymous usage data collection to help improve the product. No personal data is collected.",
           "tags": [
             "telemetry",
             "usesOnlineServices"
           ],
-          "markdownDescription": "Enable anonymous usage data collection to help improve the product. No personal data is collected.\n\nRead more about our [telemetry data collection](https://github.com/stagewise-io/stagewise/blob/main/apps/vscode-extension/TELEMETRY.md)."
+          "markdownDescription": "Enable anonymous usage data collection to help improve the product. No personal data is collected.\n\nRead more about our [telemetry data collection](https://github.com/21st-dev/21st-extension/blob/main/apps/vscode-extension/TELEMETRY.md)."
         }
       }
     }
