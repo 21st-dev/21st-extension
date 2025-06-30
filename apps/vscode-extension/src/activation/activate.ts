@@ -1,8 +1,9 @@
 import {
   DEFAULT_PORT,
+  EventName,
   getExtensionBridge,
 } from '@21st-extension/extension-toolbar-srpc-contract';
-import { AnalyticsService, EventName } from 'src/services/analytics-service';
+import { AnalyticsService } from 'src/services/analytics-service';
 import { EnvironmentInfo } from 'src/services/environment-info';
 import { RegistryService } from 'src/services/registry-service';
 import { StorageService } from 'src/services/storage-service';
@@ -34,13 +35,13 @@ const outputChannel = vscode.window.createOutputChannel('21st-extension');
 async function setupToolbarHandler() {
   await setupToolbar();
   await vscode.window.showInformationMessage(
-            "The agent has been started to integrate 21st.dev Toolbar into this project. Please follow the agent's instructions in the chat panel.",
+    "The agent has been started to integrate 21st.dev Toolbar into this project. Please follow the agent's instructions in the chat panel.",
     'OK',
   );
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-      console.log('Activating 21st.dev Extension');
+  console.log('Activating 21st.dev Extension');
   try {
     // initialize all services in the correct order
     VScodeContext.getInstance().initialize(context);
@@ -167,6 +168,36 @@ export async function activate(context: vscode.ExtensionContext) {
             sessionId: vscode.env.sessionId,
             result: { success: true },
           };
+        },
+        trackEvent: async (request, sendUpdate) => {
+          const sessionError = checkSessionId(request);
+          if (sessionError) return sessionError;
+
+          try {
+            await analyticsService.trackEvent(
+              request.eventName as EventName,
+              request.properties,
+            );
+
+            return {
+              sessionId: vscode.env.sessionId,
+              result: { success: true },
+            };
+          } catch (error) {
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            console.error(
+              `[21st.dev Extension] Failed to track event: ${errorMessage}`,
+            );
+
+            return {
+              sessionId: vscode.env.sessionId,
+              result: {
+                success: false,
+                error: errorMessage,
+              },
+            };
+          }
         },
         openExternal: async (request, sendUpdate) => {
           const sessionError = checkSessionId(request);

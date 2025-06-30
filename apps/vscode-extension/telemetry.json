@@ -162,6 +162,164 @@
       "classification": "SystemMetaData",
       "purpose": "FeatureInsight",
       "comment": "Tracks when a user dismisses the toolbar integration notification"
+    },
+    "magic_chat_triggered": {
+      "classification": "EndUserPseudonymizedInformation",
+      "purpose": "FeatureInsight",
+      "comment": "Tracks when Magic Chat is triggered by the user",
+      "properties": {
+        "sessionId": {
+          "classification": "EndUserPseudonymizedInformation",
+          "purpose": "FeatureInsight",
+          "comment": "IDE session identifier"
+        },
+        "text": {
+          "classification": "EndUserPseudonymizedInformation",
+          "purpose": "FeatureInsight",
+          "comment": "User input text"
+        },
+        "prompt": {
+          "classification": "EndUserPseudonymizedInformation",
+          "purpose": "FeatureInsight",
+          "comment": "Final processed prompt sent to Magic Chat"
+        },
+        "domSelectedElementsCount": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Number of DOM elements selected"
+        },
+        "selectedComponents": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Array of selected UI components with id and name"
+        }
+      }
+    },
+    "components_search_triggered": {
+      "classification": "EndUserPseudonymizedInformation",
+      "purpose": "FeatureInsight",
+      "comment": "Tracks when component search is triggered via Tab key",
+      "properties": {
+        "sessionId": {
+          "classification": "EndUserPseudonymizedInformation",
+          "purpose": "FeatureInsight",
+          "comment": "IDE session identifier"
+        },
+        "searchQuery": {
+          "classification": "EndUserPseudonymizedInformation",
+          "purpose": "FeatureInsight",
+          "comment": "Search query text (may contain user intent)"
+        },
+        "searchQueryLength": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Length of search query"
+        },
+        "searchIntent": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Detected search intent"
+        },
+        "selectedDomElementsCount": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Number of DOM elements selected"
+        },
+        "selectedComponents": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Array of selected UI components with id and name"
+        }
+      }
+    },
+    "component_selected": {
+      "classification": "EndUserPseudonymizedInformation",
+      "purpose": "FeatureInsight",
+      "comment": "Tracks when a user selects a UI component from search results",
+      "properties": {
+        "sessionId": {
+          "classification": "EndUserPseudonymizedInformation",
+          "purpose": "FeatureInsight",
+          "comment": "IDE session identifier"
+        },
+        "demoId": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Unique identifier of the selected component demo"
+        },
+        "demoName": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Name of the selected component demo"
+        },
+        "componentName": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Name of the selected component"
+        },
+        "componentDescription": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Description of the selected component"
+        },
+        "searchQuery": {
+          "classification": "EndUserPseudonymizedInformation",
+          "purpose": "FeatureInsight",
+          "comment": "Search query that led to component selection"
+        },
+        "searchQueryLength": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Length of search query"
+        }
+      }
+    },
+    "agent_prompt_triggered_with_component": {
+      "classification": "EndUserPseudonymizedInformation",
+      "purpose": "FeatureInsight",
+      "comment": "Tracks when an agent prompt is triggered with UI components selected",
+      "properties": {
+        "sessionId": {
+          "classification": "EndUserPseudonymizedInformation",
+          "purpose": "FeatureInsight",
+          "comment": "IDE session identifier"
+        },
+        "promptText": {
+          "classification": "EndUserPseudonymizedInformation",
+          "purpose": "FeatureInsight",
+          "comment": "The prompt text entered by the user"
+        },
+        "componentCount": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Number of components selected"
+        },
+        "componentIds": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Array of component IDs"
+        },
+        "selectedDomElementsCount": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Number of DOM elements selected"
+        },
+        "hasRuntimeError": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "Whether a runtime error was included"
+        },
+        "runtimeError": {
+          "classification": "CallstackOrException",
+          "purpose": "PerformanceAndHealth",
+          "comment": "Runtime error message if included"
+        },
+        "promptAction": {
+          "classification": "SystemMetaData",
+          "purpose": "FeatureInsight",
+          "comment": "The action taken with the prompt (send, copy, or both)"
+        }
+      }
     }
   }
 }

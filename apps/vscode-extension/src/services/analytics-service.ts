@@ -1,45 +1,14 @@
+import { EventName as EventNameContract } from '@21st-extension/extension-toolbar-srpc-contract';
 import { createHash } from 'node:crypto';
 import { PostHog } from 'posthog-node';
 import * as vscode from 'vscode';
 import { EnvironmentInfo } from './environment-info';
 import { VScodeContext } from './vscode-context';
 
+export { EventNameContract as EventName };
+
 // Note: The API key should be your actual PostHog API key
 const SALT = '21st-extension';
-
-export enum EventName {
-  EXTENSION_ACTIVATED = 'extension_activated',
-  ACTIVATION_ERROR = 'activation_error',
-
-  OPENED_WEB_APP_WORKSPACE = 'opened_web_app_workspace',
-
-  GETTING_STARTED_PANEL_SHOWN = 'getting_started_panel_shown',
-  GETTING_STARTED_PANEL_MANUAL_SHOW = 'getting_started_panel_manual_show',
-  INTERACTED_WITH_GETTING_STARTED_PANEL = 'interacted_with_getting_started_panel',
-  DISMISSED_GETTING_STARTED_PANEL = 'dismissed_getting_started_panel',
-  CLICKED_SETUP_TOOLBAR_IN_GETTING_STARTED_PANEL = 'clicked_setup_toolbar_in_getting_started_panel',
-  CLICKED_OPEN_DOCS_IN_GETTING_STARTED_PANEL = 'clicked_open_docs_in_getting_started_panel',
-
-  POST_SETUP_FEEDBACK = 'post_setup_feedback',
-
-  TOOLBAR_AUTO_SETUP_STARTED = 'toolbar_auto_setup_started',
-
-  TOOLBAR_CONNECTED = 'toolbar_connected',
-
-  AGENT_PROMPT_TRIGGERED = 'agent_prompt_triggered',
-  OPEN_EXTERNAL_URL = 'open_external_url',
-
-  SHOW_TOOLBAR_UPDATE_NOTIFICATION = 'show_toolbar_update_notification',
-  TOOLBAR_UPDATE_NOTIFICATION_AUTO_UPDATE = 'toolbar_update_notification_auto_update',
-  TOOLBAR_UPDATE_NOTIFICATION_IGNORED = 'toolbar_update_notification_ignored',
-  TOOLBAR_UPDATE_NOTIFICATION_DISMISSED = 'toolbar_update_notification_dismissed',
-
-  SHOW_TOOLBAR_INTEGRATION_NOTIFICATION = 'show_toolbar_integration_notification',
-  TOOLBAR_INTEGRATION_NOTIFICATION_IGNORE = 'toolbar_integration_notification_ignore',
-  TOOLBAR_INTEGRATION_NOTIFICATION_DISMISSED = 'toolbar_integration_notification_dismissed',
-
-  TOOLBAR_AUTO_UPDATE_PROMPT_SENT = 'toolbar_auto_update_prompt_sent',
-}
 
 export class AnalyticsService {
   private static instance: AnalyticsService;
@@ -93,7 +62,7 @@ export class AnalyticsService {
   }
 
   public async trackEvent(
-    eventName: EventName,
+    eventName: EventNameContract,
     properties?: Record<string, any>,
   ): Promise<void> {
     if (!this.isAnalyticsEnabled()) {

@@ -26,6 +26,8 @@ We collect the following types of telemetry data:
   - When users get recommended integrating the toolbar into their project
 - Toolbar dependency auto-updating triggered (`toolbar_auto_update_prompt_sent`)
   - When users trigger an auto-update sequence for the toolbar packages
+- Component interaction events (`magic_chat_triggered`, `components_search_triggered`, `component_selected`, `agent_prompt_triggered_with_component`)
+  - When users interact with UI components and Magic Chat features in the toolbar
 - Telemetry setting changes (`telemetry_disabled`, `telemetry_enabled`)
   - When users opt-out or opt-in to telemetry collection
 
@@ -66,6 +68,16 @@ We collect the following types of telemetry data:
   - No additional properties collected
 - `toolbar_integration_notification_dismissed`: Triggered when the user dismisses the toolbar integration notification
   - No additional properties collected
+
+#### Component Interaction Events
+- `magic_chat_triggered`: Triggered when the user invokes Magic Chat functionality
+  - Includes: session ID, user input text, final prompt, DOM elements count, selected components array
+- `components_search_triggered`: Triggered when the user activates component search via Tab key
+  - Includes: session ID, search query, search query length, search intent, DOM elements count, selected components array
+- `component_selected`: Triggered when the user selects a UI component from search results
+  - Includes: session ID, demo ID/name, component name/description, search query and length
+- `agent_prompt_triggered_with_component`: Triggered when an agent prompt is sent with UI components selected
+  - Includes: session ID, prompt text, component count/IDs, DOM elements count, runtime error status/message, prompt action
 
 #### Privacy Events
 - `telemetry_disabled`: Triggered when a user disables telemetry collection

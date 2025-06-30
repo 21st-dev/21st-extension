@@ -25,17 +25,17 @@ function App() {
         <button type="button" onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>
-        <button 
-          type="button" 
+        <button
+          type="button"
           onClick={handleRuntimeError}
-          style={{ 
-            backgroundColor: '#ef4444', 
-            color: 'white', 
-            border: 'none', 
-            padding: '8px 16px', 
-            borderRadius: '4px', 
+          style={{
+            backgroundColor: '#ef4444',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '4px',
             marginLeft: '8px',
-            cursor: 'pointer'
+            cursor: 'pointer',
           }}
         >
           Trigger Runtime Error

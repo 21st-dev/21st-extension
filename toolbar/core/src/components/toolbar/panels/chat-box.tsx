@@ -1,18 +1,25 @@
+import { Button } from '@/components/ui/button';
+import { InlineSuggestion } from '@/components/ui/inline-suggestion';
+import { TWENTY_FIRST_URL } from '@/constants';
+import { useAppState } from '@/hooks/use-app-state';
 import { useChatState } from '@/hooks/use-chat-state';
 import { useComponentSearch } from '@/hooks/use-component-search';
-import { useSearchIntent } from '@/hooks/use-search-intent';
+import { DraggableProvider, useDraggable } from '@/hooks/use-draggable';
 import { useHotkeyListenerComboText } from '@/hooks/use-hotkey-listener-combo-text';
 import { usePlugins } from '@/hooks/use-plugins';
+import { useRuntimeErrors } from '@/hooks/use-runtime-errors';
+import { useSearchIntent } from '@/hooks/use-search-intent';
 import type { SelectedComponentWithCode } from '@/hooks/use-selected-components';
-import { cn, HotkeyActions } from '@/utils';
-import { Textarea } from '@headlessui/react';
-import { Button } from '@/components/ui/button';
-import { TWENTY_FIRST_URL } from '@/constants';
-import { createPrompt } from '@/prompts';
-import { useVSCode } from '@/hooks/use-vscode';
+import { useSelectedComponents } from '@/hooks/use-selected-components';
 import { useSRPCBridge } from '@/hooks/use-srpc-bridge';
+import { useVSCode } from '@/hooks/use-vscode';
+import { createPrompt } from '@/prompts';
+import type { ComponentSearchResult } from '@/types/supabase';
+import { cn, HotkeyActions } from '@/utils';
 import { getIDENameFromAppName } from '@/utils/get-ide-name';
-import { useDraggable, DraggableProvider } from '@/hooks/use-draggable';
+import { EventName } from '@21st-extension/extension-toolbar-srpc-contract';
+import { Textarea } from '@headlessui/react';
+import { Loader } from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -22,12 +29,6 @@ import {
 } from 'preact/hooks';
 import { SearchResults, type SearchResultsRef } from './search-results';
 import { SelectedDomElements } from './selected-dom-elements';
-import { InlineSuggestion } from '@/components/ui/inline-suggestion';
-import type { ComponentSearchResult } from '@/types/supabase';
-import { useSelectedComponents } from '@/hooks/use-selected-components';
-import { useAppState } from '@/hooks/use-app-state';
-import { useRuntimeErrors } from '@/hooks/use-runtime-errors';
-import { XIcon, Loader } from 'lucide-react';
 
 // Component for drag border areas
 function DragBorderAreas() {
@@ -272,6 +273,34 @@ export function ToolbarChatArea() {
           { onUpdate: () => {} },
         );
 
+        // Track Magic Chat triggered event
+        if (selectedSession) {
+          try {
+            await bridge.call.trackEvent(
+              {
+                eventName: EventName.MAGIC_CHAT_TRIGGERED,
+                properties: {
+                  sessionId: selectedSession.sessionId,
+                  text: currentInput.trim(),
+                  prompt: finalPrompt,
+                  domSelectedElementsCount:
+                    currentChat.domContextElements?.length || 0,
+                  selectedComponents: selectedComponents.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                  })),
+                },
+              },
+              { onUpdate: () => {} },
+            );
+          } catch (error) {
+            console.warn(
+              '[Analytics] Failed to track magic_chat_triggered:',
+              error,
+            );
+          }
+        }
+
         if (!openResult.result.success) {
           throw new Error(openResult.result.error || 'Failed to open URL');
         }
@@ -304,6 +333,9 @@ export function ToolbarChatArea() {
     pluginContextSnippets,
     chatState,
     clearSelection,
+    selectedComponents,
+    bridge,
+    selectedSession,
   ]);
 
   const handleCompositionStart = useCallback(() => {
@@ -504,6 +536,33 @@ export function ToolbarChatArea() {
   const handleComponentSelection = useCallback(
     (result: ComponentSearchResult, selected: boolean) => {
       if (selected) {
+        // Track component selection event
+        if (bridge && selectedSession) {
+          try {
+            bridge.call.trackEvent(
+              {
+                eventName: EventName.COMPONENT_SELECTED,
+                properties: {
+                  sessionId: selectedSession.sessionId,
+                  demoId: result.id,
+                  demoName: result.name,
+                  componentName:
+                    result.component_data.name || result.name || 'Unknown',
+                  componentDescription: result.component_data.description || '',
+                  searchQuery: currentInput.trim(),
+                  searchQueryLength: currentInput.trim().length,
+                },
+              },
+              { onUpdate: () => {} },
+            );
+          } catch (error) {
+            console.warn(
+              '[Analytics] Failed to track component_selected:',
+              error,
+            );
+          }
+        }
+
         // Add component to selected components (local state)
         addComponent(result);
 
@@ -536,7 +595,15 @@ export function ToolbarChatArea() {
         }
       }
     },
-    [addComponent, removeComponent, chatState, currentChat],
+    [
+      addComponent,
+      removeComponent,
+      chatState,
+      currentChat,
+      currentInput,
+      bridge,
+      selectedSession,
+    ],
   );
 
   const handleRemoveComponent = useCallback(
@@ -786,6 +853,36 @@ export function ToolbarChatArea() {
       if (e.key === 'Tab' && shouldShowInlineSuggestion) {
         // Activate search when Tab is pressed with search intent
         e.preventDefault();
+
+        // Track components search triggered event
+        if (bridge && selectedSession) {
+          try {
+            bridge.call.trackEvent(
+              {
+                eventName: EventName.COMPONENTS_SEARCH_TRIGGERED,
+                properties: {
+                  sessionId: selectedSession.sessionId,
+                  searchQuery: currentInput.trim(),
+                  searchQueryLength: currentInput.trim().length,
+                  searchIntent: searchIntent || '',
+                  selectedDomElementsCount:
+                    currentChat?.domContextElements?.length || 0,
+                  selectedComponents: selectedComponents.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                  })),
+                },
+              },
+              { onUpdate: () => {} },
+            );
+          } catch (error) {
+            console.warn(
+              '[Analytics] Failed to track components_search_triggered:',
+              error,
+            );
+          }
+        }
+
         setSearchActivated(true);
         return;
       }
@@ -857,6 +954,12 @@ export function ToolbarChatArea() {
       currentChat,
       selectedComponents,
       handleRemoveComponent,
+      searchIntent,
+      searchDisabled,
+      intentInvalidated,
+      isSearchResultsFocused,
+      bridge,
+      selectedSession,
     ],
   );
 

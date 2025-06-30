@@ -1,14 +1,15 @@
 import type { ContextElementContext } from '@/plugin';
 import { createPrompt, type PluginContextSnippets } from '@/prompts';
 import { generateId } from '@/utils';
-import { type ComponentChildren, createContext } from 'preact';
+import { EventName } from '@21st-extension/extension-toolbar-srpc-contract';
+import { createContext, type ComponentChildren } from 'preact';
 import { useCallback, useContext, useEffect, useState } from 'preact/hooks';
 import { useAppState } from './use-app-state';
 import { usePlugins } from './use-plugins';
+import { useRuntimeErrors, type RuntimeError } from './use-runtime-errors';
 import type { SelectedComponentWithCode } from './use-selected-components';
 import { useSRPCBridge } from './use-srpc-bridge';
 import { useVSCode } from './use-vscode';
-import { useRuntimeErrors, type RuntimeError } from './use-runtime-errors';
 
 interface Message {
   id: string;
@@ -451,6 +452,38 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
       async function triggerAgentPrompt() {
         if (bridge) {
           try {
+            // Track agent prompt triggered with component event
+            if (
+              chat?.selectedComponents &&
+              chat.selectedComponents.length > 0 &&
+              selectedSession
+            ) {
+              try {
+                await bridge.call.trackEvent(
+                  {
+                    eventName: EventName.AGENT_PROMPT_TRIGGERED_WITH_COMPONENT,
+                    properties: {
+                      sessionId: selectedSession.sessionId,
+                      promptText: content.trim(),
+                      componentCount: chat.selectedComponents.length,
+                      componentIds: chat.selectedComponents.map((c) => c.id),
+                      selectedDomElementsCount:
+                        chat.domContextElements?.length || 0,
+                      hasRuntimeError: Boolean(chat.runtimeError),
+                      runtimeError: chat.runtimeError?.message,
+                      promptAction: promptAction,
+                    },
+                  },
+                  { onUpdate: () => {} },
+                );
+              } catch (error) {
+                console.warn(
+                  '[Analytics] Failed to track agent_prompt_triggered_with_component:',
+                  error,
+                );
+              }
+            }
+
             // Create prompt (API fetching is now handled inside formatSelectedComponents)
             // Include runtime error only for Send to IDE mode (not for Magic Chat)
             const finalPrompt = await createPrompt(
