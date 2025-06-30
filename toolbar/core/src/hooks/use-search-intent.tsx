@@ -53,7 +53,14 @@ export function useSearchIntent(text: string): UseSearchIntentReturn {
       }
 
       const data = await response.json();
-      const result = data.searchQuery || ''; // Return empty string if no searchQuery
+      const searchQuery = data.searchQuery?.trim();
+      const result =
+        !searchQuery ||
+        searchQuery === 'empty' ||
+        searchQuery === '( empty )' ||
+        searchQuery.replace(/[()]/g, '').trim() === 'empty'
+          ? ''
+          : data.searchQuery; // Return empty string if no searchQuery or if searchQuery indicates no intent
 
       // Cache the result
       cacheRef.current.set(inputText, result);

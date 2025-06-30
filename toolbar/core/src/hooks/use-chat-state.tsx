@@ -8,6 +8,7 @@ import { usePlugins } from './use-plugins';
 import type { SelectedComponentWithCode } from './use-selected-components';
 import { useSRPCBridge } from './use-srpc-bridge';
 import { useVSCode } from './use-vscode';
+import { useRuntimeErrors, type RuntimeError } from './use-runtime-errors';
 
 interface Message {
   id: string;
@@ -34,6 +35,7 @@ interface Chat {
   inputValue: string;
   domContextElements: DomContextElement[];
   selectedComponents: SelectedComponentWithCode[];
+  runtimeError: RuntimeError | null;
 }
 
 type ChatAreaState = 'hidden' | 'compact' | 'normal';
@@ -61,6 +63,8 @@ interface ChatContext {
     components: SelectedComponentWithCode[],
   ) => void;
   clearSelectedComponents: (chatId: ChatId) => void;
+  addChatRuntimeError: (chatId: ChatId, error: RuntimeError) => void;
+  removeChatRuntimeError: (chatId: ChatId) => void;
 
   // UI state
   chatAreaState: ChatAreaState;
@@ -98,6 +102,8 @@ const ChatContext = createContext<ChatContext>({
   addMessage: () => {},
   addSelectedComponents: () => {},
   clearSelectedComponents: () => {},
+  addChatRuntimeError: () => {},
+  removeChatRuntimeError: () => {},
   chatAreaState: 'hidden',
   setChatAreaState: () => {},
   isPromptCreationActive: false,
@@ -128,6 +134,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
       inputValue: '',
       domContextElements: [],
       selectedComponents: [],
+      runtimeError: null,
     },
   ]);
   const [currentChatId, setCurrentChatId] = useState<ChatId>('new_chat');
@@ -155,7 +162,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     setPromptState('idle');
   }, []);
 
-  const { minimized } = useAppState();
+  const { minimized, promptAction } = useAppState();
 
   const { selectedSession, setShouldPromptWindowSelection, windows } =
     useVSCode();
@@ -170,6 +177,9 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
 
   const { bridge } = useSRPCBridge();
 
+  // Runtime errors handling
+  const { lastError, clearError } = useRuntimeErrors();
+
   const createChat = useCallback(() => {
     const newChatId = generateId();
     const newChat: Chat = {
@@ -179,6 +189,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
       inputValue: '',
       domContextElements: [],
       selectedComponents: [],
+      runtimeError: null,
     };
     setChats((prev) => [...prev, newChat]);
     setCurrentChatId(newChatId);
@@ -198,6 +209,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
               inputValue: '',
               domContextElements: [],
               selectedComponents: [],
+              runtimeError: null,
             },
           ];
         }
@@ -340,6 +352,28 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     );
   }, []);
 
+  const addChatRuntimeError = useCallback(
+    (chatId: ChatId, error: RuntimeError) => {
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.id === chatId ? { ...chat, runtimeError: error } : chat,
+        ),
+      );
+    },
+    [],
+  );
+
+  const removeChatRuntimeError = useCallback((chatId: ChatId) => {
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === chatId ? { ...chat, runtimeError: null } : chat,
+      ),
+    );
+  }, []);
+
+  // Note: We don't auto-add runtime errors to chat context
+  // Instead, we show a suggestion in the UI to add them manually
+
   const addMessage = useCallback(
     async (chatId: ChatId, content: string, pluginTriggered = false) => {
       if (!content.trim()) return;
@@ -418,33 +452,86 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
         if (bridge) {
           try {
             // Create prompt (API fetching is now handled inside formatSelectedComponents)
+            // Include runtime error only for Send to IDE mode (not for Magic Chat)
             const finalPrompt = await createPrompt(
               chat?.domContextElements.map((e) => e.element),
               content,
               window.location.href,
               pluginContextSnippets,
               chat?.selectedComponents,
+              chat?.runtimeError,
             );
 
-            const result = await bridge.call.triggerAgentPrompt(
-              {
-                prompt: finalPrompt,
-                sessionId: selectedSession?.sessionId,
-              },
-              { onUpdate: (update) => {} },
+            // Call onPromptTransmit hooks for all plugins
+            await Promise.all(
+              plugins
+                .filter((p) => p.onPromptTransmit)
+                .map(async (p) => {
+                  try {
+                    await p.onPromptTransmit!(finalPrompt);
+                  } catch (err) {
+                    console.error(
+                      `[toolbar] plugin "${p.pluginName}" onPromptTransmit failed`,
+                      err,
+                    );
+                  }
+                }),
             );
+
+            // Handle prompt action based on user settings
+            const shouldCopy =
+              promptAction === 'copy' || promptAction === 'both';
+            const shouldSend =
+              promptAction === 'send' || promptAction === 'both';
+
+            // Copy prompt to clipboard if enabled
+            if (shouldCopy) {
+              try {
+                await navigator.clipboard.writeText(finalPrompt);
+              } catch (err) {
+                console.warn(
+                  '[21st.dev Toolbar] Failed to copy prompt to clipboard:',
+                  err,
+                );
+              }
+            }
+
+            let result: any = { result: { success: true } }; // Default success for copy-only mode
+
+            // Send prompt to IDE if enabled
+            if (shouldSend) {
+              result = await bridge.call.triggerAgentPrompt(
+                {
+                  prompt: finalPrompt,
+                  sessionId: selectedSession?.sessionId,
+                },
+                { onUpdate: (update) => {} },
+              );
+            }
 
             // Handle response based on success/error
             if (result.result.success) {
               // On success, show success state briefly then reset
               setTimeout(() => {
                 setPromptState('success');
+                // Clear input, DOM elements, and selected components after showing success state
+                setChats((prev) =>
+                  prev.map((chat) =>
+                    chat.id === chatId
+                      ? {
+                          ...chat,
+                          inputValue: '',
+                          domContextElements: [],
+                          selectedComponents: [],
+                        }
+                      : chat,
+                  ),
+                );
+                // Reset to idle after success animation completes
+                setTimeout(() => {
+                  setPromptState('idle');
+                }, 800); // Wait for success animation to finish
               }, 1000);
-              setChats((prev) =>
-                prev.map((chat) =>
-                  chat.id === chatId ? { ...chat, inputValue: '' } : chat,
-                ),
-              );
             } else {
               if (
                 result.result.errorCode &&
@@ -458,10 +545,17 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
               setTimeout(() => {
                 setPromptState('idle');
                 setIsPromptCreationMode(false);
-                // Clear input after error completion
+                // Clear input, DOM elements, and selected components after error completion
                 setChats((prev) =>
                   prev.map((chat) =>
-                    chat.id === chatId ? { ...chat, inputValue: '' } : chat,
+                    chat.id === chatId
+                      ? {
+                          ...chat,
+                          inputValue: '',
+                          domContextElements: [],
+                          selectedComponents: [],
+                        }
+                      : chat,
                   ),
                 );
               }, 300);
@@ -474,10 +568,17 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
             setTimeout(() => {
               setPromptState('idle');
               setIsPromptCreationMode(false);
-              // Clear input after error completion
+              // Clear input, DOM elements, and selected components after error completion
               setChats((prev) =>
                 prev.map((chat) =>
-                  chat.id === chatId ? { ...chat, inputValue: '' } : chat,
+                  chat.id === chatId
+                    ? {
+                        ...chat,
+                        inputValue: '',
+                        domContextElements: [],
+                        selectedComponents: [],
+                      }
+                    : chat,
                 ),
               );
             }, 300);
@@ -489,10 +590,17 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
           setTimeout(() => {
             setPromptState('idle');
             setIsPromptCreationMode(false);
-            // Clear input after error completion
+            // Clear input, DOM elements, and selected components after error completion
             setChats((prev) =>
               prev.map((chat) =>
-                chat.id === chatId ? { ...chat, inputValue: '' } : chat,
+                chat.id === chatId
+                  ? {
+                      ...chat,
+                      inputValue: '',
+                      domContextElements: [],
+                      selectedComponents: [],
+                    }
+                  : chat,
               ),
             );
           }, 300);
@@ -514,7 +622,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
                 ...chat,
                 messages: [...chat.messages, newMessage],
                 inputValue: content.trim(), // Keep the original prompt instead of clearing
-                domContextElements: [],
+                // Keep domContextElements during loading
               }
             : chat,
         ),
@@ -530,6 +638,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
       promptState,
       setPromptState,
       plugins,
+      promptAction,
     ],
   );
 
@@ -563,6 +672,8 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     removeChatDomContext,
     addSelectedComponents,
     clearSelectedComponents,
+    addChatRuntimeError,
+    removeChatRuntimeError,
     isSearchResultsFocused,
     setSearchResultsFocused: setIsSearchResultsFocused,
     isSearchActivated,

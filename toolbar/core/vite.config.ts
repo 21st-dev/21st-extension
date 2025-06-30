@@ -40,7 +40,7 @@ export default defineConfig({
           'src/plugin-ui/jsx-runtime.ts',
         ),
       },
-      name: 'StagewiseToolbar',
+      name: 'TwentyFirstToolbar',
       fileName: (format, entryName) => `${entryName}.${format}.js`,
       formats: ['es', 'cjs'],
     },

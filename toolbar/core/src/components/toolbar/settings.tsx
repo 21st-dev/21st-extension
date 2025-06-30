@@ -45,6 +45,10 @@ export const SettingsPanel = ({ onClose }: { onClose?: () => void }) => {
       </div>
 
       <div className="flex flex-col border-border/30 border-t px-4 py-3 text-zinc-950">
+        <PromptSettings />
+      </div>
+
+      <div className="flex flex-col border-border/30 border-t px-4 py-3 text-zinc-950">
         <ConnectionSettings />
       </div>
 
@@ -87,7 +91,7 @@ const PositionSettings = () => {
           id="position-select"
           value={position}
           onChange={handlePositionChange}
-          className="w-32 text-sm"
+          className="w-auto text-sm"
         >
           {positions.map((pos) => (
             <option key={pos.value} value={pos.value}>
@@ -204,6 +208,50 @@ const ConnectionSettings = () => {
           </p>
         </div>
       )}
+    </div>
+  );
+};
+
+const PromptSettings = () => {
+  const { promptAction, setPromptAction } = useAppState();
+
+  const handleActionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPromptAction(e.currentTarget.value as 'send' | 'copy' | 'both');
+  };
+
+  const actions = [
+    { value: 'send', label: 'Send to IDE only' },
+    { value: 'copy', label: 'Copy to clipboard only' },
+    { value: 'both', label: 'Send to IDE and copy' },
+  ] as const;
+
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex-1">
+        <label
+          htmlFor="prompt-action-select"
+          className="mb-1 block font-medium text-sm text-zinc-700"
+        >
+          Prompt Action
+        </label>
+        <p className="text-xs text-zinc-600 leading-relaxed">
+          Choose what happens when you send a prompt to the AI agent.
+        </p>
+      </div>
+      <div className="flex-shrink-0">
+        <SelectNative
+          id="prompt-action-select"
+          value={promptAction}
+          onChange={handleActionChange}
+          className="w-auto text-sm"
+        >
+          {actions.map((action) => (
+            <option key={action.value} value={action.value}>
+              {action.label}
+            </option>
+          ))}
+        </SelectNative>
+      </div>
     </div>
   );
 };

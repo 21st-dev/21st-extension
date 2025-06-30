@@ -1,5 +1,23 @@
 # @21st-extension/toolbar
 
+## 0.5.1
+
+### Patch Changes
+
+- Renamed all components from `StagewiseToolbar` to `TwentyFirstToolbar` for consistency with 21st.dev branding
+- Updated all user-facing messages and documentation to use "21st.dev Toolbar" instead of "stagewise"
+- Updated plugin creation guide and documentation with new branding
+
+## 0.5.0
+
+### Major Changes
+
+- **BREAKING**: Forked from stagewise-io/stagewise project
+- Integrated 21st.dev branding and Magic Chat functionality
+- Rebranded toolbar as "21st.dev Toolbar"
+- Added Magic Chat integration for enhanced AI interactions
+- Updated all package names to use `@21st-extension/` scope
+
 ## 0.4.8
 
 ### Patch Changes

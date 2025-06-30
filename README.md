@@ -84,7 +84,7 @@ setupStagewise();
 
 ### Framework-specific integration examples
 
-For easier integration, we provide framework-specific NPM packages that come with dedicated toolbar components (e.g., `<StagewiseToolbar>`). You can usually import these from `@21st-extension/toolbar-[framework-name]`.
+For easier integration, we provide framework-specific NPM packages that come with dedicated toolbar components (e.g., `<TwentyFirstToolbar>`). You can usually import these from `@21st-extension/toolbar-[framework-name]`.
 
 <details>
 <summary>React.js</summary>
@@ -96,7 +96,7 @@ We provide the `@21st-extension/toolbar-react` package for React projects. Initi
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
-import { StagewiseToolbar } from '@21st-extension/toolbar-react';
+import { TwentyFirstToolbar } from '@21st-extension/toolbar-react';
 import './index.css';
 
 // Render the main app
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   createRoot(toolbarRoot).render(
     <StrictMode>
-      <StagewiseToolbar config={toolbarConfig} />
+      <TwentyFirstToolbar config={toolbarConfig} />
     </StrictMode>
   );
 });
@@ -128,11 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
 <details>
 <summary>Next.js</summary>
 
-Use the `@21st-extension/toolbar-next` package for Next.js applications. Include the `<StagewiseToolbar>` component in your root layout file (`src/app/layout.tsx`).
+Use the `@21st-extension/toolbar-next` package for Next.js applications. Include the `<TwentyFirstToolbar>` component in your root layout file (`src/app/layout.tsx`).
 
 ```tsx
 // src/app/layout.tsx
-import { StagewiseToolbar } from '@21st-extension/toolbar-next';
+import { TwentyFirstToolbar } from '@21st-extension/toolbar-next';
 
 export default function RootLayout({
   children,
@@ -142,7 +142,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <StagewiseToolbar
+        <TwentyFirstToolbar
           config={{
             plugins: [], // Add your custom plugins here
           }}
@@ -159,12 +159,12 @@ export default function RootLayout({
 <details>
 <summary>Nuxt.js</summary>
 
-For Nuxt.js projects, you can use the `@21st-extension/toolbar-vue` package. Place the `<StagewiseToolbar>` component in your `app.vue` or a relevant layout file.
+For Nuxt.js projects, you can use the `@21st-extension/toolbar-vue` package. Place the `<TwentyFirstToolbar>` component in your `app.vue` or a relevant layout file.
 
 ```vue
 // app.vue
 <script setup lang="ts">
-import { StagewiseToolbar, type ToolbarConfig } from '@21st-extension/toolbar-vue';
+import { TwentyFirstToolbar, type ToolbarConfig } from '@21st-extension/toolbar-vue';
 
 const config: ToolbarConfig = {
   plugins: [], // Add your custom plugins here
@@ -175,7 +175,7 @@ const config: ToolbarConfig = {
   <div>
     <NuxtRouteAnnouncer />
     <ClientOnly>
-      <StagewiseToolbar :config="config" />
+      <TwentyFirstToolbar :config="config" />
     </ClientOnly>
     <NuxtWelcome />
   </div>
@@ -187,12 +187,12 @@ const config: ToolbarConfig = {
 <details>
 <summary>Vue.js</summary>
 
-Use the `@21st-extension/toolbar-vue` package for Vue.js projects. Add the `<StagewiseToolbar>` component to your main App component (e.g., `App.vue`).
+Use the `@21st-extension/toolbar-vue` package for Vue.js projects. Add the `<TwentyFirstToolbar>` component to your main App component (e.g., `App.vue`).
 
 ```vue
 // src/App.vue
 <script setup lang="ts">
-import { StagewiseToolbar, type ToolbarConfig } from '@21st-extension/toolbar-vue';
+import { TwentyFirstToolbar, type ToolbarConfig } from '@21st-extension/toolbar-vue';
 
 const config: ToolbarConfig = {
   plugins: [], // Add your custom plugins here
@@ -200,7 +200,7 @@ const config: ToolbarConfig = {
 </script>
 
 <template>
-  <StagewiseToolbar :config="config" />
+  <TwentyFirstToolbar :config="config" />
   <div>
     <!-- Your app content -->
   </div>
@@ -212,7 +212,7 @@ const config: ToolbarConfig = {
 <details>
 <summary>SvelteKit</summary>
 
-For SvelteKit, you can integrate the toolbar using `@21st-extension/toolbar` and Svelte's lifecycle functions, or look for a dedicated `@21st-extension/toolbar-svelte` package if available. Create a component that conditionally renders/initializes the toolbar on the client side (e.g., `src/lib/components/StagewiseToolbarLoader.svelte` or directly in `src/routes/+layout.svelte`).
+For SvelteKit, you can integrate the toolbar using `@21st-extension/toolbar` and Svelte's lifecycle functions, or look for a dedicated `@21st-extension/toolbar-svelte` package if available. Create a component that conditionally renders/initializes the toolbar on the client side (e.g., `src/lib/components/TwentyFirstToolbarLoader.svelte` or directly in `src/routes/+layout.svelte`).
 
 **Using `onMount` in `+layout.svelte` (with `@21st-extension/toolbar`):**
 ```svelte
@@ -259,7 +259,7 @@ const stagewiseConfig: ToolbarConfig = {
   <ToolbarWrapper config={stagewiseConfig} />
 {/if}
 ```
-You would then use `StagewiseToolbarLoader` in your `src/routes/+layout.svelte`.
+You would then use `TwentyFirstToolbarLoader` in your `src/routes/+layout.svelte`.
 
 </details>
 

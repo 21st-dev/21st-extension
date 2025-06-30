@@ -1,5 +1,27 @@
 # @21st-extension/plugin-example
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated branding and documentation to use "21st.dev" instead of "stagewise"
+- Enhanced template plugin for better integration with 21st.dev Toolbar
+- Updated example code and documentation
+- Updated dependencies
+  - @21st-extension/toolbar@0.5.1
+
+## 0.5.0
+
+### Major Changes
+
+- **BREAKING**: Forked from stagewise-io/stagewise project
+- Integrated 21st.dev branding and Magic Chat functionality
+- Enhanced template plugin with 21st.dev branding
+- Added Magic Chat integration examples
+- Updated all package names to use `@21st-extension/` scope
+- Updated dependencies
+  - @21st-extension/toolbar@0.5.0
+
 ## 0.4.8
 
 ### Patch Changes

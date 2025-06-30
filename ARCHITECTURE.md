@@ -1,10 +1,10 @@
-# Архитектура проекта stagewise
+# 21st Extension Architecture
 
-stagewise - это браузерная toolbar, которая соединяет frontend UI с AI агентами в редакторах кода. Проект обеспечивает визуальное взаимодействие с кодом через веб-интерфейс.
+21st Extension is a browser toolbar that connects frontend UI with AI agents in code editors. The project provides visual code interaction through a web interface.
 
-## Обзор системы
+## System Overview
 
-Система состоит из нескольких основных компонентов, взаимодействующих друг с другом:
+The system consists of several main components interacting with each other:
 
 ```
 ┌─────────────────┐    WebSocket/HTTP    ┌─────────────────┐
@@ -20,48 +20,48 @@ stagewise - это браузерная toolbar, которая соединяе
 └─────────────────┘                     └─────────────────┘
 ```
 
-## Структура monorepo
+## Monorepo Structure
 
-Проект организован как monorepo с использованием:
-- **pnpm workspaces** - управление зависимостями
-- **Turbo** - система сборки и кэширования
-- **TypeScript** - основной язык разработки
+The project is organized as a monorepo using:
+- **pnpm workspaces** - dependency management
+- **Turbo** - build system and caching
+- **TypeScript** - primary development language
 
-### Основные директории
+### Main Directories
 
 ```
 21st-extension/
-├── apps/                    # Приложения
-│   └── vscode-extension/    # VSCode/Cursor расширение
-├── packages/                # Общие пакеты
-│   ├── srpc/               # Simple RPC система
-│   ├── extension-toolbar-srpc-contract/  # Контракт коммуникации
-│   ├── ui/                 # UI компоненты
-│   └── typescript-config/  # Конфигурации TypeScript
-├── toolbar/                 # Браузерная toolbar
-│   ├── core/               # Основная логика toolbar
-│   ├── react/              # React интеграция
-│   ├── vue/                # Vue интеграция
-│   └── next/               # Next.js интеграция
-├── plugins/                 # Плагины для фреймворков
-│   ├── react/              # React плагин
-│   ├── vue/                # Vue плагин
-│   └── angular/            # Angular плагин
-└── examples/               # Примеры использования
+├── apps/                    # Applications
+│   └── vscode-extension/    # VSCode/Cursor extension
+├── packages/                # Shared packages
+│   ├── srpc/               # Simple RPC system
+│   ├── extension-toolbar-srpc-contract/  # Communication contract
+│   ├── ui/                 # UI components
+│   └── typescript-config/  # TypeScript configurations
+├── toolbar/                 # Browser toolbar
+│   ├── core/               # Core toolbar logic
+│   ├── react/              # React integration
+│   ├── vue/                # Vue integration
+│   └── next/               # Next.js integration
+├── plugins/                 # Framework plugins
+│   ├── react/              # React plugin
+│   ├── vue/                # Vue plugin
+│   └── angular/            # Angular plugin
+└── examples/               # Usage examples
 ```
 
-## Компоненты системы
+## System Components
 
 ### 1. VSCode Extension (`apps/vscode-extension/`)
 
-**Назначение**: Расширение для редакторов кода (VSCode, Cursor, Windsurf), которое обеспечивает связь между toolbar и AI агентами.
+**Purpose**: Extension for code editors (VSCode, Cursor, Windsurf) that provides the connection between toolbar and AI agents.
 
-**Ключевые возможности**:
-- Запуск HTTP/WebSocket сервера для коммуникации с toolbar
-- Интеграция с AI агентами через MCP (Model Context Protocol)
-- Автоматическая настройка toolbar в проекте
-- Обнаружение и переключение между окнами редактора
-- Телеметрия и аналитика
+**Key Features**:
+- Launch HTTP/WebSocket server for toolbar communication
+- AI agent integration through MCP (Model Context Protocol)
+- Automatic toolbar setup in projects
+- Editor window discovery and switching
+- Telemetry and analytics
 
 **Архитектура**:
 ```

@@ -23,7 +23,7 @@ export async function dispatchAgentCall(request: PromptRequest) {
       if (isCopilotChatInstalled()) return await callCopilotAgent(request);
       else {
         vscode.window.showErrorMessage(
-          'Currently, only Copilot Chat is supported for VSCode. Please install it from the marketplace to use stagewise with VSCode.',
+          'Currently, only Copilot Chat is supported for VSCode. Please install it from the marketplace to use 21st.dev Extension with VSCode.',
         );
         break;
       }

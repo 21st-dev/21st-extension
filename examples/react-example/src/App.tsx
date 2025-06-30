@@ -6,6 +6,10 @@ import './App.css';
 function App() {
   const [count, setCount] = useState(0);
 
+  const handleRuntimeError = () => {
+    throw new Error('This is a runtime error for testing purposes');
+  };
+
   return (
     <>
       <div>
@@ -20,6 +24,21 @@ function App() {
       <div className="card">
         <button type="button" onClick={() => setCount((count) => count + 1)}>
           count is {count}
+        </button>
+        <button 
+          type="button" 
+          onClick={handleRuntimeError}
+          style={{ 
+            backgroundColor: '#ef4444', 
+            color: 'white', 
+            border: 'none', 
+            padding: '8px 16px', 
+            borderRadius: '4px', 
+            marginLeft: '8px',
+            cursor: 'pointer'
+          }}
+        >
+          Trigger Runtime Error
         </button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR

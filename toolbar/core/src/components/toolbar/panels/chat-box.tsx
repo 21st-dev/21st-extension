@@ -25,7 +25,9 @@ import { SelectedDomElements } from './selected-dom-elements';
 import { InlineSuggestion } from '@/components/ui/inline-suggestion';
 import type { ComponentSearchResult } from '@/types/supabase';
 import { useSelectedComponents } from '@/hooks/use-selected-components';
-import { XIcon } from 'lucide-react';
+import { useAppState } from '@/hooks/use-app-state';
+import { useRuntimeErrors } from '@/hooks/use-runtime-errors';
+import { XIcon, Loader } from 'lucide-react';
 
 // Component for drag border areas
 function DragBorderAreas() {
@@ -51,11 +53,19 @@ function DragBorderAreas() {
 export function ToolbarChatArea() {
   const chatState = useChatState();
   const [isComposing, setIsComposing] = useState(false);
+  const [isMagicChatLoading, setIsMagicChatLoading] = useState(false);
+  // State to preserve context during loading
+  const [loadingContext, setLoadingContext] = useState<{
+    hasText: boolean;
+    hasSelectedElements: boolean;
+  } | null>(null);
   const { plugins } = usePlugins();
   const { appName, selectedSession } = useVSCode();
   const { bridge } = useSRPCBridge();
   const { selectedComponents, removeComponent, addComponent, clearSelection } =
     useSelectedComponents();
+  const { promptAction } = useAppState();
+  const { lastError } = useRuntimeErrors();
 
   // Draggable refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -208,13 +218,25 @@ export function ToolbarChatArea() {
   const handleMagicChatSubmit = useCallback(async () => {
     if (!currentChat || !currentInput.trim()) return;
 
+    // Save current context before loading starts
+    setLoadingContext({
+      hasText: currentInput.trim().length > 0,
+      hasSelectedElements:
+        (currentChat.domContextElements &&
+          currentChat.domContextElements.length > 0) ||
+        selectedComponents.length > 0,
+    });
+
+    setIsMagicChatLoading(true);
     try {
+      // Note: For Magic Chat, we don't include runtime errors
       const finalPrompt = await createPrompt(
         currentChat.domContextElements.map((e) => e.element),
         currentInput,
         window.location.href,
         pluginContextSnippets,
         currentChat.selectedComponents || [],
+        null, // Don't include runtime error for Magic Chat
       );
 
       const response = await fetch(
@@ -272,6 +294,9 @@ export function ToolbarChatArea() {
       }
     } catch (err) {
       console.error('Error opening Magic Chat:', err);
+    } finally {
+      setIsMagicChatLoading(false);
+      setLoadingContext(null);
     }
   }, [
     currentChat,
@@ -297,7 +322,7 @@ export function ToolbarChatArea() {
   const [selectedElementsHeight, setSelectedElementsHeight] =
     useState<number>(0);
 
-  // Update height whenever selected DOM elements or components change
+  // Update height whenever selected DOM elements, components, or runtime errors change
   useEffect(() => {
     if (selectedElementsContainerRef.current) {
       setSelectedElementsHeight(
@@ -306,7 +331,12 @@ export function ToolbarChatArea() {
     } else {
       setSelectedElementsHeight(0);
     }
-  }, [currentChat?.domContextElements?.length, selectedComponents.length]);
+  }, [
+    currentChat?.domContextElements?.length,
+    selectedComponents.length,
+    currentChat?.runtimeError,
+    lastError?.timestamp.getTime(), // Include timestamp to detect when error changes
+  ]);
 
   // Style object to lift search results above selected elements block
   const searchResultsTranslateStyle = useMemo<React.CSSProperties>(
@@ -342,18 +372,30 @@ export function ToolbarChatArea() {
 
   // Container styles based on prompt state
   const containerClassName = useMemo(() => {
+    // Check if runtime error suggestion should be shown
+    const hasRuntimeErrorInContext =
+      currentChat?.runtimeError &&
+      lastError &&
+      currentChat.runtimeError.timestamp.getTime() ===
+        lastError.timestamp.getTime();
+
+    const shouldShowRuntimeErrorSuggestion =
+      lastError && !hasRuntimeErrorInContext;
+
     const hasSelectedElements =
       (currentChat?.domContextElements &&
         currentChat.domContextElements.length > 0) ||
-      selectedComponents.length > 0;
+      selectedComponents.length > 0 ||
+      currentChat?.runtimeError ||
+      shouldShowRuntimeErrorSuggestion;
 
     // Use different rounding based on whether there are selected elements above
     const roundingClass = hasSelectedElements ? 'rounded-b-2xl' : 'rounded-2xl';
-    const baseClasses = `flex h-24 w-full flex-1 flex-row items-end ${roundingClass} px-2 pb-2 pt-2.5 text-sm text-zinc-950 shadow-md backdrop-blur transition-all duration-300 ease-in-out placeholder:text-zinc-950/70`;
+    const baseClasses = `flex h-24 w-full flex-1 flex-row items-end ${roundingClass} px-2 pb-2 pt-2.5 text-sm text-zinc-950 shadow-md backdrop-blur transition-[background-color,border-color,color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter] duration-300 ease-in-out placeholder:text-zinc-950/70`;
 
     switch (chatState.promptState) {
       case 'loading':
-        return cn(baseClasses, 'border border-transparent bg-zinc-50/80');
+        return cn(baseClasses, 'border border-border/30 bg-zinc-50/80');
       case 'success':
         return cn(
           baseClasses,
@@ -372,7 +414,9 @@ export function ToolbarChatArea() {
   }, [
     chatState.promptState,
     currentChat?.domContextElements,
+    currentChat?.runtimeError,
     selectedComponents.length,
+    lastError,
   ]);
 
   const ctrlAltCText = useHotkeyListenerComboText(HotkeyActions.ALT_PERIOD);
@@ -380,24 +424,44 @@ export function ToolbarChatArea() {
   // Get Esc indicator text based on current state
   const getEscIndicatorText = useCallback(() => {
     if (isSearchResultsFocused) {
-      return 'to close search';
+      return 'Close search';
     }
     if (chatState.isDomSelectorActive) {
-      return 'to disable inspector';
+      return 'Close inspector';
     }
-    return 'to close chat';
+    return 'Close chat';
   }, [isSearchResultsFocused, chatState.isDomSelectorActive]);
+
+  // Check if we should show "Fix error" mode (only runtime error in context)
+  const shouldShowFixError = useMemo(() => {
+    return (
+      currentInput.trim().length === 0 &&
+      domContextElements.length === 0 &&
+      selectedComponents.length === 0 &&
+      currentChat?.runtimeError &&
+      !isSearchResultsFocused
+    );
+  }, [
+    currentInput,
+    domContextElements.length,
+    selectedComponents.length,
+    currentChat?.runtimeError,
+    isSearchResultsFocused,
+  ]);
 
   // Get Magic Chat button text based on context
   const getMagicChatButtonText = useCallback(() => {
-    const hasText = currentInput.trim().length > 0;
-    const hasSelectedElements =
-      (currentChat?.domContextElements &&
-        currentChat.domContextElements.length > 0) ||
-      selectedComponents.length > 0;
+    // Use loading context if available, otherwise use current context
+    const contextToUse = loadingContext || {
+      hasText: currentInput.trim().length > 0,
+      hasSelectedElements:
+        (currentChat?.domContextElements &&
+          currentChat.domContextElements.length > 0) ||
+        selectedComponents.length > 0,
+    };
 
     // If no text but has selected elements/components, show "Refine with Magic"
-    if (!hasText && hasSelectedElements) {
+    if (!contextToUse.hasText && contextToUse.hasSelectedElements) {
       return 'Refine with Magic';
     }
 
@@ -407,7 +471,33 @@ export function ToolbarChatArea() {
     currentInput,
     currentChat?.domContextElements,
     selectedComponents.length,
+    loadingContext,
   ]);
+
+  // Get main button text based on prompt action setting
+  const getMainButtonText = useCallback(() => {
+    if (shouldShowFixError) {
+      switch (promptAction) {
+        case 'copy':
+          return 'Copy error';
+        case 'both':
+          return `Fix and copy`;
+        case 'send':
+        default:
+          return `Fix in ${ideName}`;
+      }
+    }
+
+    switch (promptAction) {
+      case 'copy':
+        return 'Copy to clipboard';
+      case 'both':
+        return `Send and copy`;
+      case 'send':
+      default:
+        return `Send to ${ideName}`;
+    }
+  }, [promptAction, ideName, shouldShowFixError]);
 
   const handleComponentSelection = useCallback(
     (result: ComponentSearchResult, selected: boolean) => {
@@ -487,6 +577,34 @@ export function ToolbarChatArea() {
     }
   }, [shouldShowSearchResults]);
 
+  // Clear loading context when prompt state changes from loading
+  useEffect(() => {
+    if (chatState.promptState !== 'loading' && loadingContext) {
+      setLoadingContext(null);
+    }
+  }, [chatState.promptState, loadingContext]);
+
+  // Clear local selected components when main prompt loading finishes
+  useEffect(() => {
+    if (
+      chatState.promptState !== 'loading' &&
+      chatState.promptState !== 'idle'
+    ) {
+      // Clear local selected components state when prompt completes (success or error)
+      clearSelection();
+    }
+  }, [chatState.promptState, clearSelection]);
+
+  // Auto-focus input after success state resets to idle
+  useEffect(() => {
+    if (chatState.promptState === 'idle' && chatState.isPromptCreationActive) {
+      // Small delay to ensure the input is ready
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [chatState.promptState, chatState.isPromptCreationActive]);
+
   // Show inline suggestion when there's search intent but search not activated
   const shouldShowInlineSuggestion =
     !searchDisabled &&
@@ -565,6 +683,7 @@ export function ToolbarChatArea() {
       currentInput.trim().length === 0 &&
       domContextElements.length === 0 &&
       selectedComponents.length === 0 &&
+      !currentChat?.runtimeError &&
       !chatState.isDomSelectorActive &&
       !isSearchResultsFocused
     );
@@ -572,8 +691,40 @@ export function ToolbarChatArea() {
     currentInput,
     domContextElements.length,
     selectedComponents.length,
+    currentChat?.runtimeError,
     chatState.isDomSelectorActive,
     isSearchResultsFocused,
+  ]);
+
+  // Check if we should allow Tab to add runtime error
+  const shouldAllowTabForRuntimeError = useMemo(() => {
+    const hasRuntimeErrorInContext =
+      currentChat?.runtimeError &&
+      lastError &&
+      currentChat.runtimeError.timestamp.getTime() ===
+        lastError.timestamp.getTime();
+
+    const shouldShowRuntimeErrorSuggestion =
+      lastError && !hasRuntimeErrorInContext;
+
+    return (
+      currentInput.trim().length === 0 &&
+      domContextElements.length === 0 &&
+      selectedComponents.length === 0 &&
+      shouldShowRuntimeErrorSuggestion &&
+      !isSearchActivated &&
+      !isSearchResultsFocused &&
+      !shouldShowInlineSuggestion
+    );
+  }, [
+    currentInput,
+    domContextElements.length,
+    selectedComponents.length,
+    lastError,
+    currentChat?.runtimeError,
+    isSearchActivated,
+    isSearchResultsFocused,
+    shouldShowInlineSuggestion,
   ]);
 
   // Handle submit or add to context based on focus state
@@ -594,14 +745,30 @@ export function ToolbarChatArea() {
       return;
     }
 
+    // If in "Fix Error" mode, send the runtime error context
+    if (shouldShowFixError) {
+      if (!currentChat) return;
+      // Send message to IDE with runtime error in context
+      chatState.addMessage(currentChat.id, '');
+      return;
+    }
+
     // Normal submit behavior
     if (!currentChat || !currentInput.trim()) return;
+
+    // Save current context before loading starts
+    setLoadingContext({
+      hasText: currentInput.trim().length > 0,
+      hasSelectedElements:
+        (currentChat.domContextElements &&
+          currentChat.domContextElements.length > 0) ||
+        selectedComponents.length > 0,
+    });
+
     // Send message to IDE
     chatState.addMessage(currentChat.id, currentInput);
 
-    // Clear selected components (both chat state and local hook)
-    chatState.clearSelectedComponents(currentChat.id);
-    clearSelection();
+    // Note: Components and DOM elements will be cleared after loading completes
   }, [
     isSearchResultsFocused,
     currentChat,
@@ -609,7 +776,7 @@ export function ToolbarChatArea() {
     chatState,
     handleFocusReturn,
     shouldShowOpenInspector,
-    clearSelection,
+    shouldShowFixError,
   ]);
 
   const handleKeyDown = useCallback(
@@ -618,6 +785,50 @@ export function ToolbarChatArea() {
         // Activate search when Tab is pressed with search intent
         e.preventDefault();
         setSearchActivated(true);
+        return;
+      }
+
+      if (e.key === 'Tab' && shouldAllowTabForRuntimeError) {
+        // Add runtime error to context when Tab is pressed
+        e.preventDefault();
+        if (lastError && chatState.currentChatId) {
+          chatState.addChatRuntimeError(chatState.currentChatId, lastError);
+        }
+        return;
+      }
+
+      if (e.key === 'Backspace' && currentInput.trim().length === 0) {
+        // Remove items from context in reverse order (right to left) when input is empty
+        e.preventDefault();
+        if (!currentChat) return;
+
+        // Order of removal (right to left):
+        // 1. Runtime error (rightmost)
+        // 2. Selected components (last added first)
+        // 3. DOM elements (last added first)
+
+        if (currentChat.runtimeError) {
+          // Remove runtime error first
+          chatState.removeChatRuntimeError(chatState.currentChatId);
+        } else if (selectedComponents.length > 0) {
+          // Remove last selected component
+          const lastComponent =
+            selectedComponents[selectedComponents.length - 1];
+          handleRemoveComponent(lastComponent.id.toString());
+        } else if (
+          currentChat.domContextElements &&
+          currentChat.domContextElements.length > 0
+        ) {
+          // Remove last DOM element
+          const lastElement =
+            currentChat.domContextElements[
+              currentChat.domContextElements.length - 1
+            ];
+          chatState.removeChatDomContext(
+            chatState.currentChatId,
+            lastElement.element,
+          );
+        }
         return;
       }
 
@@ -634,9 +845,16 @@ export function ToolbarChatArea() {
     },
     [
       shouldShowInlineSuggestion,
+      shouldAllowTabForRuntimeError,
+      lastError,
+      chatState,
       handleMagicChatSubmit,
       handleSubmitOrAddToContext,
       isComposing,
+      currentInput,
+      currentChat,
+      selectedComponents,
+      handleRemoveComponent,
     ],
   );
 
@@ -656,10 +874,12 @@ export function ToolbarChatArea() {
         <div
           ref={combinedDraggableRef}
           className={cn(
-            'pointer-events-auto relative z-40 w-[400px] max-w-[80vw] transition-all duration-300 ease-out',
+            'pointer-events-auto relative z-40 w-[400px] max-w-[80vw] rounded-2xl transition-all duration-300 ease-out',
             chatState.isPromptCreationActive
               ? 'scale-100 opacity-100 blur-none'
               : 'pointer-events-none scale-95 opacity-0 blur-md',
+            // Add bounce effect for success state
+            chatState.promptState === 'success' && 'chat-success-bounce',
           )}
           style={{ position: 'absolute' }}
         >
@@ -690,7 +910,12 @@ export function ToolbarChatArea() {
           {/* Selected DOM Elements and Components - positioned above chat */}
           {((currentChat?.domContextElements &&
             currentChat.domContextElements.length > 0) ||
-            selectedComponents.length > 0) && (
+            selectedComponents.length > 0 ||
+            currentChat?.runtimeError ||
+            (lastError &&
+              (!currentChat?.runtimeError ||
+                currentChat.runtimeError.timestamp.getTime() !==
+                  lastError.timestamp.getTime()))) && (
             <div className="absolute right-0 bottom-full left-0 z-40">
               <div className="slide-in-from-top-2 animate-in duration-200 ease-out">
                 <div
@@ -703,6 +928,8 @@ export function ToolbarChatArea() {
                     onRemoveComponent={handleRemoveComponent}
                     chatId={chatState.currentChatId}
                     compact={true}
+                    runtimeError={lastError}
+                    hasInputText={currentInput.trim().length > 0}
                   />
                 </div>
               </div>
@@ -734,12 +961,12 @@ export function ToolbarChatArea() {
                   onCompositionEnd={handleCompositionEnd}
                   placeholder={
                     chatState.isPromptCreationActive
-                      ? chatState.promptState === 'loading'
-                        ? 'Processing...'
-                        : 'Enter prompt or 21st.dev search...'
+                      ? 'Enter prompt or 21st.dev search...'
                       : `What do you want to change? (${ctrlAltCText})`
                   }
-                  disabled={chatState.promptState === 'loading'}
+                  disabled={
+                    chatState.promptState === 'loading' || isMagicChatLoading
+                  }
                   style={
                     shouldShowSearchResults && isLoading && currentInput.trim()
                       ? ({
@@ -773,11 +1000,12 @@ export function ToolbarChatArea() {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      '!py-0 gap-0.5 border-none bg-transparent text-[10px] hover:bg-transparent',
+                      '!py-0 gap-0.5 whitespace-normal border-none bg-transparent text-[10px] hover:bg-transparent',
                       (currentInput.trim().length > 0 ||
                         (currentChat?.domContextElements &&
                           currentChat.domContextElements.length > 0) ||
                         selectedComponents.length > 0) &&
+                        !isMagicChatLoading &&
                         chatState.promptState !== 'loading'
                         ? 'text-black hover:text-gray-800'
                         : 'cursor-not-allowed text-gray-400',
@@ -787,19 +1015,25 @@ export function ToolbarChatArea() {
                         (!currentChat?.domContextElements ||
                           currentChat.domContextElements.length === 0) &&
                         selectedComponents.length === 0) ||
+                      isMagicChatLoading ||
                       chatState.promptState === 'loading'
                     }
                     onClick={handleMagicChatSubmit}
                   >
-                    <span className="mr-1 font-semibold">
+                    {isMagicChatLoading && (
+                      <Loader className="mr-1 h-3.5 w-3.5 animate-spin" />
+                    )}
+                    <span className="mr-1 whitespace-normal font-semibold">
                       {getMagicChatButtonText()}
                     </span>
                     <span
                       className={cn(
+                        'flex items-center justify-center py-0.5 leading-none',
                         (currentInput.trim().length > 0 ||
                           (currentChat?.domContextElements &&
                             currentChat.domContextElements.length > 0) ||
                           selectedComponents.length > 0) &&
+                          !isMagicChatLoading &&
                           chatState.promptState !== 'loading'
                           ? 'text-gray-600'
                           : 'text-gray-400',
@@ -809,10 +1043,12 @@ export function ToolbarChatArea() {
                     </span>
                     <span
                       className={cn(
+                        'flex items-center justify-center py-0.5 leading-none',
                         (currentInput.trim().length > 0 ||
                           (currentChat?.domContextElements &&
                             currentChat.domContextElements.length > 0) ||
                           selectedComponents.length > 0) &&
+                          !isMagicChatLoading &&
                           chatState.promptState !== 'loading'
                           ? 'text-gray-600'
                           : 'text-gray-400',
@@ -826,10 +1062,7 @@ export function ToolbarChatArea() {
                     variant="secondary"
                     size="sm"
                     className={cn(
-                      'gap-0.5 border-none py-0.5 text-[10px] transition-all duration-200',
-                      // Loading state – show animated gradient on the button itself
-                      chatState.promptState === 'loading' &&
-                        'chat-loading-gradient cursor-not-allowed border border-transparent text-white',
+                      'gap-0.5 whitespace-normal border-none py-0.5 text-[10px] transition-all duration-200 ease-out',
                       // Add to context state (keep original blue)
                       isSearchResultsFocused &&
                         isSearchResultsReady &&
@@ -841,34 +1074,46 @@ export function ToolbarChatArea() {
                         'bg-green-500 text-white hover:bg-green-600 hover:text-white',
                       // Send to IDE state (black background, white text)
                       !isSearchResultsFocused &&
-                        !shouldShowOpenInspector &&
-                        currentInput.trim().length > 0 &&
+                        (!shouldShowOpenInspector || shouldShowFixError) &&
+                        (currentInput.trim().length > 0 ||
+                          shouldShowFixError) &&
                         chatState.promptState !== 'loading' &&
                         'bg-black text-white hover:bg-gray-800 hover:text-white',
+                      // Loading state
+                      chatState.promptState === 'loading' &&
+                        'cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300 hover:text-gray-500',
                       // Disabled state (only when not loading)
                       chatState.promptState !== 'loading' &&
                         (currentInput.trim().length === 0 &&
                         (!isSearchResultsFocused || !isSearchResultsReady) &&
-                        !shouldShowOpenInspector
+                        !shouldShowOpenInspector &&
+                        !shouldShowFixError
                           ? 'cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300 hover:text-gray-500'
                           : ''),
                     )}
                     disabled={
                       (currentInput.trim().length === 0 &&
                         (!isSearchResultsFocused || !isSearchResultsReady) &&
-                        !shouldShowOpenInspector) ||
-                      chatState.promptState === 'loading'
+                        !shouldShowOpenInspector &&
+                        !shouldShowFixError) ||
+                      chatState.promptState === 'loading' ||
+                      isMagicChatLoading
                     }
                     onClick={handleSubmitOrAddToContext}
                   >
-                    <span className="mr-1 font-semibold">
+                    {chatState.promptState === 'loading' && (
+                      <Loader className="mr-1 h-3.5 w-3.5 animate-spin" />
+                    )}
+                    <span className="mr-1 whitespace-normal font-semibold">
                       {isSearchResultsFocused && isSearchResultsReady
                         ? 'Add to context'
                         : shouldShowOpenInspector
                           ? 'Open Inspector'
-                          : `Send to ${ideName}`}
+                          : getMainButtonText()}
                     </span>
-                    <span>⏎</span>
+                    <span className="flex items-center justify-center py-0.5 leading-none">
+                      ⏎
+                    </span>
                   </Button>
                 </div>
               </div>

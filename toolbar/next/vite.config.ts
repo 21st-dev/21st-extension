@@ -30,7 +30,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'StagewiseToolbarNext',
+      name: 'TwentyFirstToolbarNext',
       fileName: 'index',
       formats: ['es', 'umd'],
     },

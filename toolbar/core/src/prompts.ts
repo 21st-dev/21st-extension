@@ -236,6 +236,15 @@ ${formattedComponents}
   </inspiration_components>`;
 }
 
+export interface RuntimeError {
+  message: string;
+  filename: string;
+  lineno: number;
+  colno: number;
+  stack?: string;
+  timestamp: Date;
+}
+
 /**
  * Creates a comprehensive prompt for a Coding Agent LLM.
  *
@@ -244,6 +253,7 @@ ${formattedComponents}
  * @param url - The URL of the page where the interaction occurred.
  * @param contextSnippets - An array of context snippets from a list of plugins.
  * @param selectedComponents - An optional array of selected UI components (without code content).
+ * @param runtimeError - An optional runtime error to include in the context.
  * @returns A formatted string prompt for the LLM.
  */
 export async function createPrompt(
@@ -252,6 +262,7 @@ export async function createPrompt(
   url: string,
   contextSnippets: PluginContextSnippets[],
   selectedComponents?: SelectedComponentWithCode[],
+  runtimeError?: RuntimeError | null,
 ): Promise<string> {
   const pluginContext = contextSnippets
     .map((snippet) =>
@@ -269,6 +280,18 @@ ${snippet.contextSnippets.map((snippet) => `    <${snippet.promptContextName}>${
     selectedComponents && selectedComponents.length > 0
       ? await formatSelectedComponents(selectedComponents)
       : '';
+
+  const runtimeErrorSection = runtimeError
+    ? `
+  <runtime_error>
+    <message>${runtimeError.message}</message>
+    <file>${runtimeError.filename}</file>
+    <line>${runtimeError.lineno}</line>
+    <column>${runtimeError.colno}</column>
+    <timestamp>${runtimeError.timestamp.toISOString()}</timestamp>
+    ${runtimeError.stack ? `<stack_trace>${runtimeError.stack}</stack_trace>` : ''}
+  </runtime_error>`
+    : '';
 
   // Create fallback user_goal when no specific prompt is provided
   const getFallbackUserGoal = () => {
@@ -296,6 +319,7 @@ ${snippet.contextSnippets.map((snippet) => `    <${snippet.promptContextName}>${
       <url>${url}</url>
   <context>No specific element was selected on the page. Please analyze the page code in general or ask for clarification.</context>${selectedComponentsSection}
   ${pluginContext}
+  ${runtimeErrorSection}
 </request>`.trim();
   }
 
@@ -313,5 +337,6 @@ ${snippet.contextSnippets.map((snippet) => `    <${snippet.promptContextName}>${
   </selected_elements>
   ${pluginContext}
   ${selectedComponentsSection}
+  ${runtimeErrorSection}
 </request>`.trim();
 }

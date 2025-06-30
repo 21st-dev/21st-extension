@@ -1,4 +1,22 @@
-# create-stagewise-plugin
+# create-21st-plugin
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated branding and documentation to use "21st.dev" instead of "stagewise"
+- Updated plugin creation templates with 21st.dev branding
+- Enhanced plugin scaffold for better integration with 21st.dev Toolbar
+
+## 0.5.0
+
+### Major Changes
+
+- **BREAKING**: Forked from stagewise-io/stagewise project
+- Integrated 21st.dev branding and Magic Chat functionality
+- Rebranded package from "create-stagewise-plugin" to "create-21st-plugin"
+- Updated plugin templates with 21st.dev branding
+- Updated all package names to use `@21st-extension/` scope
 
 ## 0.1.1
 

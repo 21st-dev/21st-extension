@@ -1,10 +1,11 @@
 import { useChatState } from '@/hooks/use-chat-state';
 import { cn } from '@/utils';
 import { useCallback } from 'preact/hooks';
-import { XIcon } from 'lucide-react';
+import { XIcon, AlertTriangleIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HoverPeek } from '@/components/ui/link-preview';
 import type { SelectedComponentWithCode } from '@/hooks/use-selected-components';
+import type { RuntimeError } from '@/hooks/use-runtime-errors';
 
 interface SelectedDomElementsProps {
   elements: Array<{
@@ -18,6 +19,8 @@ interface SelectedDomElementsProps {
   onRemoveComponent?: (componentId: string) => void;
   chatId: string;
   compact?: boolean;
+  runtimeError?: RuntimeError | null;
+  hasInputText?: boolean;
 }
 
 export function SelectedDomElements({
@@ -26,8 +29,11 @@ export function SelectedDomElements({
   onRemoveComponent,
   chatId,
   compact = false,
+  runtimeError,
+  hasInputText = false,
 }: SelectedDomElementsProps) {
-  const { removeChatDomContext } = useChatState();
+  const { removeChatDomContext, removeChatRuntimeError, addChatRuntimeError } =
+    useChatState();
 
   const handleRemoveElement = useCallback(
     (element: HTMLElement) => {
@@ -45,22 +51,57 @@ export function SelectedDomElements({
     [onRemoveComponent],
   );
 
+  const handleAddRuntimeError = useCallback(() => {
+    if (runtimeError) {
+      addChatRuntimeError(chatId, runtimeError);
+    }
+  }, [runtimeError, addChatRuntimeError, chatId]);
+
+  const handleRemoveRuntimeError = useCallback(() => {
+    removeChatRuntimeError(chatId);
+  }, [removeChatRuntimeError, chatId]);
+
+  const getRuntimeErrorText = useCallback((error: RuntimeError) => {
+    if (!error.filename || error.filename === 'unknown') {
+      return 'Runtime Error';
+    }
+    const fileName =
+      error.filename.split('/').pop()?.split('?')[0] || 'unknown file';
+    return `Runtime Error in ${fileName}`;
+  }, []);
+
   const getElementInfo = useCallback(
     (element: HTMLElement, pluginContext: any[]) => {
-      // Получаем тип элемента (tagName)
+      // Get element type (tagName)
       const tagName = element.tagName.toLowerCase();
 
-      // Получаем аннотацию от плагинов (например, компонент React)
+      // Get annotation from plugins (e.g., React component)
       const annotation = pluginContext.find((ctx) => ctx.context?.annotation)
         ?.context?.annotation;
 
-      // Возвращаем HTML тег в первую очередь
+      // Return HTML tag first
       return tagName;
     },
     [],
   );
 
-  if (elements.length === 0 && selectedComponents.length === 0) {
+  // Get current chat to check if runtime error is in context
+  const currentChat = useChatState().chats.find((chat) => chat.id === chatId);
+
+  // Check if we should show runtime error suggestion
+  // Show if there's a runtime error and it's not already in the current chat context
+  const shouldShowRuntimeErrorSuggestion =
+    runtimeError &&
+    (!currentChat?.runtimeError ||
+      currentChat.runtimeError.timestamp.getTime() !==
+        runtimeError.timestamp.getTime());
+
+  if (
+    elements.length === 0 &&
+    selectedComponents.length === 0 &&
+    !currentChat?.runtimeError &&
+    !shouldShowRuntimeErrorSuggestion
+  ) {
     return null;
   }
 
@@ -72,7 +113,7 @@ export function SelectedDomElements({
           elementData.element,
           elementData.pluginContext,
         );
-        // Создаем уникальный ключ на основе элемента и его позиции в DOM
+        // Create unique key based on element and its position in DOM
         const elementKey = `dom-${elementData.element.tagName}-${elementData.element.className || 'no-class'}-${index}`;
 
         return (
@@ -134,7 +175,7 @@ export function SelectedDomElements({
                 className="relative h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 overflow-hidden rounded-[2px] text-[8px] leading-none hover:bg-blue-200"
                 title="Remove component"
               >
-                {/* Avatar - показывается по умолчанию */}
+                {/* Avatar - shown by default */}
                 <div className="absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:scale-75 group-hover:opacity-0">
                   {component.preview_url ? (
                     <img
@@ -157,7 +198,7 @@ export function SelectedDomElements({
                     </div>
                   )}
                 </div>
-                {/* X Icon - показывается при ховере */}
+                {/* X Icon - shown on hover */}
                 <div className="absolute inset-0 flex scale-125 items-center justify-center opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
                   <XIcon className="h-2.5 w-2.5 text-blue-400 group-hover:text-blue-900" />
                 </div>
@@ -169,6 +210,69 @@ export function SelectedDomElements({
           </HoverPeek>
         );
       })}
+
+      {/* Runtime Error Suggestion */}
+      {shouldShowRuntimeErrorSuggestion && (
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              'group flex flex-1 items-center gap-1 rounded-md border-[1px] border-red-300 border-dashed px-1.5 py-0.5 text-xs',
+              'cursor-pointer transition-all duration-150 hover:border-red-400',
+              compact && 'px-1 py-0.5 text-xs',
+            )}
+            onClick={handleAddRuntimeError}
+            role="button"
+            tabIndex={0}
+            title="Click or press Tab to add runtime error to context"
+          >
+            <AlertTriangleIcon className="h-2.5 w-2.5 flex-shrink-0 text-red-500" />
+            <span className="min-w-0 truncate font-medium text-red-700">
+              {runtimeError && getRuntimeErrorText(runtimeError)}
+            </span>
+          </div>
+          {!hasInputText && (
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 font-medium text-gray-600',
+                'rounded border border-gray-200/50 bg-gray-100 px-1 py-0.5 backdrop-blur-sm',
+                'flex-shrink-0 transition-all duration-200 ease-out',
+              )}
+            >
+              <span className="rounded-[2px] bg-gray-200 p-0.5 font-bold text-[10px] text-gray-600 leading-none">
+                Tab
+              </span>
+              <span className="text-[11px] leading-none">
+                to add to context
+              </span>
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Runtime Error in Context */}
+      {currentChat?.runtimeError && (
+        <div
+          className={cn(
+            'group flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-1.5 py-0.5 text-xs',
+            'transition-all duration-150 hover:border-red-300 hover:bg-red-100',
+            compact && 'px-1 py-0.5 text-xs',
+          )}
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleRemoveRuntimeError}
+            className="h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 rounded-[2px] text-[8px] text-red-400 leading-none hover:bg-red-100 hover:text-red-900"
+            title="Remove runtime error from context"
+          >
+            <XIcon className="h-2.5 min-h-2.5 w-2.5 min-w-2.5 text-red-400 hover:text-red-900" />
+          </Button>
+          <span className="min-w-0 truncate font-medium text-red-700">
+            {getRuntimeErrorText(currentChat.runtimeError)}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
