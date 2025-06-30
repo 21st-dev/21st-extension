@@ -5,7 +5,7 @@
 [![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/stagewise.stagewise-vscode-extension?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=stagewise.stagewise-vscode-extension) [![GitHub Repo stars](https://img.shields.io/github/stars/stagewise-io/stagewise)](https://github.com/stagewise-io/stagewise) [![Join us on Discord](https://img.shields.io/discord/1229378372141056010?label=Discord&logo=discord&logoColor=white)](https://discord.gg/gkdGsDYaKA) <!-- [![Build Status](https://img.shields.io/github/actions/workflow/status/stagewise-io/stagewise/ci.yml?branch=main)](https://github.com/stagewise-io/stagewise/actions) -->
 
 
-![stagewise demo](https://github.com/stagewise-io/assets/blob/main/media/demo.gif?raw=true)
+![stagewise demo](https://cdn.21st.dev/gif-cline-extesion.gif)
 
 
 ## About the project
@@ -27,6 +27,9 @@ The stagewise Toolbar makes it incredibly easy to edit your frontend code with A
 * 🧩 Customise and extend functionality with Plugins
 * 🧠 Sends DOM elements & more metadata to your AI agent
 * 🧪 Comes with examples for React, Vue, Svelte and more
+* 🔍 Search and integrate UI components from 21st.dev library
+* 🚨 Runtime error detection with intelligent assistance
+* 🪄 AI-powered component generation with Magic Chat
 
 
 ## 📖 Quickstart 
@@ -274,6 +277,9 @@ You would then use `TwentyFirstToolbarLoader` in your `src/routes/+layout.svelte
 | Windsurf       | ✅             |
 | Cline          | ✅             |
 | Roo Code       | ✅             |
+| Claude Code    | ✅ (via Copy Prompt) |
+| Gemini CLI     | ✅ (via Copy Prompt) |
+| Any AI Agent   | ✅ (via Copy Prompt) |
 
 
 ## 🛣️ Roadmap

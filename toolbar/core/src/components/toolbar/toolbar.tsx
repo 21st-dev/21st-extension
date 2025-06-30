@@ -138,15 +138,15 @@ export function ToolbarBox() {
   const getPositionClasses = () => {
     switch (position) {
       case 'bottomLeft':
-        return 'bottom-4 left-4';
+        return 'bottom-5 left-5';
       case 'bottomRight':
-        return 'bottom-4 right-4';
+        return 'bottom-5 right-5';
       case 'topLeft':
-        return 'top-4 left-4';
+        return 'top-5 left-5';
       case 'topRight':
-        return 'top-4 right-4';
+        return 'top-5 right-5';
       default:
-        return 'bottom-4 right-4';
+        return 'bottom-5 right-5';
     }
   };
 
@@ -201,10 +201,10 @@ export function ToolbarBox() {
       {isConnectedState && !minimized && chatState.isPromptCreationActive && (
         <div
           className={cn(
-            'absolute transition-all duration-300 ease-out',
+            'absolute flex items-center justify-center transition-all duration-300 ease-out',
             // Settings button positioning based on toolbar position
             position.includes('top') ? 'top-full mt-1' : 'bottom-full mb-1',
-            '-translate-x-1/2 left-1/2',
+            'right-0 left-0',
           )}
         >
           <ToolbarButton
