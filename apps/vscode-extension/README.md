@@ -4,7 +4,7 @@
 
 Forked from [stagewise-io/stagewise](https://github.com/stagewise-io/stagewise)
 
-![demo](https://github.com/stagewise-io/assets/blob/main/media/demo.gif?raw=true)
+![demo](https://cdn.21st.dev/gif-cline-extesion.gif)
 
 ## About the project
 
@@ -25,7 +25,9 @@ The Toolbar makes it incredibly easy to edit your frontend code with AI agents:
 * 🧩 Customise and extend functionality with Plugins
 * 🧠 Sends DOM elements & more metadata to your AI agent
 * 🧪 Comes with examples for React, Vue, Svelte and more
-
+* 🔍 Search and integrate UI components from 21st.dev library
+* 🚨 Runtime error detection with intelligent assistance
+* 🪄 AI-powered component generation with Magic Chat
 
 ## 📖 Quickstart 
 
@@ -273,10 +275,13 @@ You would then use `TwentyFirstToolbarLoader` in your `src/routes/+layout.svelte
 | Windsurf       | ✅             |
 | Cline          | ✅             |
 | Roo Code       | ✅             |
+| Claude Code    | ✅ (via Copy Prompt) |
+| Gemini CLI     | ✅ (via Copy Prompt) |
+| Any AI Agent   | ✅ (via Copy Prompt) |
 
 ## 📜 License
 
-21st.dev Extension is developed by 21st Labs Inc. and offerend under the AGPLv3 license.
+21st.dev Extension is developed by 21st Labs Inc. (forked from Stagewise) and offerend under the AGPLv3 license.
 
 For more information on the license model, visit the [FAQ about the GNU Licenses](https://www.gnu.org/licenses/gpl-faq.html).
 For use cases that fall outside the scope permitted by the AGPLv3 license, feel free to [📬 Contact Us](#contact-us-section).
