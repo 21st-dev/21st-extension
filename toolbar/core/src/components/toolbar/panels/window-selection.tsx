@@ -96,7 +96,7 @@ export function WindowSelectionPanel() {
           )}
 
           {selectedSession && (
-            <div className="rounded-lg bg-zinc-100/80 p-3">
+            <div className="rounded-lg bg-zinc-100/90 p-3">
               <p className="text-sm text-zinc-800">
                 <span className="font-medium">Connected:</span>{' '}
                 {selectedSession.displayName}
@@ -108,7 +108,7 @@ export function WindowSelectionPanel() {
           )}
 
           {!selectedSession && windows.length > 0 && (
-            <div className="rounded-lg border border-zinc-300/50 bg-zinc-100/80 p-3">
+            <div className="rounded-lg border border-zinc-300/50 bg-zinc-100/90 p-3">
               <p className="text-sm text-zinc-700">
                 <span className="font-medium">No window selected:</span> Please
                 select an IDE window above to connect.

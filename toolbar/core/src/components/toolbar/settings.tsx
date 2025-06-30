@@ -25,7 +25,7 @@ export const SettingsButton = ({
 
 export const SettingsPanel = ({ onClose }: { onClose?: () => void }) => {
   return (
-    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-2xl border border-border/30 bg-zinc-50/80 shadow-md backdrop-blur-md">
+    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-2xl border border-border/30 bg-zinc-100/90 shadow-md backdrop-blur-md">
       <div className="flex items-center justify-between px-4 py-2">
         <h2 className="font-medium text-base text-zinc-950">Preferences</h2>
         {onClose && (
@@ -189,7 +189,7 @@ const ConnectionSettings = () => {
       )}
 
       {selectedSession && (
-        <div className="rounded-lg bg-zinc-100/80 p-3">
+        <div className="rounded-lg bg-zinc-100/90 p-3">
           <p className="text-sm text-zinc-800">
             <span className="font-medium">Connected:</span>{' '}
             {selectedSession.displayName}
@@ -201,7 +201,7 @@ const ConnectionSettings = () => {
       )}
 
       {!selectedSession && windows.length > 0 && (
-        <div className="rounded-lg border border-zinc-300/50 bg-zinc-100/80 p-3">
+        <div className="rounded-lg border border-zinc-300/50 bg-zinc-100/90 p-3">
           <p className="text-sm text-zinc-700">
             <span className="font-medium">No window selected:</span> Please
             select an IDE window above to connect.

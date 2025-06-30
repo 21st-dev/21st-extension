@@ -391,25 +391,27 @@ export function ToolbarChatArea() {
 
     // Use different rounding based on whether there are selected elements above
     const roundingClass = hasSelectedElements ? 'rounded-b-2xl' : 'rounded-2xl';
-    const baseClasses = `flex h-24 w-full flex-1 flex-row items-end ${roundingClass} px-2 pb-2 pt-2.5 text-sm text-zinc-950 shadow-md backdrop-blur transition-[background-color,border-color,color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter] duration-300 ease-in-out placeholder:text-zinc-950/70`;
+    const baseClasses = `flex h-24 w-full flex-1 flex-row items-end ${roundingClass} px-2 pb-2 pt-2.5 text-sm text-zinc-950 shadow-md transition-[background-color,border-color,color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter] duration-300 ease-in-out placeholder:text-zinc-950/70`;
 
     switch (chatState.promptState) {
       case 'loading':
-        return cn(baseClasses, 'border border-border/30 bg-zinc-50/80');
+        return cn(baseClasses, 'border border-border/30', 'bg-[#F5F5F5]');
       case 'success':
         return cn(
           baseClasses,
-          'border border-border/30 bg-zinc-50/80',
+          'border border-border/30',
+          'bg-[#F5F5F5]',
           'chat-success-border',
         );
       case 'error':
         return cn(
           baseClasses,
-          'border border-border/30 bg-zinc-50/80',
+          'border border-border/30',
+          'bg-[#F5F5F5]',
           'chat-error-border animate-shake',
         );
       default:
-        return cn(baseClasses, 'border border-border/30 bg-zinc-50/80');
+        return cn(baseClasses, 'border border-border/30', 'bg-[#F5F5F5]');
     }
   }, [
     chatState.promptState,
@@ -920,7 +922,7 @@ export function ToolbarChatArea() {
               <div className="slide-in-from-top-2 animate-in duration-200 ease-out">
                 <div
                   ref={selectedElementsContainerRef}
-                  className="-mb-2 rounded-t-2xl border-border/30 border-x border-t bg-zinc-50/80 px-2 pt-2 backdrop-blur"
+                  className="-mb-2 rounded-t-2xl border-border/30 border-x border-t bg-[#F5F5F5] px-2 pt-2"
                 >
                   <SelectedDomElements
                     elements={currentChat?.domContextElements || []}
@@ -1136,7 +1138,7 @@ export function ToolbarChatArea() {
                           console.log(`Plugin ${plugin.pluginName} activated`);
                         }
                       }}
-                      className="flex size-8 items-center justify-center rounded-full bg-white/80 p-1 opacity-60 backdrop-blur transition-all duration-150 hover:bg-white/90 hover:opacity-100"
+                      className="flex size-8 items-center justify-center rounded-full bg-[#F5F5F5] p-1 opacity-60 transition-all duration-150 hover:bg-[#F5F5F5] hover:opacity-100"
                     >
                       {plugin.iconSvg ? (
                         <span className="size-4 stroke-zinc-950 text-zinc-950 *:size-full">

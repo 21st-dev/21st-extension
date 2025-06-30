@@ -79,8 +79,8 @@ export function SelectedDomElements({
       const annotation = pluginContext.find((ctx) => ctx.context?.annotation)
         ?.context?.annotation;
 
-      // Return HTML tag first
-      return tagName;
+      // Return component name if available, otherwise fall back to HTML tag
+      return annotation || tagName;
     },
     [],
   );
@@ -120,8 +120,8 @@ export function SelectedDomElements({
           <div
             key={elementKey}
             className={cn(
-              'flex items-center gap-1 rounded-md border border-gray-200 bg-white px-1.5 py-0.5 text-xs',
-              'transition-all duration-150 hover:border-gray-300 hover:bg-gray-50',
+              'flex items-center gap-1 rounded-md border border-gray-200 bg-[#F5F5F5] px-1.5 py-0.5 text-xs',
+              'transition-all duration-150 hover:border-gray-300 hover:bg-[#F5F5F5]',
               compact && 'px-1 py-0.5 text-xs',
             )}
           >
@@ -162,8 +162,8 @@ export function SelectedDomElements({
           >
             <div
               className={cn(
-                'group flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-xs',
-                'transition-all duration-150 hover:border-blue-300 hover:bg-blue-100',
+                'group flex items-center gap-1 rounded-md border border-blue-200 bg-[#F5F5F5] px-1.5 py-0.5 text-xs',
+                'transition-all duration-150 hover:border-blue-300 hover:bg-[#F5F5F5]',
                 compact && 'px-1 py-0.5 text-xs',
               )}
             >
@@ -234,7 +234,7 @@ export function SelectedDomElements({
             <span
               className={cn(
                 'inline-flex items-center gap-1 font-medium text-gray-600',
-                'rounded border border-gray-200/50 bg-gray-100 px-1 py-0.5 backdrop-blur-sm',
+                'rounded border border-gray-200/50 bg-[#F5F5F5] px-1 py-0.5',
                 'flex-shrink-0 transition-all duration-200 ease-out',
               )}
             >
@@ -253,8 +253,8 @@ export function SelectedDomElements({
       {currentChat?.runtimeError && (
         <div
           className={cn(
-            'group flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-1.5 py-0.5 text-xs',
-            'transition-all duration-150 hover:border-red-300 hover:bg-red-100',
+            'group flex items-center gap-1 rounded-md border border-red-200 bg-[#F5F5F5] px-1.5 py-0.5 text-xs',
+            'transition-all duration-150 hover:border-red-300 hover:bg-[#F5F5F5]',
             compact && 'px-1 py-0.5 text-xs',
           )}
         >
