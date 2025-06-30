@@ -17,7 +17,7 @@ const buttonVariants = {
 };
 
 const buttonSizes = {
-  icon: 'p-0', // Для icon кнопок - без padding
+  icon: 'p-0', // For icon buttons - no padding
   sm: 'h-6 px-1.5 py-0.5 text-xs',
   md: 'h-8 px-3 py-1.5 text-sm',
   lg: 'h-10 px-4 py-2 text-base',

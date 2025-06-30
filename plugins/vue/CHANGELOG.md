@@ -1,4 +1,25 @@
-# @stagewise-plugins/vue
+# @21st-extension/vue
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated branding and documentation to use "21st.dev" instead of "stagewise"
+- Enhanced plugin functionality for better integration with 21st.dev Toolbar
+- Updated dependencies
+  - @21st-extension/toolbar@0.5.1
+
+## 0.5.0
+
+### Major Changes
+
+- **BREAKING**: Forked from stagewise-io/stagewise project
+- Integrated 21st.dev branding and Magic Chat functionality
+- Rebranded package from "@stagewise-plugins/vue" to "@21st-extension/vue"
+- Added Magic Chat integration for enhanced AI interactions
+- Updated all package names to use `@21st-extension/` scope
+- Updated dependencies
+  - @21st-extension/toolbar@0.5.0
 
 ## 0.4.7
 

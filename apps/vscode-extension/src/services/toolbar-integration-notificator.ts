@@ -114,17 +114,17 @@ export class ToolbarIntegrationNotificator implements vscode.Disposable {
       return;
     }
     console.log('Showing integration notification');
-    const message = `Set up stagewise to edit frontend code directly in the browser?`;
+    const message = `Set up 21st.dev Toolbar to edit frontend code directly in the browser?`;
 
     vscode.window
-      .showInformationMessage(message, 'Enable stagewise', 'Ignore')
+      .showInformationMessage(message, 'Enable 21st.dev', 'Ignore')
       .then(async (result) => {
-        if (result === 'Enable stagewise') {
+        if (result === 'Enable 21st.dev') {
           this.analyticsService.trackEvent(
             EventName.TOOLBAR_AUTO_SETUP_STARTED,
           );
           await setupToolbar();
-          return 'Enable stagewise';
+          return 'Enable 21st.dev';
         } else if (result === 'Ignore') {
           this.analyticsService.trackEvent(
             EventName.TOOLBAR_UPDATE_NOTIFICATION_IGNORED,

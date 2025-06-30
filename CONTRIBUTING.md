@@ -1,12 +1,12 @@
-# Contributing to Stagewise
+# Contributing to 21st.dev Extension
 
-Welcome! This document provides an in-depth overview of the structure and architecture of the Stagewise project. Understanding this layout will help you quickly find your way around the codebase and identify where to contribute.
+Welcome! This document provides an in-depth overview of the structure and architecture of the 21st.dev Extension project. Understanding this layout will help you quickly find your way around the codebase and identify where to contribute.
 
 ---
 
 ## Project Structure & Architecture
 
-Stagewise is organized as a **monorepo** using [pnpm workspaces](https://pnpm.io/workspaces) and [turborepo](https://turbo.build/). The repository is divided into several key areas:
+21st.dev Extension is organized as a **monorepo** using [pnpm workspaces](https://pnpm.io/workspaces) and [turborepo](https://turbo.build/). The repository is divided into several key areas:
 
 ### 1. Applications (`apps/`)
 
@@ -17,7 +17,7 @@ Stagewise is organized as a **monorepo** using [pnpm workspaces](https://pnpm.io
 * **vscode-extension/**
 
   * The official VSCode (and Cursor) extension.
-  * Integrates the Stagewise toolbar with code editors, enabling communication between the browser and your local AI agent.
+  * Integrates the 21st.dev Toolbar with code editors, enabling communication between the browser and your local AI agent.
   * Contains extension source code, packaging scripts, and related assets.
 
 ### 2. Packages (`packages/`)
@@ -29,11 +29,11 @@ Stagewise is organized as a **monorepo** using [pnpm workspaces](https://pnpm.io
         * The fundamental browser toolbar package, providing the core UI and logic for DOM element selection, prompt sending, and plugin support.
         * Contains the main React components, hooks, utilities, and configuration for the toolbar's core functionality.
     * **next/** (`@toolbar/next`)
-        * The specific package for integrating the Stagewise toolbar with Next.js applications.
+        * The specific package for integrating the 21st.dev Toolbar with Next.js applications.
     * **vue/** (`@toolbar/vue`)
-        * The specific package for integrating the Stagewise toolbar with Vue.js applications.
+        * The specific package for integrating the 21st.dev Toolbar with Vue.js applications.
     * **react/** (`@toolbar/react`)
-        * The specific package for integrating the Stagewise toolbar with React applications (outside of Next.js, or for generic React usage).
+        * The specific package for integrating the 21st.dev Toolbar with React applications (outside of Next.js, or for generic React usage).
 * **ui/**
 
   * Shared React component library.
@@ -58,7 +58,7 @@ Stagewise is organized as a **monorepo** using [pnpm workspaces](https://pnpm.io
   * **next-example/** (Next.js)
   * **svelte-kit-example/** (SvelteKit)
   * **nuxt-example/** (Nuxt)
-* These serve as reference implementations for integrating the Stagewise toolbar into different frontend stacks.
+* These serve as reference implementations for integrating the 21st.dev Toolbar into different frontend stacks.
 
 ### 4. Playgrounds (`playgrounds/`)
 

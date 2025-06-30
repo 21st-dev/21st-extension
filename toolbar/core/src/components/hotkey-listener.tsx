@@ -52,13 +52,20 @@ const HotkeyListener = () => {
         ) {
           event.preventDefault();
 
-          // Если минимизирован - разворачиваем и открываем чат
+          // If minimized - expand and open chat
           if (minimized) {
             expand();
             setTimeout(() => startPromptCreation(), 100);
           } else if (!isPromptCreationActive) {
-            // Если развернут но чат закрыт - открываем чат
+            // If expanded but chat closed - open chat
             startPromptCreation();
+          } else {
+            // If chat already open - toggle DOM selector
+            if (isDomSelectorActive) {
+              stopDomSelector();
+            } else {
+              startDomSelector();
+            }
           }
         }
 
@@ -69,16 +76,16 @@ const HotkeyListener = () => {
         ) {
           event.preventDefault();
 
-          // Если чат не активен - сначала открываем чат
+          // If chat is not active - first open chat
           if (!isPromptCreationActive) {
             if (minimized) {
               expand();
             }
             startPromptCreation();
-            // Активируем DOM селектор с небольшой задержкой
+            // Activate DOM selector with small delay
             setTimeout(() => startDomSelector(), 100);
           } else {
-            // Если чат уже активен - переключаем состояние DOM селектора
+            // If chat is already active - toggle DOM selector state
             if (isDomSelectorActive) {
               stopDomSelector();
             } else {
@@ -93,19 +100,19 @@ const HotkeyListener = () => {
           // Get current state from ref to avoid stale closures
           const currentState = stateRef.current;
 
-          // Если в фокусе search results - полностью закрываем поиск
+          // If search results are focused - close search completely
           if (currentState.isSearchResultsFocused) {
             closeSearchResults();
           }
-          // Если активен DOM селектор - деактивируем его
+          // If DOM selector is active - deactivate it
           else if (currentState.isDomSelectorActive) {
             stopDomSelector();
           }
-          // Если чат открыт - закрываем его
+          // If chat is open - close it
           else if (currentState.isPromptCreationActive) {
             stopPromptCreation();
           } else if (!currentState.minimized) {
-            // Если нет чата но toolbar развернут - минимизируем
+            // If no chat but toolbar expanded - minimize
             minimize();
           }
         }

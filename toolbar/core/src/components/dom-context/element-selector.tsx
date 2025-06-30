@@ -19,7 +19,7 @@ export function ElementSelector(props: ElementSelectorProps) {
   const handleMouseMove = useCallback<MouseEventHandler<HTMLDivElement>>(
     (event) => {
       const target = event.target as HTMLElement;
-      // Игнорируем companion элементы
+      // Ignore companion elements
       if (target.closest('.companion')) return;
 
       const refElement = getElementAtPoint(event.clientX, event.clientY);

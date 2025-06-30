@@ -113,7 +113,7 @@ export class ToolbarUpdateNotificator implements vscode.Disposable {
     latestVersion: string,
   ): Promise<void> {
     console.log('Showing update notification');
-    const message = `Your currently installed version of stagewise is outdated (${installedVersion})! We recommend updating to the latest version of stagewise (${latestVersion}) in order to keep compatibility with the extension and benefit from the latest features.`;
+    const message = `Your currently installed version of 21st.dev Toolbar is outdated (${installedVersion})! We recommend updating to the latest version of 21st.dev Toolbar (${latestVersion}) in order to keep compatibility with the extension and benefit from the latest features.`;
 
     vscode.window
       .showInformationMessage(message, 'Auto-update', 'Ignore')
@@ -160,7 +160,7 @@ export class ToolbarUpdateNotificator implements vscode.Disposable {
     );
     await updateToolbar();
     await vscode.window.showInformationMessage(
-      "The agent has been started to update your stagewise packages. Please follow the agent's instructions in the chat panel.",
+      "The agent has been started to update your 21st.dev Toolbar packages. Please follow the agent's instructions in the chat panel.",
       'OK',
     );
   }

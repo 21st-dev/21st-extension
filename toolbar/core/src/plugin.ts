@@ -221,6 +221,9 @@ export interface ToolbarPlugin {
     | ((prompt: UserMessage) => PromptContext | Promise<PromptContext> | null)
     | null;
 
+  /** Called immediately before the prompt is transmitted to the AI agent via SRPC. This allows plugins to perform actions with the final prompt string, such as logging, analytics, or copying to clipboard. */
+  onPromptTransmit?: ((prompt: string) => void | Promise<void>) | null;
+
   /** Called when a context element is hovered in the context menu. This only happens in prompting mode. */
   onContextElementHover?:
     | ((element: HTMLElement) => ContextElementContext)

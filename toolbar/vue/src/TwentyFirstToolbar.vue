@@ -24,4 +24,4 @@ onMounted(() => {
 
 <template>
   <!-- This component is a functional component and does not render HTML -->
-</template>
+</template> 

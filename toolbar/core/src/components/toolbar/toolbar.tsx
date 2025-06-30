@@ -1,18 +1,9 @@
 // This component represents the box in which the toolbar is placed.
 // It is only used in desktop cases, since the mobile toolbar is placed inside a modal card.
 
-import { Button } from '@headlessui/react';
-import {
-  RefreshCwIcon,
-  WifiOffIcon,
-  SettingsIcon,
-  PuzzleIcon,
-  MessageCircleIcon,
-  XIcon,
-} from 'lucide-react';
+import { RefreshCwIcon, WifiOffIcon, SettingsIcon, XIcon } from 'lucide-react';
 import { ToolbarChatArea } from './panels/chat-box';
 import { useEffect, useState } from 'preact/hooks';
-import { ToolbarSection } from './section';
 import { ToolbarButton } from './button';
 import { useChatState } from '@/hooks/use-chat-state';
 import { cn } from '@/utils';
@@ -23,8 +14,6 @@ import { SettingsPanel } from './settings';
 import { useVSCode } from '@/hooks/use-vscode';
 import { DisconnectedStatePanel } from './panels/disconnected-state';
 import { WindowSelectionPanel } from './panels/window-selection';
-import { NormalStateButtons } from './contents/normal';
-import { DisconnectedStateButtons } from './contents/disconnected';
 import { usePlugins } from '@/hooks/use-plugins';
 
 export function ToolbarBox() {
@@ -36,7 +25,6 @@ export function ToolbarBox() {
     shouldPromptWindowSelection,
   } = useVSCode();
   const isConnected = windows.length > 0;
-  const { plugins } = usePlugins();
 
   const [pluginBox, setPluginBox] = useState<null | {
     component: VNode;
@@ -46,7 +34,7 @@ export function ToolbarBox() {
     null | 'settings' | { pluginName: string; component: VNode }
   >(null);
 
-  // Добавляем дебаунс для состояния загрузки и отключения
+  // Add debouncing for loading and disconnection states
   const [debouncedDiscovering, setDebouncedDiscovering] = useState(false);
   const [debouncedDisconnected, setDebouncedDisconnected] = useState(false);
 
@@ -61,7 +49,7 @@ export function ToolbarBox() {
     }
   }, [minimized]);
 
-  // Дебаунс для isDiscovering - показываем состояние загрузки только если оно длится больше 500ms
+  // Debounce for isDiscovering - show loading state only if it lasts more than 500ms
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
@@ -77,7 +65,7 @@ export function ToolbarBox() {
     return () => clearTimeout(timeoutId);
   }, [isDiscovering]);
 
-  // Дебаунс для disconnected состояния - показываем отключение только если оно длится больше 1000ms
+  // Debounce for disconnected state - show disconnection only if it lasts more than 1000ms
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     const actuallyDisconnected = !isConnected && !isDiscovering;
@@ -94,8 +82,8 @@ export function ToolbarBox() {
     return () => clearTimeout(timeoutId);
   }, [isConnected, isDiscovering]);
 
-  // Убираем автоматическое включение режима чата при разворачивании
-  // Теперь чат включается только через хоткей Option+Period
+  // Remove automatic chat mode activation when expanding
+  // Now chat is activated only through Option+Period hotkey
 
   // Create a wrapper function to handle button clicks
   const handleButtonClick = (handler: () => void) => (e: MouseEvent) => {
@@ -120,12 +108,12 @@ export function ToolbarBox() {
         buttonColor: 'text-orange-700',
       };
     }
-    // Connected state (default) - используем одинаковые стили для обычного и loading состояния
+    // Connected state (default) - use same styles for normal and loading states
     return {
       border: 'border-border/30',
       bg: 'bg-zinc-50/80',
       divideBorder: 'divide-border/20',
-      buttonBg: 'bg-zinc-950', // Чисто черный фон для всех состояний
+      buttonBg: 'bg-zinc-950', // Pure black background for all states
       buttonColor: 'stroke-zinc-950',
     };
   };
@@ -134,19 +122,19 @@ export function ToolbarBox() {
 
   // Get the appropriate icon for the minimized state
   const getMinimizedIcon = () => {
-    // Показываем спиннер если идет переподключение (даже без дебаунса для мгновенной реакции)
+    // Show spinner if reconnecting (even without debounce for instant reaction)
     if (isDiscovering) {
-      return <RefreshCwIcon className="size-5 animate-spin text-white" />;
+      return <RefreshCwIcon className="size-4 animate-spin text-white" />;
     }
-    // Показываем иконку отключения если не подключены
+    // Show disconnection icon if not connected
     if (isDisconnectedState) {
       return <WifiOffIcon className="size-5 text-white" />;
     }
-    // По умолчанию показываем логотип
+    // Show logo by default
     return <Logo className="size-5" color="white" />;
   };
 
-  // Получаем CSS классы для позиции
+  // Get CSS classes for position
   const getPositionClasses = () => {
     switch (position) {
       case 'bottomLeft':
@@ -167,16 +155,16 @@ export function ToolbarBox() {
       {/* Draggable Chat Area - positioned independently */}
       {isConnectedState && !minimized && <ToolbarChatArea />}
 
-      {/* Plugin box / info panel рядом с кнопкой */}
+      {/* Plugin box / info panel next to button */}
       {(pluginBox ||
         openPanel === 'settings' ||
-        (!isConnectedState && !minimized) || // Показываем состояния отключения только в развернутом виде
-        (shouldShowWindowSelection && !minimized)) && // Показываем выбор окна только в развернутом виде
+        (!isConnectedState && !minimized) || // Show disconnection states only in expanded view
+        (shouldShowWindowSelection && !minimized)) && // Show window selection only in expanded view
         !minimized && (
           <div
             className={cn(
               'absolute w-[480px] max-w-[40vw] transition-all duration-300 ease-out',
-              // Позиционирование панели настроек в зависимости от положения тулбара
+              // Settings panel positioning based on toolbar position
               openPanel === 'settings'
                 ? position.includes('top')
                   ? 'top-full mt-12'
@@ -184,13 +172,13 @@ export function ToolbarBox() {
                 : position.includes('top')
                   ? 'top-full mt-2'
                   : 'bottom-full mb-2',
-              // Сдвиг на ширину панели когда тулбар справа
+              // Shift by panel width when toolbar is on the right
               position.includes('Right')
-                ? 'right-0' // Сдвигаем панель влево на (ширина_панели - ширина_тулбара)
-                : 'left-0', // Левый край панели = левый край тулбара
+                ? 'right-0' // Shift panel left by (panel_width - toolbar_width)
+                : 'left-0', // Panel left edge = toolbar left edge
             )}
           >
-            {/* Render content based on state - убираем ConnectingStatePanel */}
+            {/* Render content based on state - remove ConnectingStatePanel */}
             {isDisconnectedState && (
               <DisconnectedStatePanel
                 discover={discover}
@@ -209,33 +197,31 @@ export function ToolbarBox() {
           </div>
         )}
 
-      {/* Кнопка настроек над/под логотипом */}
+      {/* Settings button above/below logo */}
       {isConnectedState && !minimized && chatState.isPromptCreationActive && (
         <div
           className={cn(
             'absolute transition-all duration-300 ease-out',
-            // Позиционирование кнопки настроек в зависимости от положения тулбара
+            // Settings button positioning based on toolbar position
             position.includes('top') ? 'top-full mt-1' : 'bottom-full mb-1',
             '-translate-x-1/2 left-1/2',
           )}
         >
-          <Button
+          <ToolbarButton
             onClick={handleButtonClick(() => {
-              // Простая логика - переключаем настройки
+              // Simple logic - toggle settings
               setOpenPanel(openPanel === 'settings' ? null : 'settings');
             })}
-            className={cn(
-              'pointer-events-auto flex size-8 items-center justify-center rounded-full bg-white p-1 text-zinc-950 transition-all duration-150 hover:bg-zinc-500/5',
-              openPanel === 'settings' && 'bg-white/40 ring ring-zinc-950/20',
-            )}
+            active={openPanel === 'settings'}
+            className="pointer-events-auto transition-all duration-150 hover:border-none hover:ring-zinc-950/20"
           >
             <SettingsIcon className="size-4" />
-          </Button>
+          </ToolbarButton>
         </div>
       )}
 
-      {/* Главная кнопка */}
-      <Button
+      {/* Main button */}
+      <ToolbarButton
         onClick={handleButtonClick(() => {
           if (chatState.isPromptCreationActive) {
             chatState.stopPromptCreation();
@@ -246,14 +232,15 @@ export function ToolbarBox() {
             chatState.startPromptCreation();
           }
         })}
+        active={chatState.isPromptCreationActive}
         className={cn(
-          'pointer-events-auto relative z-50 flex size-10 cursor-pointer items-center justify-center rounded-full border shadow-md backdrop-blur transition-all duration-300 ease-out',
+          '!w-8 !max-w-8 pointer-events-auto relative z-50 flex h-8 cursor-pointer items-center justify-center rounded-full border shadow-md backdrop-blur transition-all duration-300 ease-out',
           theme.border,
           theme.bg,
           theme.buttonBg,
         )}
       >
-        {/* Лого с анимацией блюра */}
+        {/* Logo with blur animation */}
         <div
           className={cn(
             'absolute inset-0 flex items-center justify-center transition-all duration-300 ease-out',
@@ -265,7 +252,7 @@ export function ToolbarBox() {
           {getMinimizedIcon()}
         </div>
 
-        {/* Крестик с анимацией блюра */}
+        {/* X icon with blur animation */}
         <div
           className={cn(
             'absolute inset-0 flex items-center justify-center transition-all duration-300 ease-out',
@@ -276,7 +263,7 @@ export function ToolbarBox() {
         >
           <XIcon className="h-5 min-h-5 w-5 min-w-5 text-white" />
         </div>
-      </Button>
+      </ToolbarButton>
     </div>
   );
 }

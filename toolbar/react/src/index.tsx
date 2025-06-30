@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 
 export type { ToolbarConfig } from '@21st-extension/toolbar';
 
-export function StagewiseToolbar({
+export function TwentyFirstToolbar({
   config,
   enabled = process.env.NODE_ENV === 'development',
 }: {

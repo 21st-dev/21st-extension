@@ -7,12 +7,12 @@ import type { ToolbarConfig } from './types';
 const DynamicToolbar = dynamic(
   () =>
     import('@21st-extension/toolbar-react').then((mod) => ({
-      default: mod.StagewiseToolbar,
+      default: mod.TwentyFirstToolbar,
     })),
   { ssr: false },
 );
 
-export const StagewiseToolbar: ComponentType<{
+export const TwentyFirstToolbar: ComponentType<{
   config?: ToolbarConfig;
   enabled?: boolean;
 }> = ({ config, enabled = process.env.NODE_ENV === 'development' }) => {

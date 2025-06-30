@@ -34,13 +34,13 @@ const outputChannel = vscode.window.createOutputChannel('21st-extension');
 async function setupToolbarHandler() {
   await setupToolbar();
   await vscode.window.showInformationMessage(
-    "The agent has been started to integrate stagewise into this project. Please follow the agent's instructions in the chat panel.",
+            "The agent has been started to integrate 21st.dev Toolbar into this project. Please follow the agent's instructions in the chat panel.",
     'OK',
   );
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  console.log('Activating stagewise extension');
+      console.log('Activating 21st.dev Extension');
   try {
     // initialize all services in the correct order
     VScodeContext.getInstance().initialize(context);
@@ -134,7 +134,7 @@ export async function activate(context: vscode.ExtensionContext) {
         // If no sessionId provided, accept the request (backward compatibility)
         if (request.sessionId && request.sessionId !== vscode.env.sessionId) {
           const error = `Session mismatch: Request for ${request.sessionId} but this window is ${vscode.env.sessionId}`;
-          console.warn(`[Stagewise] ${error}`);
+          console.warn(`[21st.dev Extension] ${error}`);
           return {
             sessionId: vscode.env.sessionId,
             result: {
@@ -186,7 +186,7 @@ export async function activate(context: vscode.ExtensionContext) {
             const errorMessage =
               error instanceof Error ? error.message : String(error);
             console.error(
-              `[Stagewise] Failed to open external URL: ${errorMessage}`,
+              `[21st.dev Extension] Failed to open external URL: ${errorMessage}`,
             );
 
             return {

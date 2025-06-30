@@ -1,5 +1,26 @@
 # @21st-extension/toolbar-react
 
+## 0.5.1
+
+### Patch Changes
+
+- **BREAKING**: Renamed `StagewiseToolbar` component to `TwentyFirstToolbar` for consistency with 21st.dev branding
+- Updated component exports and documentation
+- Updated dependencies
+  - @21st-extension/toolbar@0.5.1
+
+## 0.5.0
+
+### Major Changes
+
+- **BREAKING**: Forked from stagewise-io/stagewise project
+- Integrated 21st.dev branding and Magic Chat functionality
+- Rebranded package as "@21st-extension/toolbar-react"
+- Added Magic Chat integration for enhanced AI interactions
+- Updated all package names to use `@21st-extension/` scope
+- Updated dependencies
+  - @21st-extension/toolbar@0.5.0
+
 ## 0.4.8
 
 ### Patch Changes

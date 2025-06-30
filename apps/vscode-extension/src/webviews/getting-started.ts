@@ -111,7 +111,7 @@ function getWebviewContent(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--<meta http-equiv="Content-Security-Policy" content="default-src ${webview.cspSource} ${cspDomain}; style-src ${webview.cspSource} 'unsafe-inline' ${cspDomain}; script-src ${webview.cspSource} 'unsafe-inline' ${cspDomain};"> -->
-    <title>Getting Started with stagewise</title>
+            <title>Getting Started with 21st.dev Extension</title>
     <style>
         html, body {
             padding: 0;

@@ -1,5 +1,25 @@
 # @21st-extension/extension-toolbar-srpc-contract
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated branding and documentation to use "21st.dev" instead of "stagewise"
+- Enhanced SRPC contract for better integration with 21st.dev Extension
+- Updated dependencies
+  - @21st-extension/srpc@0.5.1
+
+## 0.5.0
+
+### Major Changes
+
+- **BREAKING**: Forked from stagewise-io/stagewise project
+- Integrated 21st.dev branding and Magic Chat functionality
+- Enhanced SRPC contract with Magic Chat communication protocols
+- Updated all package names to use `@21st-extension/` scope
+- Updated dependencies
+  - @21st-extension/srpc@0.5.0
+
 ## 0.1.3
 
 ### Patch Changes

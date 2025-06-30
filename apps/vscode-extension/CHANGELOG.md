@@ -1,4 +1,27 @@
-# stagewise-vscode-extension
+# 21st.dev Extension
+
+## 0.5.1
+
+### Patch Changes
+
+- Renamed all components from `StagewiseToolbar` to `TwentyFirstToolbar` for consistency with 21st.dev branding
+- Updated all user-facing messages and documentation to use "21st.dev Extension" and "21st.dev Toolbar" instead of "stagewise"
+- Maintained backward compatibility for existing integrations
+- Added runtime error tracking and display in chat context
+- Added new success state with visual feedback for completed actions
+- Enhanced CMD + . hotkey to open inspector even when text input has started
+- Added ability to remove attached elements, components, and errors using Backspace when input is empty
+- New loading states
+
+## 0.5.0
+
+### Major Changes
+
+- **BREAKING**: Forked from stagewise-io/stagewise project
+- Integrated 21st.dev branding and Magic Chat functionality
+- Rebranded extension as "21st.dev Extension" 
+- Added Magic Chat integration for enhanced AI interactions
+- Updated all package names to use `@21st-extension/` scope
 
 ## 0.5.2
 

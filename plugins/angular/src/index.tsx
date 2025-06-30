@@ -29,4 +29,14 @@ export const AngularPlugin: ToolbarPlugin = {
       ],
     };
   },
+  onPromptTransmit: async (prompt) => {
+    // Example: Log the final prompt for debugging
+    console.log(
+      '[Angular Plugin] Final prompt being transmitted:',
+      prompt.substring(0, 200) + '...',
+    );
+
+    // Example: Could send to analytics, external services, etc.
+    // For demonstration, we'll just log it
+  },
 };

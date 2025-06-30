@@ -26,6 +26,9 @@ export interface AppState {
   setPosition: (
     position: 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight',
   ) => void;
+
+  promptAction: 'send' | 'copy' | 'both';
+  setPromptAction: (action: 'send' | 'copy' | 'both') => void;
 }
 
 interface InternalAppState extends AppState {
@@ -74,6 +77,7 @@ export function AppStateProvider({
       toolbarBoxRef: createRef(),
       minimized: storedState.minimized ?? true,
       position: storedState.position ?? 'bottomRight',
+      promptAction: storedState.promptAction ?? 'send',
       requestMainAppBlock: () => 0,
       requestMainAppUnblock: () => 0,
       discardMainAppBlock: () => {},
@@ -83,6 +87,7 @@ export function AppStateProvider({
       minimize: () => {},
       expand: () => {},
       setPosition: () => {},
+      setPromptAction: () => {},
     };
   });
 
@@ -91,8 +96,9 @@ export function AppStateProvider({
     saveStateToStorage({
       minimized: state.minimized,
       position: state.position,
+      promptAction: state.promptAction,
     });
-  }, [state.minimized, state.position]);
+  }, [state.minimized, state.position, state.promptAction]);
 
   const requestMainAppBlock = useCallback(() => {
     let newHandleValue = 0;
@@ -175,6 +181,10 @@ export function AppStateProvider({
     [],
   );
 
+  const setPromptAction = useCallback((action: 'send' | 'copy' | 'both') => {
+    setState((prev) => ({ ...prev, promptAction: action }));
+  }, []);
+
   const value: AppState = {
     requestMainAppBlock,
     requestMainAppUnblock,
@@ -189,6 +199,8 @@ export function AppStateProvider({
     expand,
     position: state.position,
     setPosition,
+    promptAction: state.promptAction,
+    setPromptAction,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
