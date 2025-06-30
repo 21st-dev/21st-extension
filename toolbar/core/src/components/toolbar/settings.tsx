@@ -25,7 +25,7 @@ export const SettingsButton = ({
 
 export const SettingsPanel = ({ onClose }: { onClose?: () => void }) => {
   return (
-    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-2xl border border-border/30 bg-zinc-100/90 shadow-md backdrop-blur-md">
+    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-xl border border-border/30 bg-zinc-100/90 shadow-md backdrop-blur-md">
       <div className="flex items-center justify-between px-4 py-2">
         <h2 className="font-medium text-base text-zinc-950">Preferences</h2>
         {onClose && (

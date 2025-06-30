@@ -390,7 +390,7 @@ export function ToolbarChatArea() {
       shouldShowRuntimeErrorSuggestion;
 
     // Use different rounding based on whether there are selected elements above
-    const roundingClass = hasSelectedElements ? 'rounded-b-2xl' : 'rounded-2xl';
+    const roundingClass = hasSelectedElements ? 'rounded-b-xl' : 'rounded-xl';
     const baseClasses = `flex h-24 w-full flex-1 flex-row items-end ${roundingClass} px-2 pb-2 pt-2.5 text-sm text-zinc-950 shadow-md transition-[background-color,border-color,color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter] duration-300 ease-in-out placeholder:text-zinc-950/70`;
 
     switch (chatState.promptState) {
@@ -876,7 +876,7 @@ export function ToolbarChatArea() {
         <div
           ref={combinedDraggableRef}
           className={cn(
-            'pointer-events-auto relative z-40 w-[400px] max-w-[80vw] rounded-2xl transition-all duration-300 ease-out',
+            'pointer-events-auto relative z-40 w-[400px] max-w-[80vw] rounded-xl transition-all duration-300 ease-out',
             chatState.isPromptCreationActive
               ? 'scale-100 opacity-100 blur-none'
               : 'pointer-events-none scale-95 opacity-0 blur-md',
@@ -922,7 +922,7 @@ export function ToolbarChatArea() {
               <div className="slide-in-from-top-2 animate-in duration-200 ease-out">
                 <div
                   ref={selectedElementsContainerRef}
-                  className="-mb-2 rounded-t-2xl border-border/30 border-x border-t bg-[#F5F5F5] px-2 pt-2"
+                  className="-mb-2 rounded-t-xl border-border/30 border-x border-t bg-[#F5F5F5] px-2 pt-2"
                 >
                   <SelectedDomElements
                     elements={currentChat?.domContextElements || []}

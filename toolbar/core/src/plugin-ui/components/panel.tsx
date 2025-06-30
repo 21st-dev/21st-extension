@@ -11,7 +11,7 @@ function Panel({
   return (
     <section
       className={cn(
-        'pointer-events-auto flex max-h-full min-h-48 flex-col items-stretch justify-start rounded-2xl border border-border/30 bg-zinc-50/80 p-4 shadow-md backdrop-blur-md',
+        'pointer-events-auto flex max-h-full min-h-48 flex-col items-stretch justify-start rounded-xl border border-border/30 bg-zinc-50/80 p-4 shadow-md backdrop-blur-md',
         alwaysFullHeight && 'h-full',
       )}
     >

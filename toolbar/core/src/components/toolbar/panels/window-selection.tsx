@@ -31,7 +31,7 @@ export function WindowSelectionPanel() {
   };
 
   return (
-    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-2xl border border-border/30 bg-zinc-50/80 shadow-md backdrop-blur-md">
+    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-xl border border-border/30 bg-zinc-50/80 shadow-md backdrop-blur-md">
       <div className="flex items-center justify-between px-4 pt-3 pb-3">
         <h2 className="font-medium text-base text-zinc-950">
           Select IDE Window
