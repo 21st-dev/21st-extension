@@ -4,7 +4,7 @@
 
 Forked from [stagewise-io/stagewise](https://github.com/stagewise-io/stagewise)
 
-![demo](https://cdn.21st.dev/gif-cline-extension-3.gif)
+![demo](assets/gif-extension.gif)
 
 ## About the project
 
