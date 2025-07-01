@@ -113,15 +113,14 @@ export function SelectedDomElements({
           elementData.element,
           elementData.pluginContext,
         );
-        // Create unique key based on element and its position in DOM
         const elementKey = `dom-${elementData.element.tagName}-${elementData.element.className || 'no-class'}-${index}`;
 
         return (
           <div
             key={elementKey}
             className={cn(
-              'flex items-center gap-1 rounded-md border border-gray-200 bg-[#F5F5F5] px-1.5 py-0.5 text-xs',
-              'transition-all duration-150 hover:border-gray-300 hover:bg-[#F5F5F5]',
+              'flex items-center gap-1 rounded-md border border-zinc-200 bg-background px-1.5 py-0.5 text-xs dark:border-zinc-800',
+              'transition-all duration-150',
               compact && 'px-1 py-0.5 text-xs',
             )}
           >
@@ -130,12 +129,23 @@ export function SelectedDomElements({
               variant="ghost"
               size="icon"
               onClick={() => handleRemoveElement(elementData.element)}
-              className="h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 rounded-[2px] text-[8px] text-gray-400 leading-none hover:bg-gray-100 hover:text-gray-900"
+              className="group relative h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 overflow-hidden rounded-[4px] text-[8px] leading-none hover:bg-muted"
               title="Remove element"
             >
-              <XIcon className="h-2.5 min-h-2.5 w-2.5 min-w-2.5 text-gray-400 hover:text-gray-900" />
+              {/* Element Icon - shown by default */}
+              <div className="absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:opacity-0">
+                <div className="flex h-full w-full items-center justify-center rounded-[4px] bg-accent font-medium text-[7px] text-primary">
+                  {info.charAt(0).toUpperCase()}
+                </div>
+              </div>
+              {/* X Icon - shown on hover */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-200 group-hover:opacity-100">
+                <div className="flex h-full w-full items-center justify-center rounded-[4px] bg-muted">
+                  <XIcon className="h-2.5 w-2.5 text-muted-foreground transition-colors duration-200 group-hover:text-foreground" />
+                </div>
+              </div>
             </Button>
-            <span className="min-w-0 truncate font-medium text-gray-700">
+            <span className="min-w-0 truncate font-medium text-foreground">
               {info}
             </span>
           </div>
@@ -162,8 +172,8 @@ export function SelectedDomElements({
           >
             <div
               className={cn(
-                'group flex items-center gap-1 rounded-md border border-blue-200 bg-[#F5F5F5] px-1.5 py-0.5 text-xs',
-                'transition-all duration-150 hover:border-blue-300 hover:bg-[#F5F5F5]',
+                'group flex items-center gap-1 rounded-md border border-zinc-200 px-1.5 py-0.5 text-xs dark:border-zinc-800',
+                'transition-all duration-150',
                 compact && 'px-1 py-0.5 text-xs',
               )}
             >
@@ -172,38 +182,40 @@ export function SelectedDomElements({
                 variant="ghost"
                 size="icon"
                 onClick={() => handleRemoveComponent(component.id.toString())}
-                className="relative h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 overflow-hidden rounded-[2px] text-[8px] leading-none hover:bg-blue-200"
+                className="relative h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 overflow-hidden rounded-[4px] text-[8px] leading-none hover:bg-accent"
                 title="Remove component"
               >
                 {/* Avatar - shown by default */}
-                <div className="absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:scale-75 group-hover:opacity-0">
+                <div className="absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:opacity-0">
                   {component.preview_url ? (
                     <img
                       src={component.preview_url}
                       alt={componentName}
-                      className="h-full w-full rounded-[1px] object-cover"
+                      className="h-full w-full rounded-[4px] object-cover"
                       onError={(e) => {
                         // Fallback to letter if image fails to load
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
                         const parent = target.parentElement;
                         if (parent) {
-                          parent.innerHTML = `<div class="bg-blue-200 text-blue-700 font-medium text-[7px] h-full w-full flex items-center justify-center">${avatarLetter}</div>`;
+                          parent.innerHTML = `<div class="bg-accent text-primary font-medium text-[7px] h-full w-full flex items-center justify-center rounded-[4px]">${avatarLetter}</div>`;
                         }
                       }}
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-blue-200 font-medium text-[7px] text-blue-700">
+                    <div className="flex h-full w-full items-center justify-center rounded-[4px] bg-accent font-medium text-[7px] text-primary">
                       {avatarLetter}
                     </div>
                   )}
                 </div>
                 {/* X Icon - shown on hover */}
-                <div className="absolute inset-0 flex scale-125 items-center justify-center opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
-                  <XIcon className="h-2.5 w-2.5 text-blue-400 group-hover:text-blue-900" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-200 group-hover:opacity-100">
+                  <div className="flex h-full w-full items-center justify-center rounded-[4px] bg-muted">
+                    <XIcon className="h-2.5 w-2.5 text-muted-foreground transition-colors duration-200 group-hover:text-foreground" />
+                  </div>
                 </div>
               </Button>
-              <span className="min-w-0 truncate font-medium text-blue-700">
+              <span className="min-w-0 truncate font-medium text-primary">
                 {componentName}
               </span>
             </div>
@@ -216,8 +228,8 @@ export function SelectedDomElements({
         <div className="flex items-center gap-2">
           <div
             className={cn(
-              'group flex flex-1 items-center gap-1 rounded-md border-[1px] border-red-300 border-dashed px-1.5 py-0.5 text-xs',
-              'cursor-pointer transition-all duration-150 hover:border-red-400',
+              'group flex flex-1 items-center gap-1 rounded-md border border-zinc-200 border-dashed px-1.5 py-0.5 text-xs dark:border-zinc-800',
+              'cursor-pointer transition-all duration-150',
               compact && 'px-1 py-0.5 text-xs',
             )}
             onClick={handleAddRuntimeError}
@@ -226,26 +238,29 @@ export function SelectedDomElements({
             title="Click or press Tab to add runtime error to context"
           >
             <AlertTriangleIcon className="h-2.5 w-2.5 flex-shrink-0 text-red-500" />
-            <span className="min-w-0 truncate font-medium text-red-700">
+            <span className="min-w-0 truncate font-medium text-red-500">
               {runtimeError && getRuntimeErrorText(runtimeError)}
             </span>
           </div>
-          {!hasInputText && (
-            <span
-              className={cn(
-                'inline-flex items-center gap-1 font-medium text-gray-600',
-                'rounded border border-gray-200/50 bg-[#F5F5F5] px-1 py-0.5',
-                'flex-shrink-0 transition-all duration-200 ease-out',
-              )}
-            >
-              <span className="rounded-[2px] bg-gray-200 p-0.5 font-bold text-[10px] text-gray-600 leading-none">
-                Tab
+          {!hasInputText &&
+            (!currentChat?.domContextElements ||
+              currentChat.domContextElements.length === 0) &&
+            selectedComponents.length === 0 && (
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1 font-medium text-muted-foreground',
+                  'rounded border border-zinc-200 bg-background px-1 py-0.5 dark:border-zinc-800',
+                  'flex-shrink-0 transition-all duration-200 ease-out',
+                )}
+              >
+                <span className="rounded-[2px] bg-muted p-0.5 font-bold text-[10px] text-muted-foreground leading-none">
+                  Tab
+                </span>
+                <span className="text-[11px] leading-none">
+                  to add to context
+                </span>
               </span>
-              <span className="text-[11px] leading-none">
-                to add to context
-              </span>
-            </span>
-          )}
+            )}
         </div>
       )}
 
@@ -253,8 +268,8 @@ export function SelectedDomElements({
       {currentChat?.runtimeError && (
         <div
           className={cn(
-            'group flex items-center gap-1 rounded-md border border-red-200 bg-[#F5F5F5] px-1.5 py-0.5 text-xs',
-            'transition-all duration-150 hover:border-red-300 hover:bg-[#F5F5F5]',
+            'group flex items-center gap-1 rounded-md border border-zinc-200 bg-background px-1.5 py-0.5 text-xs dark:border-zinc-800',
+            'transition-all duration-150',
             compact && 'px-1 py-0.5 text-xs',
           )}
         >
@@ -263,12 +278,21 @@ export function SelectedDomElements({
             variant="ghost"
             size="icon"
             onClick={handleRemoveRuntimeError}
-            className="h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 rounded-[2px] text-[8px] text-red-400 leading-none hover:bg-red-100 hover:text-red-900"
+            className="relative h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 overflow-hidden rounded-[4px] text-[8px] leading-none hover:bg-muted"
             title="Remove runtime error from context"
           >
-            <XIcon className="h-2.5 min-h-2.5 w-2.5 min-w-2.5 text-red-400 hover:text-red-900" />
+            {/* Alert Icon - shown by default */}
+            <div className="absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:opacity-0">
+              <AlertTriangleIcon className="h-2.5 w-2.5 text-red-500" />
+            </div>
+            {/* X Icon - shown on hover */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-200 group-hover:opacity-100">
+              <div className="flex h-full w-full items-center justify-center rounded-[4px] bg-muted">
+                <XIcon className="h-2.5 w-2.5 text-muted-foreground transition-colors duration-200 group-hover:text-foreground" />
+              </div>
+            </div>
           </Button>
-          <span className="min-w-0 truncate font-medium text-red-700">
+          <span className="min-w-0 truncate font-medium text-red-500">
             {getRuntimeErrorText(currentChat.runtimeError)}
           </span>
         </div>

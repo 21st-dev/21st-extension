@@ -9,11 +9,13 @@ export interface CustomButtonProps extends ButtonProps {
 }
 
 const buttonVariants = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300',
-  secondary: 'bg-gray-600 text-white hover:bg-gray-700 disabled:bg-gray-300',
+  primary:
+    'bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground',
+  secondary:
+    'bg-secondary text-secondary-foreground hover:bg-secondary/90 disabled:bg-muted disabled:text-muted-foreground',
   ghost:
-    'text-gray-500 hover:text-gray-700 hover:bg-gray-100 disabled:text-gray-400',
-  link: 'text-blue-600 hover:text-blue-700 underline-offset-4 hover:underline disabled:text-gray-400',
+    'text-muted-foreground hover:text-foreground hover:bg-muted disabled:text-muted-foreground',
+  link: 'text-primary hover:text-primary/80 underline-offset-4 hover:underline disabled:text-muted-foreground',
 };
 
 const buttonSizes = {
@@ -34,7 +36,7 @@ export const Button = forwardRef<HTMLButtonElement, CustomButtonProps>(
           // Remove all borders and outlines aggressively
           'border-0 border-none shadow-none outline-none',
           'focus:border-0 focus:border-none focus:outline-none focus:ring-0 focus:ring-offset-0',
-          'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+          'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           // Disabled styles
           'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
           // Variant styles

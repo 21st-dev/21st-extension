@@ -1,5 +1,12 @@
 # @21st-extension/srpc
 
+## 0.5.6
+
+### Patch Changes
+
+- Enhanced communication protocols to support dark theme preferences
+- Updated serialization to handle theme-related data
+
 ## 0.5.1
 
 ### Patch Changes

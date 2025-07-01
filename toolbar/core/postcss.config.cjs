@@ -1,9 +1,9 @@
 const prefixWhereOverrideList = ['html', 'body'];
 const prefixElementOverrideList = [':root', ':host'];
 
-export default {
+module.exports = {
   plugins: {
-    '@tailwindcss/postcss': {},
+    tailwindcss: {},
     autoprefixer: {},
     'postcss-prefix-selector': {
       prefix: 'stagewise-companion-anchor',

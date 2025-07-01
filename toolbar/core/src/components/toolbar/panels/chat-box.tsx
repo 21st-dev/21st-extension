@@ -394,10 +394,11 @@ export function ToolbarChatArea() {
   const buttonClassName = useMemo(
     () =>
       cn(
-        'flex size-8 items-center justify-center rounded-full bg-transparent p-1 text-zinc-950 opacity-20 transition-all duration-150',
-        currentInput.length > 0 && 'bg-blue-600 text-white opacity-100',
+        'flex size-8 items-center justify-center rounded-full bg-transparent p-1 text-foreground opacity-20 transition-all duration-150',
+        currentInput.length > 0 &&
+          'bg-primary text-primary-foreground opacity-100',
         chatState.promptState === 'loading' &&
-          'cursor-not-allowed bg-zinc-300 text-zinc-500 opacity-30',
+          'cursor-not-allowed bg-muted text-muted-foreground opacity-30',
       ),
     [currentInput.length, chatState.promptState],
   );
@@ -422,28 +423,25 @@ export function ToolbarChatArea() {
       shouldShowRuntimeErrorSuggestion;
 
     // Use different rounding based on whether there are selected elements above
-    const roundingClass = hasSelectedElements ? 'rounded-b-xl' : 'rounded-xl';
-    const baseClasses = `flex h-24 w-full flex-1 flex-row items-end ${roundingClass} px-2 pb-2 pt-2.5 text-sm text-zinc-950 shadow-md transition-[background-color,border-color,color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter] duration-300 ease-in-out placeholder:text-zinc-950/70`;
+    const roundingClass = hasSelectedElements
+      ? 'rounded-b-[16px]'
+      : 'rounded-[16px]';
+    const baseClasses = `flex h-24 w-full flex-1 flex-row items-end ${roundingClass} px-2 pb-2 pt-2.5 text-sm text-foreground shadow-md transition-[background-color,border-color,color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter] duration-300 ease-in-out placeholder:text-muted-foreground`;
 
     switch (chatState.promptState) {
       case 'loading':
-        return cn(baseClasses, 'border border-border/30', 'bg-[#F5F5F5]');
+        return cn(baseClasses, 'border border-border', 'bg-background');
       case 'success':
-        return cn(
-          baseClasses,
-          'border border-border/30',
-          'bg-[#F5F5F5]',
-          'chat-success-border',
-        );
+        return cn(baseClasses, 'border border-border', 'bg-background');
       case 'error':
         return cn(
           baseClasses,
-          'border border-border/30',
-          'bg-[#F5F5F5]',
+          'border border-border',
+          'bg-background',
           'chat-error-border animate-shake',
         );
       default:
-        return cn(baseClasses, 'border border-border/30', 'bg-[#F5F5F5]');
+        return cn(baseClasses, 'border border-border', 'bg-background');
     }
   }, [
     chatState.promptState,
@@ -687,9 +685,9 @@ export function ToolbarChatArea() {
   const textareaClassName = useMemo(
     () =>
       cn(
-        'ml-1 h-full w-full flex-1 resize-none bg-transparent text-zinc-950 transition-all duration-150 placeholder:text-zinc-950/50 focus:outline-none',
+        'ml-1 h-full w-full flex-1 resize-none bg-transparent text-foreground transition-all duration-150 placeholder:text-muted-foreground/50 focus:outline-none',
         chatState.promptState === 'loading' &&
-          'text-zinc-500 placeholder:text-zinc-400',
+          'text-muted-foreground placeholder:text-muted-foreground/40',
         // Add shimmer effect during search loading - only when search is activated
         shouldShowSearchResults &&
           isLoading &&
@@ -1026,7 +1024,7 @@ export function ToolbarChatArea() {
               <div className="slide-in-from-top-2 animate-in duration-200 ease-out">
                 <div
                   ref={selectedElementsContainerRef}
-                  className="-mb-2 rounded-t-xl border-border/30 border-x border-t bg-[#F5F5F5] px-2 pt-2"
+                  className="-mb-2 rounded-t-[16px] border-border border-x border-t bg-background px-2 pt-2"
                 >
                   <SelectedDomElements
                     elements={currentChat?.domContextElements || []}
@@ -1091,9 +1089,16 @@ export function ToolbarChatArea() {
                 />
               </div>
               <div className="flex items-center justify-between gap-2">
-                {/* Esc indicator on the left */}
-                <div className="flex items-center text-[10px] text-gray-500">
-                  <span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[9px] text-gray-400">
+                {/* Esc indicator on the left - hidden during loading */}
+                <div
+                  className={cn(
+                    'flex items-center text-[10px] text-muted-foreground',
+                    (chatState.promptState === 'loading' ||
+                      isMagicChatLoading) &&
+                      'invisible',
+                  )}
+                >
+                  <span className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
                     ESC
                   </span>
                   <span className="ml-1">{getEscIndicatorText()}</span>
@@ -1113,8 +1118,8 @@ export function ToolbarChatArea() {
                         selectedComponents.length > 0) &&
                         !isMagicChatLoading &&
                         chatState.promptState !== 'loading'
-                        ? 'text-black hover:text-gray-800'
-                        : 'cursor-not-allowed text-gray-400',
+                        ? 'text-foreground hover:text-foreground/80'
+                        : 'cursor-not-allowed text-muted-foreground',
                     )}
                     disabled={
                       (currentInput.trim().length === 0 &&
@@ -1141,8 +1146,8 @@ export function ToolbarChatArea() {
                           selectedComponents.length > 0) &&
                           !isMagicChatLoading &&
                           chatState.promptState !== 'loading'
-                          ? 'text-gray-600'
-                          : 'text-gray-400',
+                          ? 'text-muted-foreground'
+                          : 'text-muted-foreground/60',
                       )}
                     >
                       ⌘
@@ -1156,8 +1161,8 @@ export function ToolbarChatArea() {
                           selectedComponents.length > 0) &&
                           !isMagicChatLoading &&
                           chatState.promptState !== 'loading'
-                          ? 'text-gray-600'
-                          : 'text-gray-400',
+                          ? 'text-muted-foreground'
+                          : 'text-muted-foreground/60',
                       )}
                     >
                       ⏎
@@ -1172,7 +1177,7 @@ export function ToolbarChatArea() {
                       // Add to context state (keep original blue)
                       isSearchResultsFocused &&
                         isSearchResultsReady &&
-                        'bg-blue-500 text-white hover:bg-blue-600',
+                        'bg-primary text-primary-foreground hover:bg-primary/90',
                       // Open Inspector state (green background, white text)
                       !isSearchResultsFocused &&
                         shouldShowOpenInspector &&
@@ -1184,17 +1189,17 @@ export function ToolbarChatArea() {
                         (currentInput.trim().length > 0 ||
                           shouldShowFixError) &&
                         chatState.promptState !== 'loading' &&
-                        'bg-black text-white hover:bg-gray-800 hover:text-white',
+                        'bg-foreground text-background hover:bg-foreground/90 hover:text-background',
                       // Loading state
                       chatState.promptState === 'loading' &&
-                        'cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300 hover:text-gray-500',
+                        'cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted hover:text-muted-foreground',
                       // Disabled state (only when not loading)
                       chatState.promptState !== 'loading' &&
                         (currentInput.trim().length === 0 &&
                         (!isSearchResultsFocused || !isSearchResultsReady) &&
                         !shouldShowOpenInspector &&
                         !shouldShowFixError
-                          ? 'cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300 hover:text-gray-500'
+                          ? 'cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted hover:text-muted-foreground'
                           : ''),
                     )}
                     disabled={
@@ -1242,10 +1247,10 @@ export function ToolbarChatArea() {
                           console.log(`Plugin ${plugin.pluginName} activated`);
                         }
                       }}
-                      className="flex size-8 items-center justify-center rounded-full bg-[#F5F5F5] p-1 opacity-60 transition-all duration-150 hover:bg-[#F5F5F5] hover:opacity-100"
+                      className="flex size-8 items-center justify-center rounded-full bg-background p-1 opacity-60 transition-all duration-150 hover:bg-background hover:opacity-100"
                     >
                       {plugin.iconSvg ? (
-                        <span className="size-4 stroke-zinc-950 text-zinc-950 *:size-full">
+                        <span className="size-4 stroke-foreground text-foreground *:size-full">
                           {plugin.iconSvg}
                         </span>
                       ) : (

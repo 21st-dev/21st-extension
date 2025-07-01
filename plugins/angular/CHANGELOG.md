@@ -1,5 +1,14 @@
 # @21st-extension/angular
 
+## 0.5.6
+
+### Patch Changes
+
+- Added dark theme support for Angular plugin integration
+- Enhanced visual consistency with 21st.dev Toolbar dark theme
+- Updated dependencies
+  - @21st-extension/toolbar@0.5.6
+
 ## 0.5.1
 
 ### Patch Changes

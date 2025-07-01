@@ -54,7 +54,7 @@ function MiniComponentCard({
   ) => void;
 }) {
   const componentName = result.component_data.name || result.name;
-  const demoName = result.component_data.name ? result.name : null; // Only show demo name if component name exists separately
+  const demoName = result.component_data.name ? result.name : null;
   const authorName = result.user_data.display_name || result.user_data.name;
   const authorAvatar =
     result.user_data.display_image_url || result.user_data.image_url;
@@ -70,10 +70,10 @@ function MiniComponentCard({
       type="button"
       className={`flex w-full items-center gap-2 rounded-md border p-2 text-left text-xs transition-all duration-200 ${
         isSelected
-          ? 'border-blue-300 bg-blue-50 ring-1 ring-blue-200'
+          ? 'border-primary/60 bg-primary/10 ring-1 ring-primary/30 dark:border-primary/40 dark:bg-primary/20'
           : isFocused
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+            ? 'border-primary/80 bg-background text-foreground hover:border-border/60 hover:bg-muted/50 dark:bg-card dark:hover:bg-muted/30'
+            : 'border-border bg-background hover:border-border/60 hover:bg-muted/50 dark:bg-card dark:hover:bg-muted/30'
       }`}
       onClick={handleClick}
     >
@@ -83,11 +83,11 @@ function MiniComponentCard({
           <img
             src={result.preview_url}
             alt={componentName}
-            className="h-full w-full rounded border border-gray-200 object-cover"
+            className="h-full w-full rounded border border-border object-cover"
             loading="eager"
           />
         ) : (
-          <div className="h-full w-full rounded border border-gray-200 bg-gray-100" />
+          <div className="h-full w-full rounded border border-border bg-muted" />
         )}
       </div>
 
@@ -97,16 +97,16 @@ function MiniComponentCard({
           <span
             className={`truncate text-left font-medium ${
               isSelected
-                ? 'text-blue-900'
+                ? 'text-foreground'
                 : isFocused
-                  ? 'text-blue-800'
-                  : 'text-gray-900'
+                  ? 'text-foreground'
+                  : 'text-foreground'
             }`}
           >
             {componentName || 'Unknown'}
           </span>
           {demoName && (
-            <span className="truncate text-[10px] text-gray-400">
+            <span className="truncate text-[10px] text-muted-foreground">
               {demoName}
             </span>
           )}
@@ -119,12 +119,12 @@ function MiniComponentCard({
           <img
             src={authorAvatar}
             alt={authorName}
-            className="h-4 w-4 rounded-full border border-gray-200"
+            className="h-4 w-4 rounded-full border border-border"
             loading="eager"
           />
         )}
         {authorName && (
-          <span className="max-w-16 truncate text-[10px] text-gray-500">
+          <span className="max-w-16 truncate text-[10px] text-muted-foreground">
             {authorName}
           </span>
         )}
@@ -446,7 +446,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
 
     if (error) {
       return (
-        <div className="rounded border border-red-200/50 bg-red-50/50 p-2 text-red-500 text-xs">
+        <div className="rounded border border-destructive/50 bg-destructive/10 p-2 text-destructive text-xs">
           Search error: {error}
         </div>
       );
@@ -475,21 +475,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
                   : 'translate-y-0 scale-100 opacity-100 blur-0'
               }`}
             >
-              <div
-                style={{
-                  position: 'relative',
-                  display: 'block',
-                  overflow: 'hidden',
-                  borderRadius: '0.5rem',
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  boxShadow:
-                    '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-                  width: 200,
-                  height: 150,
-                  transition: 'box-shadow 0.15s ease-in-out',
-                }}
-              >
+              <div className="flex h-[150px] w-[200px] items-center justify-center overflow-hidden rounded-lg border border-border bg-background shadow-md transition-shadow duration-150">
                 {activeResult.video_url ? (
                   <video
                     src={activeResult.video_url}
@@ -497,25 +483,13 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
                     loop
                     muted
                     playsInline
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      borderRadius: '0.5rem',
-                      display: 'block',
-                    }}
+                    className="h-full w-full rounded-lg object-cover"
                   />
                 ) : (
                   <img
                     src={activeResult.preview_url}
                     alt={`Preview for ${activeResult.component_data.name || activeResult.name}`}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      borderRadius: '0.5rem',
-                      display: 'block',
-                    }}
+                    className="h-full w-full rounded-lg object-cover"
                   />
                 )}
               </div>
@@ -560,7 +534,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
               <div className="flex items-center justify-between px-1 py-1">
                 {allAvailableResults.length > 3 && (
                   <div
-                    className={`text-gray-500 text-xs transition-all duration-200 ease-out ${
+                    className={`text-muted-foreground text-xs transition-all duration-200 ease-out ${
                       isFirstAppearance
                         ? 'translate-y-1 scale-98 opacity-0 blur-sm'
                         : 'translate-y-0 scale-100 opacity-100 blur-0'
@@ -576,7 +550,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
                   </div>
                 )}
                 <div
-                  className={`ml-auto text-blue-600 text-xs transition-all duration-200 ease-out ${
+                  className={`ml-auto text-primary text-xs transition-all duration-200 ease-out ${
                     isFirstAppearance
                       ? 'translate-y-1 scale-98 opacity-0 blur-sm'
                       : 'translate-y-0 scale-100 opacity-100 blur-0'
@@ -594,7 +568,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
           </div>
         ) : searchQuery?.trim() && !isLoading ? (
           <div className="space-y-1">
-            <div className="px-1 py-2 text-gray-500 text-xs">
+            <div className="px-1 py-2 text-muted-foreground text-xs">
               No components found for "{searchQuery}"
             </div>
           </div>

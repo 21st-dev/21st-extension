@@ -1,5 +1,14 @@
 # @21st-extension/plugin-example
 
+## 0.5.6
+
+### Patch Changes
+
+- Added dark theme support for template plugin
+- Enhanced example code with theme-aware implementations
+- Updated dependencies
+  - @21st-extension/toolbar@0.5.6
+
 ## 0.5.1
 
 ### Patch Changes

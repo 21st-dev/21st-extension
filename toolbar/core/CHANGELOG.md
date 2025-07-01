@@ -1,5 +1,13 @@
 # @21st-extension/toolbar
 
+## 0.5.6
+
+### Patch Changes
+
+- Added dark theme support for improved user experience in low-light environments
+- Enhanced visual accessibility with automatic theme switching based on system preferences
+- Updated UI components to support both light and dark color schemes
+
 ## 0.5.1
 
 ### Patch Changes

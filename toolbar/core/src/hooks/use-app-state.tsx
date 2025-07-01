@@ -29,6 +29,9 @@ export interface AppState {
 
   promptAction: 'send' | 'copy' | 'both';
   setPromptAction: (action: 'send' | 'copy' | 'both') => void;
+
+  theme: 'light' | 'dark' | 'system';
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
 }
 
 interface InternalAppState extends AppState {
@@ -78,6 +81,7 @@ export function AppStateProvider({
       minimized: storedState.minimized ?? true,
       position: storedState.position ?? 'bottomRight',
       promptAction: storedState.promptAction ?? 'send',
+      theme: storedState.theme ?? 'system',
       requestMainAppBlock: () => 0,
       requestMainAppUnblock: () => 0,
       discardMainAppBlock: () => {},
@@ -88,6 +92,7 @@ export function AppStateProvider({
       expand: () => {},
       setPosition: () => {},
       setPromptAction: () => {},
+      setTheme: () => {},
     };
   });
 
@@ -97,8 +102,9 @@ export function AppStateProvider({
       minimized: state.minimized,
       position: state.position,
       promptAction: state.promptAction,
+      theme: state.theme,
     });
-  }, [state.minimized, state.position, state.promptAction]);
+  }, [state.minimized, state.position, state.promptAction, state.theme]);
 
   const requestMainAppBlock = useCallback(() => {
     let newHandleValue = 0;
@@ -185,6 +191,67 @@ export function AppStateProvider({
     setState((prev) => ({ ...prev, promptAction: action }));
   }, []);
 
+  const setTheme = useCallback((theme: 'light' | 'dark' | 'system') => {
+    setState((prev) => ({ ...prev, theme }));
+  }, []);
+
+  // Apply theme to toolbar element
+  useEffect(() => {
+    const applyTheme = () => {
+      // Find the toolbar anchor element
+      const toolbarElement = document.querySelector(
+        'stagewise-companion-anchor',
+      );
+      const isDark =
+        state.theme === 'dark' ||
+        (state.theme === 'system' &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+      console.log(
+        `[21st Toolbar] Applying theme: ${state.theme}, isDark: ${isDark}`,
+      );
+
+      if (toolbarElement) {
+        if (isDark) {
+          toolbarElement.classList.add('dark');
+          console.log(
+            '[21st Toolbar] Added dark class to stagewise-companion-anchor',
+          );
+        } else {
+          toolbarElement.classList.remove('dark');
+          console.log(
+            '[21st Toolbar] Removed dark class from stagewise-companion-anchor',
+          );
+        }
+
+        // Debug: log current classes
+        console.log(
+          '[21st Toolbar] Current classes on toolbar element:',
+          toolbarElement.className,
+        );
+      } else {
+        console.warn(
+          '[21st Toolbar] Could not find stagewise-companion-anchor element',
+        );
+      }
+    };
+
+    // Delay the theme application to ensure the toolbar element exists
+    const timeoutId = setTimeout(applyTheme, 100);
+
+    // Listen for system theme changes when using 'system' mode
+    if (state.theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      mediaQuery.addEventListener('change', applyTheme);
+      return () => {
+        clearTimeout(timeoutId);
+        mediaQuery.removeEventListener('change', applyTheme);
+      };
+    }
+
+    return () => clearTimeout(timeoutId);
+  }, [state.theme]);
+
   const value: AppState = {
     requestMainAppBlock,
     requestMainAppUnblock,
@@ -201,6 +268,8 @@ export function AppStateProvider({
     setPosition,
     promptAction: state.promptAction,
     setPromptAction,
+    theme: state.theme,
+    setTheme,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

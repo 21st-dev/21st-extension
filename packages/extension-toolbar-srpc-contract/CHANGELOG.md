@@ -1,5 +1,14 @@
 # @21st-extension/extension-toolbar-srpc-contract
 
+## 0.5.6
+
+### Patch Changes
+
+- Enhanced SRPC contract to support dark theme communication
+- Updated type definitions for theme-related properties
+- Updated dependencies
+  - @21st-extension/srpc@0.5.6
+
 ## 0.5.1
 
 ### Patch Changes

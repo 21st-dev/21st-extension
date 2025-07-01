@@ -1,66 +1,93 @@
-@import "tailwindcss" important;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
-/* Custom animations for chat box states */
-@keyframes shake {
-
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  10%,
-  30%,
-  50%,
-  70%,
-  90% {
-    transform: translateX(-2px);
-  }
-
-  20%,
-  40%,
-  60%,
-  80% {
-    transform: translateX(2px);
-  }
+/* CSS Variables for Theme Support - сначала глобальные */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
+  --success-shadow: rgba(0, 0, 0, 0.15);
+  --success-glow: rgba(34, 197, 94, 0.35);
+  --success-border: rgba(34, 197, 94, 0.7);
+  --error-border: rgba(239, 68, 68, 1);
 }
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+:root.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.556 0 0);
+  --success-shadow: rgba(255, 255, 255, 0.1);
+  --success-glow: rgba(34, 197, 94, 0.4);
+  --success-border: rgba(34, 197, 94, 0.8);
+  --error-border: rgba(239, 68, 68, 1);
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-@keyframes text-shimmer {
-  0% {
-    background-position: 100% center;
-  }
-
-  100% {
-    background-position: 0% center;
-  }
-}
-
+/* CSS Variables for Theme Support */
 stagewise-companion-anchor {
+  --background: oklch(1 0 0) !important;
+  --foreground: oklch(0.145 0 0) !important;
+  --card: oklch(1 0 0) !important;
+  --card-foreground: oklch(0.145 0 0) !important;
+  --popover: oklch(1 0 0) !important;
+  --popover-foreground: oklch(0.145 0 0) !important;
+  --primary: oklch(0.205 0 0) !important;
+  --primary-foreground: oklch(0.985 0 0) !important;
+  --secondary: oklch(0.97 0 0) !important;
+  --secondary-foreground: oklch(0.205 0 0) !important;
+  --muted: oklch(0.97 0 0) !important;
+  --muted-foreground: oklch(0.556 0 0) !important;
+  --accent: oklch(0.97 0 0) !important;
+  --accent-foreground: oklch(0.205 0 0) !important;
+  --destructive: oklch(0.577 0.245 27.325) !important;
+  --destructive-foreground: oklch(0.985 0 0) !important;
+  --border: oklch(0.922 0 0) !important;
+  --input: oklch(0.922 0 0) !important;
+  --ring: oklch(0.708 0 0) !important;
+  --radius: 0.625rem !important;
+  --success-shadow: rgba(0, 0, 0, 0.15) !important;
+  --success-glow: rgba(34, 197, 94, 0.35) !important;
+  --success-border: rgba(34, 197, 94, 0.7) !important;
+  --error-border: rgba(239, 68, 68, 1) !important;
+}
+
+/* Переменные для stagewise-companion-anchor - используем наследование от html */
+html stagewise-companion-anchor {
   all: initial;
-  @apply text-zinc-950;
+  @apply text-foreground bg-background;
   font-family: "Inter", "Noto Color Emoji", -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "SF Compact", "SF Pro", "Helvetica Neue", sans-serif !important;
   font-weight: normal !important;
@@ -129,15 +156,15 @@ stagewise-companion-anchor {
 
   @keyframes success-bounce {
     0% {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 12px var(--success-shadow);
     }
 
     25% {
-      box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 24px var(--success-glow), 0 4px 12px var(--success-shadow);
     }
 
     100% {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 12px var(--success-shadow);
     }
   }
 
@@ -145,11 +172,11 @@ stagewise-companion-anchor {
 
     0%,
     50% {
-      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.7);
+      box-shadow: 0 0 0 2px var(--success-border);
     }
 
     100% {
-      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0);
+      box-shadow: 0 0 0 2px transparent;
     }
   }
 
@@ -157,11 +184,11 @@ stagewise-companion-anchor {
 
     0%,
     50% {
-      box-shadow: 0 0 0 2px rgba(239, 68, 68, 1);
+      box-shadow: 0 0 0 2px var(--error-border);
     }
 
     100% {
-      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0);
+      box-shadow: 0 0 0 2px transparent;
     }
   }
 
@@ -192,18 +219,37 @@ stagewise-companion-anchor {
   }
 }
 
-@theme default {
-  --color-background: var(--color-white);
-  --color-foreground: var(--color-zinc-950);
-  --color-muted: var(--color-zinc-100);
-  --color-muted-foreground: var(--color-zinc-700);
-  --color-border: var(--color-zinc-500);
-}
-
 #headlessui-portal-root {
   @apply fixed h-screen w-screen z-50;
 }
 
 #headlessui-portal-root>* {
   @apply pointer-events-auto;
+}
+
+/* Dark theme для stagewise-companion-anchor с высокой специфичностью */
+.dark stagewise-companion-anchor {
+  --background: oklch(0.145 0 0) !important;
+  --foreground: oklch(0.985 0 0) !important;
+  --card: oklch(0.145 0 0) !important;
+  --card-foreground: oklch(0.985 0 0) !important;
+  --popover: oklch(0.145 0 0) !important;
+  --popover-foreground: oklch(0.985 0 0) !important;
+  --primary: oklch(0.985 0 0) !important;
+  --primary-foreground: oklch(0.205 0 0) !important;
+  --secondary: oklch(0.269 0 0) !important;
+  --secondary-foreground: oklch(0.985 0 0) !important;
+  --muted: oklch(0.269 0 0) !important;
+  --muted-foreground: oklch(0.708 0 0) !important;
+  --accent: oklch(0.269 0 0) !important;
+  --accent-foreground: oklch(0.985 0 0) !important;
+  --destructive: oklch(0.396 0.141 25.723) !important;
+  --destructive-foreground: oklch(0.985 0 0) !important;
+  --border: oklch(0.269 0 0) !important;
+  --input: oklch(0.269 0 0) !important;
+  --ring: oklch(0.556 0 0) !important;
+  --success-shadow: rgba(255, 255, 255, 0.1) !important;
+  --success-glow: rgba(34, 197, 94, 0.4) !important;
+  --success-border: rgba(34, 197, 94, 0.8) !important;
+  --error-border: rgba(239, 68, 68, 1) !important;
 }

@@ -62,15 +62,15 @@ export function InlineSuggestion({
       {/* Suggestion text */}
       <span
         className={cn(
-          'inline-flex items-center gap-1 font-medium text-gray-400',
-          'rounded border border-gray-200/50 bg-gray-50/90 px-1 py-0.5 backdrop-blur-sm',
+          'inline-flex items-center gap-1 font-medium text-muted-foreground',
+          'rounded border border-border bg-background px-1 py-0.5 backdrop-blur-sm',
           'ml-0.5 transition-all duration-200 ease-out',
           isFirstAppearance
             ? 'translate-x-1 scale-98 opacity-0 blur-sm'
             : 'translate-x-0 scale-100 opacity-100 blur-0',
         )}
       >
-        <span className="rounded-[2px] bg-gray-200 p-0.5 font-bold text-[10px] text-gray-600 leading-none">
+        <span className="rounded-[2px] bg-muted p-0.5 font-bold text-[10px] text-muted-foreground leading-none">
           Tab
         </span>
         <span className="text-[11px] leading-none">to search 21st.dev</span>

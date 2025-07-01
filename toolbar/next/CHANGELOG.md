@@ -1,5 +1,14 @@
 # @21st-extension/toolbar-next
 
+## 0.5.6
+
+### Patch Changes
+
+- Added dark theme support for Next.js integration
+- Enhanced accessibility with automatic theme detection
+- Updated dependencies
+  - @21st-extension/toolbar-react@0.5.6
+
 ## 0.5.1
 
 ### Patch Changes
