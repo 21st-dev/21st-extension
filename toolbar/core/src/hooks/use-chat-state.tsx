@@ -453,35 +453,33 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
         if (bridge) {
           try {
             // Track agent prompt triggered with component event
-            if (
-              chat?.selectedComponents &&
-              chat.selectedComponents.length > 0 &&
-              selectedSession
-            ) {
-              try {
-                await bridge.call.trackEvent(
-                  {
-                    eventName: EventName.AGENT_PROMPT_TRIGGERED_WITH_COMPONENT,
-                    properties: {
-                      sessionId: selectedSession.sessionId,
-                      promptText: content.trim(),
-                      componentCount: chat.selectedComponents.length,
-                      componentIds: chat.selectedComponents.map((c) => c.id),
-                      selectedDomElementsCount:
-                        chat.domContextElements?.length || 0,
-                      hasRuntimeError: Boolean(chat.runtimeError),
-                      runtimeError: chat.runtimeError?.message,
-                      promptAction: promptAction,
-                    },
+            try {
+              await bridge.call.trackEvent(
+                {
+                  eventName: EventName.AGENT_PROMPT_TRIGGERED_WITH_COMPONENT,
+                  properties: {
+                    sessionId: selectedSession.sessionId,
+                    promptText: content.trim(),
+                    componentCount: chat.selectedComponents.length,
+                    components: chat.selectedComponents.map((c) => ({
+                      id: c.id,
+                      demoName: c.name,
+                      componentName: c.component_data.name || '',
+                      componentDescription: c.component_data.description || '',
+                    })),
+                    selectedDomElementsCount:
+                      chat.domContextElements?.length || 0,
+                    runtimeError: chat.runtimeError?.message,
+                    promptAction: promptAction,
                   },
-                  { onUpdate: () => {} },
-                );
-              } catch (error) {
-                console.warn(
-                  '[Analytics] Failed to track agent_prompt_triggered_with_component:',
-                  error,
-                );
-              }
+                },
+                { onUpdate: () => {} },
+              );
+            } catch (error) {
+              console.warn(
+                '[Analytics] Failed to track agent_prompt_triggered_with_component:',
+                error,
+              );
             }
 
             // Create prompt (API fetching is now handled inside formatSelectedComponents)

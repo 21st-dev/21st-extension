@@ -551,6 +551,7 @@ export function ToolbarChatArea() {
                   componentDescription: result.component_data.description || '',
                   searchQuery: currentInput.trim(),
                   searchQueryLength: currentInput.trim().length,
+                  searchIntent: searchIntent || '',
                 },
               },
               { onUpdate: () => {} },
