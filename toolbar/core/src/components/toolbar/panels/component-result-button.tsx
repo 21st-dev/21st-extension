@@ -124,8 +124,8 @@ export function ComponentResultButton({
       type="button"
       className={`flex w-full items-center gap-3 rounded-lg border p-2 text-left text-sm shadow-sm transition-all duration-200 ${
         isSelected
-          ? 'border-blue-300 bg-blue-50 ring-1 ring-blue-200 hover:bg-blue-100'
-          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-100'
+          ? 'border-primary/40 bg-primary/10 ring-1 ring-primary/20 hover:bg-primary/15'
+          : 'border-border bg-background hover:border-border/60 hover:bg-muted/50'
       }`}
       onClick={handleButtonClick}
       onMouseEnter={handleMouseEnter}
@@ -137,12 +137,12 @@ export function ComponentResultButton({
           <img
             src={previewUrl}
             alt={componentName}
-            className="h-full w-full rounded border border-gray-200 object-cover shadow-sm"
+            className="h-full w-full rounded border border-border object-cover shadow-sm"
             onError={handleImageError}
             loading="lazy"
           />
         ) : (
-          <div className="h-full w-full rounded border border-gray-200 bg-gray-100" />
+          <div className="h-full w-full rounded border border-border bg-muted" />
         )}
       </div>
 
@@ -150,7 +150,7 @@ export function ComponentResultButton({
       <div className="flex min-w-0 flex-1 flex-col items-start">
         <span
           className={`truncate text-left font-medium ${
-            isSelected ? 'text-blue-900' : 'text-gray-900'
+            isSelected ? 'text-primary' : 'text-foreground'
           }`}
         >
           {componentName || 'Unknown'}
@@ -158,7 +158,7 @@ export function ComponentResultButton({
         {result.component_data.description && (
           <span
             className={`max-w-full truncate text-xs ${
-              isSelected ? 'text-blue-700' : 'text-gray-600'
+              isSelected ? 'text-primary/80' : 'text-muted-foreground'
             }`}
           >
             {result.component_data.description}
@@ -172,7 +172,7 @@ export function ComponentResultButton({
           type="checkbox"
           checked={isSelected}
           onChange={handleSelectionToggle}
-          className="h-4 w-4 cursor-pointer rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500"
+          className="h-4 w-4 cursor-pointer rounded border-border bg-background text-primary focus:ring-2 focus:ring-primary/20"
           onClick={(e) => e.stopPropagation()}
         />
       </div>

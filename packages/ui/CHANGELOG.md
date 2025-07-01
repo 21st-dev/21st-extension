@@ -1,5 +1,13 @@
 # @21st-extension/ui
 
+## 0.5.6
+
+### Patch Changes
+
+- Added dark theme support for UI components
+- Enhanced component styling for both light and dark themes
+- Improved accessibility with better contrast ratios
+
 ## 0.5.1
 
 ### Patch Changes

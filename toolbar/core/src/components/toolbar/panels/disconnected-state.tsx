@@ -23,31 +23,33 @@ export function DisconnectedStatePanel({
   };
 
   return (
-    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-xl border border-border/30 bg-zinc-50/80 shadow-md backdrop-blur-md">
+    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-xl border border-border bg-background shadow-md backdrop-blur-md">
       <div className="flex items-center justify-between px-4 pt-3 pb-3">
         <div className="flex items-center gap-3">
-          <WifiOffIcon className="size-5 text-zinc-600" />
-          <h2 className="font-medium text-base text-zinc-950">Not Connected</h2>
+          <WifiOffIcon className="size-5 text-muted-foreground" />
+          <h2 className="font-medium text-base text-foreground">
+            Not Connected
+          </h2>
         </div>
       </div>
 
-      <div className="flex flex-col border-border/30 border-t px-4 py-3 text-zinc-950">
+      <div className="flex flex-col border-border/30 border-t px-4 py-3 text-foreground">
         <div className="space-y-4">
-          <p className="text-sm text-zinc-600">
+          <p className="text-muted-foreground text-sm">
             The 21st.dev toolbar isn't connected to any IDE window.
           </p>
 
           {discoveryError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-              <p className="text-red-700 text-sm">
+            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+              <p className="text-destructive text-sm">
                 <span className="font-medium">Error:</span> {discoveryError}
               </p>
             </div>
           )}
 
           <div className="space-y-3">
-            <p className="font-medium text-sm text-zinc-700">To connect:</p>
-            <ol className="list-inside list-decimal space-y-2 text-sm text-zinc-600">
+            <p className="font-medium text-foreground text-sm">To connect:</p>
+            <ol className="list-inside list-decimal space-y-2 text-muted-foreground text-sm">
               <li>Open your IDE (Cursor, Windsurf, etc.)</li>
               <li>Install the 21st.dev extension</li>
               <li>Make sure the extension is active</li>
@@ -59,7 +61,7 @@ export function DisconnectedStatePanel({
             type="button"
             onClick={handleRetry}
             disabled={isRetrying}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 font-medium text-sm text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <RefreshCwIcon
               className={`size-4 ${isRetrying ? 'animate-spin' : ''}`}
@@ -67,12 +69,12 @@ export function DisconnectedStatePanel({
             {isRetrying ? 'Connecting...' : 'Retry Connection'}
           </button>
 
-          <div className="border-zinc-200 border-t pt-3">
+          <div className="border-border border-t pt-3">
             <a
               href="https://marketplace.visualstudio.com/items?itemName=21st-dev.21st-extension"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-zinc-600 hover:text-zinc-800 hover:underline"
+              className="text-muted-foreground text-sm hover:text-foreground hover:underline"
             >
               Get 21st.dev Extension →
             </a>

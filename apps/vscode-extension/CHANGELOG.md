@@ -1,5 +1,13 @@
 # 21st.dev Extension
 
+## 0.5.6
+
+### Patch Changes
+
+- Added dark theme support for VS Code Extension
+- Enhanced integration with system theme preferences
+- Improved visual accessibility in low-light environments
+
 ## 0.5.1
 
 ### Patch Changes

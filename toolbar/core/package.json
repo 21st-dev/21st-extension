@@ -1,7 +1,7 @@
 {
   "name": "@21st-extension/toolbar",
   "private": false,
-  "version": "0.5.5",
+  "version": "0.5.6",
   "type": "module",
   "description": "21st.dev toolbar SDK for AI Agent interaction.",
   "keywords": [
@@ -57,12 +57,11 @@
     "build": "tsc -b && vite build --mode production"
   },
   "devDependencies": {
+    "@21st-extension/extension-toolbar-srpc-contract": "workspace:*",
+    "@21st-extension/srpc": "workspace:*",
     "@headlessui/react": "2.2.2",
     "@preact/compat": "18.3.1",
     "@preact/preset-vite": "^2.10.1",
-    "@21st-extension/extension-toolbar-srpc-contract": "workspace:*",
-    "@21st-extension/srpc": "workspace:*",
-    "@tailwindcss/postcss": "^4.1.5",
     "@types/node": "22.15.2",
     "autoprefixer": "^10.4.21",
     "bowser": "^2.11.0",
@@ -73,7 +72,7 @@
     "postcss-prefix-selector": "^2.1.1",
     "preact": "^10.26.6",
     "tailwind-merge": "^3.2.0",
-    "tailwindcss": "^4.1.5",
+    "tailwindcss": "^3.4.17",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",

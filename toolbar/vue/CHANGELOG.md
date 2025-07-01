@@ -1,5 +1,14 @@
 # @21st-extension/toolbar-vue
 
+## 0.5.6
+
+### Patch Changes
+
+- Added dark theme support for Vue components
+- Enhanced accessibility with automatic theme detection
+- Updated dependencies
+  - @21st-extension/toolbar@0.5.6
+
 ## 0.5.1
 
 ### Patch Changes

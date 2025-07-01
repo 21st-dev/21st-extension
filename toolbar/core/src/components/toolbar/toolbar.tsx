@@ -14,7 +14,6 @@ import { SettingsPanel } from './settings';
 import { useVSCode } from '@/hooks/use-vscode';
 import { DisconnectedStatePanel } from './panels/disconnected-state';
 import { WindowSelectionPanel } from './panels/window-selection';
-import { usePlugins } from '@/hooks/use-plugins';
 
 export function ToolbarBox() {
   const {
@@ -111,10 +110,10 @@ export function ToolbarBox() {
     // Connected state (default) - use same styles for normal and loading states
     return {
       border: 'border-border/30',
-      bg: 'bg-zinc-50/80',
+      bg: 'bg-background/80',
       divideBorder: 'divide-border/20',
-      buttonBg: 'bg-zinc-950', // Pure black background for all states
-      buttonColor: 'stroke-zinc-950',
+      buttonBg: 'bg-foreground',
+      buttonColor: 'stroke-foreground',
     };
   };
 
@@ -124,14 +123,14 @@ export function ToolbarBox() {
   const getMinimizedIcon = () => {
     // Show spinner if reconnecting (even without debounce for instant reaction)
     if (isDiscovering) {
-      return <RefreshCwIcon className="size-4 animate-spin text-white" />;
+      return <RefreshCwIcon className="size-4 animate-spin text-background" />;
     }
     // Show disconnection icon if not connected
     if (isDisconnectedState) {
-      return <WifiOffIcon className="size-5 text-white" />;
+      return <WifiOffIcon className="size-5 text-background" />;
     }
     // Show logo by default
-    return <Logo className="size-5" color="white" />;
+    return <Logo className="size-5 text-background" color="current" />;
   };
 
   // Get CSS classes for position
@@ -163,7 +162,7 @@ export function ToolbarBox() {
         !minimized && (
           <div
             className={cn(
-              'absolute w-[480px] max-w-[40vw] transition-all duration-300 ease-out',
+              'absolute w-[480px] max-w-[calc(100vw-40px)] transition-all duration-300 ease-out',
               // Settings panel positioning based on toolbar position
               openPanel === 'settings'
                 ? position.includes('top')
@@ -172,10 +171,10 @@ export function ToolbarBox() {
                 : position.includes('top')
                   ? 'top-full mt-2'
                   : 'bottom-full mb-2',
-              // Shift by panel width when toolbar is on the right
+              // Prevent panel from going off-screen
               position.includes('Right')
-                ? 'right-0' // Shift panel left by (panel_width - toolbar_width)
-                : 'left-0', // Panel left edge = toolbar left edge
+                ? '-right-2' // Shift panel right by 2 units from right-positioned toolbar
+                : '-left-2', // Shift panel left by 2 units from left-positioned toolbar
             )}
           >
             {/* Render content based on state - remove ConnectingStatePanel */}
@@ -213,7 +212,7 @@ export function ToolbarBox() {
               setOpenPanel(openPanel === 'settings' ? null : 'settings');
             })}
             active={openPanel === 'settings'}
-            className="pointer-events-auto transition-all duration-150 hover:border-none hover:ring-zinc-950/20"
+            className="pointer-events-auto transition-all duration-150 hover:border-none"
           >
             <SettingsIcon className="size-4" />
           </ToolbarButton>
@@ -261,7 +260,7 @@ export function ToolbarBox() {
               : 'pointer-events-none scale-95 opacity-0 blur-sm',
           )}
         >
-          <XIcon className="h-5 min-h-5 w-5 min-w-5 text-white" />
+          <XIcon className="h-5 min-h-5 w-5 min-w-5 text-background" />
         </div>
       </ToolbarButton>
     </div>

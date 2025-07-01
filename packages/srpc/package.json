@@ -1,6 +1,6 @@
 {
   "name": "@21st-extension/srpc",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "AGPL-3.0-only",
   "type": "module",
   "private": false,

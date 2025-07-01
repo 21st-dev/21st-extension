@@ -1,5 +1,13 @@
 # create-21st-plugin
 
+## 0.5.6
+
+### Patch Changes
+
+- Updated plugin templates with dark theme support
+- Enhanced scaffold templates for better dark theme integration
+- Added examples for theme-aware plugin development
+
 ## 0.5.1
 
 ### Patch Changes

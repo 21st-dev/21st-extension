@@ -1,5 +1,13 @@
 # @21st-extension/typescript-config
 
+## 0.5.6
+
+### Patch Changes
+
+- Enhanced TypeScript configurations for dark theme support
+- Updated build configurations for theme-aware development
+- Improved type safety for theme-related features
+
 ## 0.5.1
 
 ### Patch Changes

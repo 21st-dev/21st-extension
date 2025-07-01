@@ -16,8 +16,12 @@ export function initToolbar(config?: ToolbarConfig) {
   // If a stagewise companion anchor already exists, we abort this instance.
   if (document.body.querySelector(companionAnchorTagName)) {
     console.warn(
-      'A stagewise companion anchor already exists. Aborting this instance.',
+      'A stagewise companion anchor already exists. Skipping initialization.',
     );
+    // In development mode, just return instead of throwing
+    if (process.env.NODE_ENV === 'development') {
+      return false;
+    }
     throw new Error('A stagewise companion anchor already exists.');
   }
 
@@ -58,4 +62,6 @@ export function initToolbar(config?: ToolbarConfig) {
   styleNode.append(document.createTextNode(appStyle));
   document.head.appendChild(styleNode);
   render(createElement(App, config), shadowDomAnchor);
+
+  return true;
 }

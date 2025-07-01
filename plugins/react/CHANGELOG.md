@@ -1,5 +1,14 @@
 # @21st-extension/react
 
+## 0.5.6
+
+### Patch Changes
+
+- Added dark theme support for React plugin integration  
+- Enhanced component detection and annotation with theme support
+- Updated dependencies
+  - @21st-extension/toolbar@0.5.6
+
 ## 0.5.1
 
 ### Patch Changes
