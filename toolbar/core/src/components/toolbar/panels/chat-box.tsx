@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/button';
 import { InlineSuggestion } from '@/components/ui/inline-suggestion';
 import { TWENTY_FIRST_URL } from '@/constants';
 import { useAppState } from '@/hooks/use-app-state';
+import { useAuth, useAuthStatus } from '@/hooks/use-auth';
+import { useMagicProjects } from '@/hooks/use-magic-projects';
 import { useChatState } from '@/hooks/use-chat-state';
 import { useComponentSearch } from '@/hooks/use-component-search';
 import { DraggableProvider, useDraggable } from '@/hooks/use-draggable';
@@ -29,6 +31,7 @@ import {
 } from 'preact/hooks';
 import { SearchResults, type SearchResultsRef } from './search-results';
 import { SelectedDomElements } from './selected-dom-elements';
+import { MagicStatusBar } from './magic-status-bar';
 
 // Component for drag border areas
 function DragBorderAreas() {
@@ -54,7 +57,19 @@ function DragBorderAreas() {
 export function ToolbarChatArea() {
   const chatState = useChatState();
   const [isComposing, setIsComposing] = useState(false);
-  const [isMagicChatLoading, setIsMagicChatLoading] = useState(false);
+
+  // Auth and Magic Projects hooks
+  const { signIn } = useAuth();
+  const { isAuthenticated } = useAuthStatus();
+  const {
+    createProject,
+    status: magicStatus,
+    progress: magicProgress,
+  } = useMagicProjects();
+
+  // Magic Chat loading state - only show spinner during creation
+  const isMagicChatLoading = magicStatus === 'creating';
+
   // State to preserve context during loading
   const [loadingContext, setLoadingContext] = useState<{
     hasText: boolean;
@@ -217,123 +232,95 @@ export function ToolbarChatArea() {
   }, [currentChat, currentInput, chatState.addMessage]);
 
   const handleMagicChatSubmit = useCallback(async () => {
-    if (!currentChat || !currentInput.trim()) return;
+    if (!currentInput.trim()) return;
+
+    // Check authentication first
+    if (!isAuthenticated) {
+      try {
+        await signIn();
+        // After successful sign in, the user can try again
+        return;
+      } catch (error) {
+        console.error('Sign in failed:', error);
+        return;
+      }
+    }
 
     // Save current context before loading starts
     setLoadingContext({
       hasText: currentInput.trim().length > 0,
       hasSelectedElements:
-        (currentChat.domContextElements &&
+        (currentChat?.domContextElements &&
           currentChat.domContextElements.length > 0) ||
         selectedComponents.length > 0,
     });
 
-    setIsMagicChatLoading(true);
-    try {
-      // Note: For Magic Chat, we don't include runtime errors
-      const finalPrompt = await createPrompt(
-        currentChat.domContextElements.map((e) => e.element),
-        currentInput,
-        window.location.href,
-        pluginContextSnippets,
-        currentChat.selectedComponents || [],
-        null, // Don't include runtime error for Magic Chat
-      );
-
-      const response = await fetch(
-        TWENTY_FIRST_URL + '/api/magic-chat/prefill-text',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ text: finalPrompt }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.id) {
-        throw new Error('No ID returned from API');
-      }
-
-      const url = TWENTY_FIRST_URL + `/magic-chat?q_key=${data.id}`;
-
-      // Use SRPC openExternal instead of window.open
-      if (bridge && selectedSession) {
-        const openResult = await bridge.call.openExternal(
+    // Track Magic Chat triggered event (async but don't wait)
+    if (bridge && selectedSession) {
+      bridge.call
+        .trackEvent(
           {
-            url,
-            sessionId: selectedSession.sessionId,
+            eventName: EventName.MAGIC_CHAT_TRIGGERED,
+            properties: {
+              sessionId: selectedSession.sessionId,
+              text: currentInput.trim(),
+              prompt: currentInput.trim(), // Use input as prompt for now
+              domSelectedElementsCount:
+                currentChat?.domContextElements?.length || 0,
+              selectedComponents: selectedComponents.map((c) => ({
+                id: c.id,
+                name: c.name,
+              })),
+            },
           },
           { onUpdate: () => {} },
-        );
-
-        // Track Magic Chat triggered event
-        if (selectedSession) {
-          try {
-            await bridge.call.trackEvent(
-              {
-                eventName: EventName.MAGIC_CHAT_TRIGGERED,
-                properties: {
-                  sessionId: selectedSession.sessionId,
-                  text: currentInput.trim(),
-                  prompt: finalPrompt,
-                  domSelectedElementsCount:
-                    currentChat.domContextElements?.length || 0,
-                  selectedComponents: selectedComponents.map((c) => ({
-                    id: c.id,
-                    name: c.name,
-                  })),
-                },
-              },
-              { onUpdate: () => {} },
-            );
-          } catch (error) {
-            console.warn(
-              '[Analytics] Failed to track magic_chat_triggered:',
-              error,
-            );
-          }
-        }
-
-        if (!openResult.result.success) {
-          throw new Error(openResult.result.error || 'Failed to open URL');
-        }
-      }
-
-      // Clear everything after successful navigation
-      if (chatState.currentChatId) {
-        chatState.clearSelectedComponents(chatState.currentChatId);
-        // Also clear local selected components state
-        clearSelection();
-        currentChat.domContextElements.forEach((elementData) => {
-          chatState.removeChatDomContext(
-            chatState.currentChatId,
-            elementData.element,
+        )
+        .catch((error) => {
+          console.warn(
+            '[Analytics] Failed to track magic_chat_triggered:',
+            error,
           );
         });
-        chatState.setChatInput(chatState.currentChatId, '');
-        // Reset search state
-        setSearchActivated(false);
-      }
-    } catch (err) {
-      console.error('Error opening Magic Chat:', err);
-    } finally {
-      setIsMagicChatLoading(false);
-      setLoadingContext(null);
     }
+
+    // Start Magic project creation (non-blocking)
+    createProject(
+      currentInput,
+      window.location.href,
+      currentChat?.domContextElements?.map((e) => e.element) || [],
+      selectedComponents,
+    )
+      .then(() => {
+        // Clear everything after successful project creation
+        if (chatState.currentChatId && currentChat) {
+          chatState.clearSelectedComponents(chatState.currentChatId);
+          clearSelection();
+          currentChat.domContextElements?.forEach((elementData) => {
+            chatState.removeChatDomContext(
+              chatState.currentChatId,
+              elementData.element,
+            );
+          });
+          chatState.setChatInput(chatState.currentChatId, '');
+          setSearchActivated(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Error creating Magic project:', err);
+      })
+      .finally(() => {
+        setLoadingContext(null);
+      });
   }, [
-    currentChat,
     currentInput,
-    pluginContextSnippets,
+    isAuthenticated,
+    signIn,
+    currentChat,
+    selectedComponents,
+    createProject,
     chatState,
     clearSelection,
-    selectedComponents,
+    setSearchActivated,
     bridge,
     selectedSession,
   ]);
@@ -372,6 +359,12 @@ export function ToolbarChatArea() {
 
   // Style object to lift search results above selected elements block
   const searchResultsTranslateStyle = useMemo<React.CSSProperties>(
+    () => ({ transform: `translateY(-${selectedElementsHeight - 8}px)` }),
+    [selectedElementsHeight],
+  );
+
+  // Style object to lift magic status bar above selected elements block
+  const magicStatusBarTranslateStyle = useMemo<React.CSSProperties>(
     () => ({ transform: `translateY(-${selectedElementsHeight - 8}px)` }),
     [selectedElementsHeight],
   );
@@ -481,8 +474,18 @@ export function ToolbarChatArea() {
     isSearchResultsFocused,
   ]);
 
-  // Get Magic Chat button text based on context
+  // Get Magic Chat button text based on context and auth state
   const getMagicChatButtonText = useCallback(() => {
+    // Check auth first
+    if (!isAuthenticated) {
+      return 'Sign in for Magic';
+    }
+
+    // Only show creating state briefly
+    if (magicStatus === 'creating') {
+      return 'Create with Magic';
+    }
+
     // Use loading context if available, otherwise use current context
     const contextToUse = loadingContext || {
       hasText: currentInput.trim().length > 0,
@@ -500,6 +503,8 @@ export function ToolbarChatArea() {
     // Default to "Create with Magic"
     return 'Create with Magic';
   }, [
+    isAuthenticated,
+    magicStatus,
     currentInput,
     currentChat?.domContextElements,
     selectedComponents.length,
@@ -1011,6 +1016,19 @@ export function ToolbarChatArea() {
             </div>
           )}
 
+          {/* Magic Status Bar - positioned above chat when generation is active */}
+          <div
+            className={cn(
+              'absolute right-0 bottom-full left-0 z-30 transition-all duration-300 ease-out',
+              shouldShowSearchResults
+                ? 'pointer-events-none translate-y-2 scale-95 opacity-0'
+                : 'pointer-events-auto translate-y-0 scale-100 opacity-100',
+            )}
+            style={magicStatusBarTranslateStyle}
+          >
+            <MagicStatusBar />
+          </div>
+
           {/* Selected DOM Elements and Components - positioned above chat */}
           {((currentChat?.domContextElements &&
             currentChat.domContextElements.length > 0) ||
@@ -1244,7 +1262,6 @@ export function ToolbarChatArea() {
                         // Call plugin action
                         const component = plugin.onActionClick?.();
                         if (component) {
-                          console.log(`Plugin ${plugin.pluginName} activated`);
                         }
                       }}
                       className="flex size-8 items-center justify-center rounded-full bg-background p-1 opacity-60 transition-all duration-150 hover:bg-background hover:opacity-100"

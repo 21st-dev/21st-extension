@@ -8,6 +8,7 @@ import { SelectNative } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils';
 import { useState } from 'preact/hooks';
+import { AuthSection } from '@/components/auth/auth-section';
 
 export const SettingsButton = ({
   onOpenPanel,
@@ -38,6 +39,10 @@ export const SettingsPanel = ({ onClose }: { onClose?: () => void }) => {
             <X className="h-4 min-h-4 w-4 min-w-4" />
           </Button>
         )}
+      </div>
+
+      <div className="border-border border-t px-4 py-3">
+        <AuthSection />
       </div>
 
       <div className="flex flex-col border-border border-t px-4 py-3 text-foreground">

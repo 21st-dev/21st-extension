@@ -25,14 +25,6 @@ export function ComponentResultButton({
   const hasImageError = previewUrl ? imageErrorCache.has(previewUrl) : false;
   const componentName = result.component_data.name || result.name;
 
-  // Debug image error cache (only if there's an error)
-  if (isFocused && previewUrl && hasImageError) {
-    console.log('❌ Image error for', componentName, ':', {
-      previewUrl,
-      isInCache: imageErrorCache.has(previewUrl),
-      cacheSize: imageErrorCache.size,
-    });
-  }
   const [showPreviewFromHover, setShowPreviewFromHover] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState<ReturnType<
     typeof setTimeout
@@ -89,35 +81,6 @@ export function ComponentResultButton({
   // Show preview if hovering or focused (immediately for focus, delayed for hover)
   const shouldShowPreview =
     showPreviewFromHover || (isFocused && previewUrl && !hasImageError);
-
-  // Debug logging - only show problems
-  useEffect(() => {
-    if (isFocused) {
-      const focusCondition = isFocused && previewUrl && !hasImageError;
-      const calculatedShouldShow = showPreviewFromHover || focusCondition;
-
-      // Only log if there's a mismatch
-      if (calculatedShouldShow !== shouldShowPreview) {
-        console.log('❌ PREVIEW LOGIC MISMATCH for', componentName, ':', {
-          showPreviewFromHover,
-          focusCondition,
-          calculatedShouldShow,
-          reactShouldShowPreview: shouldShowPreview,
-          previewUrl: !!previewUrl,
-          hasImageError,
-        });
-      } else if (shouldShowPreview) {
-        console.log('✅ Preview logic OK for', componentName);
-      }
-    }
-  }, [
-    isFocused,
-    showPreviewFromHover,
-    componentName,
-    previewUrl,
-    hasImageError,
-    shouldShowPreview,
-  ]);
 
   const button = (
     <button
@@ -255,10 +218,9 @@ export function ComponentResultButton({
                   src={previewUrl}
                   alt={`Preview for ${componentName}`}
                   onLoad={() => {
-                    console.log('✅ Image loaded for', componentName);
+                    // Image loaded successfully
                   }}
                   onError={() => {
-                    console.log('❌ Image failed to load for', componentName);
                     handleImageError();
                   }}
                   style={{

@@ -1,7 +1,7 @@
 {
   "name": "@21st-extension/toolbar",
   "private": false,
-  "version": "0.5.7",
+  "version": "0.5.8",
   "type": "module",
   "description": "21st.dev toolbar SDK for AI Agent interaction.",
   "keywords": [
@@ -84,6 +84,7 @@
   "dependencies": {
     "@radix-ui/react-hover-card": "^1.1.13",
     "@supabase/supabase-js": "^2.50.1",
+    "@tanstack/react-query": "^5.81.5",
     "framer-motion": "^12.19.1",
     "qss": "^3.0.0"
   }

@@ -207,32 +207,12 @@ export function AppStateProvider({
         (state.theme === 'system' &&
           window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-      console.log(
-        `[21st Toolbar] Applying theme: ${state.theme}, isDark: ${isDark}`,
-      );
-
       if (toolbarElement) {
         if (isDark) {
           toolbarElement.classList.add('dark');
-          console.log(
-            '[21st Toolbar] Added dark class to stagewise-companion-anchor',
-          );
         } else {
           toolbarElement.classList.remove('dark');
-          console.log(
-            '[21st Toolbar] Removed dark class from stagewise-companion-anchor',
-          );
         }
-
-        // Debug: log current classes
-        console.log(
-          '[21st Toolbar] Current classes on toolbar element:',
-          toolbarElement.className,
-        );
-      } else {
-        console.warn(
-          '[21st Toolbar] Could not find stagewise-companion-anchor element',
-        );
       }
     };
 

@@ -545,6 +545,8 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
               // On success, show success state briefly then reset
               setTimeout(() => {
                 setPromptState('success');
+                // Deactivate DOM selector (inspector) after success
+                setIsDomSelectorActive(false);
                 // Clear input, DOM elements, and selected components after showing success state
                 setChats((prev) =>
                   prev.map((chat) =>
@@ -576,6 +578,8 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
               setTimeout(() => {
                 setPromptState('idle');
                 setIsPromptCreationMode(false);
+                // Deactivate DOM selector (inspector) after error
+                setIsDomSelectorActive(false);
                 // Clear input, DOM elements, and selected components after error completion
                 setChats((prev) =>
                   prev.map((chat) =>
@@ -599,6 +603,8 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
             setTimeout(() => {
               setPromptState('idle');
               setIsPromptCreationMode(false);
+              // Deactivate DOM selector (inspector) after exception
+              setIsDomSelectorActive(false);
               // Clear input, DOM elements, and selected components after error completion
               setChats((prev) =>
                 prev.map((chat) =>
@@ -621,6 +627,8 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
           setTimeout(() => {
             setPromptState('idle');
             setIsPromptCreationMode(false);
+            // Deactivate DOM selector (inspector) when no bridge available
+            setIsDomSelectorActive(false);
             // Clear input, DOM elements, and selected components after error completion
             setChats((prev) =>
               prev.map((chat) =>

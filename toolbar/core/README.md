@@ -31,6 +31,18 @@ The stagewise Toolbar makes it incredibly easy to edit your frontend code with A
 * 🚨 Runtime error detection with intelligent assistance
 * 🪄 AI-powered component generation with Magic Chat
 
+## 🔧 Local Development
+
+For local development with your own API server, edit the `TWENTY_FIRST_URL` constant in `toolbar/core/src/constants.ts`:
+
+```typescript
+// For local development
+export const TWENTY_FIRST_URL = 'http://localhost:3000';
+
+// For production (default)
+export const TWENTY_FIRST_URL = 'https://21st.dev';
+```
+
 
 ## 📖 Quickstart 
 

@@ -31,14 +31,14 @@ export function WindowSelectionPanel() {
   };
 
   return (
-    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-xl border border-border/30 bg-background/80 shadow-md backdrop-blur-md">
+    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-xl border border-border bg-background shadow-md">
       <div className="flex items-center justify-between px-4 pt-3 pb-3">
         <h2 className="font-medium text-base text-foreground">
           Select IDE Window
         </h2>
       </div>
 
-      <div className="flex flex-col border-border/30 border-t px-4 py-3 text-foreground">
+      <div className="flex flex-col border-border border-t px-4 py-3 text-foreground">
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
@@ -96,7 +96,7 @@ export function WindowSelectionPanel() {
           )}
 
           {selectedSession && (
-            <div className="rounded-lg bg-muted/90 p-3">
+            <div className="rounded-lg bg-muted p-3">
               <p className="text-foreground text-sm">
                 <span className="font-medium">Connected:</span>{' '}
                 {selectedSession.displayName}
@@ -108,7 +108,7 @@ export function WindowSelectionPanel() {
           )}
 
           {!selectedSession && windows.length > 0 && (
-            <div className="rounded-lg border border-border bg-muted/90 p-3">
+            <div className="rounded-lg border border-border bg-muted p-3">
               <p className="text-foreground text-sm">
                 <span className="font-medium">No window selected:</span> Please
                 select an IDE window above to connect.
