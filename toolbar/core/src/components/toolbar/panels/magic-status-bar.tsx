@@ -532,9 +532,14 @@ export function MagicStatusBar({ className }: MagicStatusBarProps) {
       {/* Expanded Projects List */}
       <div
         className={cn(
-          'overflow-hidden border-zinc-300 border-t transition-all duration-300 ease-out dark:border-zinc-700',
-          isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
+          'overflow-hidden border-zinc-300 border-t dark:border-zinc-700',
+          isExpanded ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0',
         )}
+        style={{
+          transition: isExpanded
+            ? 'max-height 200ms ease-out, opacity 200ms ease-out'
+            : 'max-height 300ms ease-out, opacity 300ms ease-out',
+        }}
       >
         <div className="px-1 py-1">
           {/* Projects List */}

@@ -54,7 +54,18 @@ function MiniComponentCard({
   ) => void;
 }) {
   const componentName = result.component_data.name || result.name;
-  const demoName = result.component_data.name ? result.name : null;
+
+  // Фильтрация стандартных названий демо
+  const shouldShowDemoName = (demoName: string) => {
+    const normalizedName = demoName.toLowerCase().trim();
+    const defaultNames = ['default', 'default demo', 'default.tsx'];
+    return !defaultNames.includes(normalizedName);
+  };
+
+  const demoName =
+    result.component_data.name && shouldShowDemoName(result.name)
+      ? result.name
+      : null;
   const authorName = result.user_data.display_name || result.user_data.name;
   const authorAvatar =
     result.user_data.display_image_url || result.user_data.image_url;
@@ -70,10 +81,10 @@ function MiniComponentCard({
       type="button"
       className={`flex w-full items-center gap-2 rounded-md border p-2 text-left text-xs transition-all duration-200 ${
         isSelected
-          ? 'border-primary/60 bg-primary/10 ring-1 ring-primary/30 dark:border-primary/40 dark:bg-primary/20'
+          ? 'border-border bg-background ring-2 ring-blue-500'
           : isFocused
-            ? 'border-primary/80 bg-background text-foreground hover:border-border/60 hover:bg-muted/50 dark:bg-card dark:hover:bg-muted/30'
-            : 'border-border bg-background hover:border-border/60 hover:bg-muted/50 dark:bg-card dark:hover:bg-muted/30'
+            ? 'border-border bg-background ring-2 ring-muted-foreground'
+            : 'border-border bg-background hover:border-muted-foreground hover:bg-muted'
       }`}
       onClick={handleClick}
     >
@@ -95,13 +106,7 @@ function MiniComponentCard({
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex min-w-0 items-center gap-1">
           <span
-            className={`truncate text-left font-medium ${
-              isSelected
-                ? 'text-foreground'
-                : isFocused
-                  ? 'text-foreground'
-                  : 'text-foreground'
-            }`}
+            className="truncate text-left font-medium text-foreground"
           >
             {componentName || 'Unknown'}
           </span>
@@ -532,7 +537,7 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
                 })}
               </div>
               <div className="flex items-center justify-between px-1 py-1">
-                {allAvailableResults.length > 3 && (
+                {allAvailableResults.length > 0 && (
                   <div
                     className={`text-muted-foreground text-xs transition-all duration-200 ease-out ${
                       isFirstAppearance
@@ -547,6 +552,13 @@ export const SearchResults = forwardRef<SearchResultsRef, SearchResultsProps>(
                   >
                     {activeIndex >= 0 ? activeIndex + 1 : 1} of{' '}
                     {allAvailableResults.length}
+                    {isFocused && activeIndex >= 0 && (
+                      <span className="ml-1 text-primary">
+                        •{' '}
+                        {allAvailableResults[activeIndex].component_data.name ||
+                          allAvailableResults[activeIndex].name}
+                      </span>
+                    )}
                   </div>
                 )}
                 <div

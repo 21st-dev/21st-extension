@@ -59,10 +59,10 @@ export function AuthSection({ className }: AuthSectionProps) {
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <span className="mb-1 block font-medium text-foreground text-sm">
-            Connect to 21st.dev
+            Sign in to 21st.dev
           </span>
           <p className="text-muted-foreground text-xs leading-relaxed">
-            Checking authentication status...
+            Checking status...
           </p>
         </div>
         <div className="flex-shrink-0">
@@ -78,7 +78,7 @@ export function AuthSection({ className }: AuthSectionProps) {
         <div className="flex-1">
           <div className="mb-1 flex items-center gap-2">
             <span className="font-medium text-foreground text-sm">
-              21st.dev Connection
+              21st.dev Account
             </span>
             {isAuthenticated && user && (
               <button
@@ -86,14 +86,14 @@ export function AuthSection({ className }: AuthSectionProps) {
                 onClick={signOut}
                 className="border-none bg-transparent p-0 font-normal text-muted-foreground text-xs hover:text-foreground"
               >
-                Sign Out
+                Sign out
               </button>
             )}
           </div>
           <p className="text-muted-foreground text-xs leading-relaxed">
             {isAuthenticated
-              ? 'Connected to your 21st.dev account.'
-              : 'Create components with AI and see your bookmarks.'}
+              ? 'Signed in.'
+              : 'Generate components and view bookmarks.'}
           </p>
         </div>
         <div className="flex-shrink-0">
@@ -126,7 +126,7 @@ export function AuthSection({ className }: AuthSectionProps) {
                 ) : (
                   <TwentyFirstLogo />
                 )}
-                <span>{isSigningIn ? 'Connecting...' : 'Connect'}</span>
+                <span>{isSigningIn ? 'Signing in...' : 'Sign in'}</span>
               </div>
             </Button>
           )}
@@ -143,7 +143,7 @@ export function AuthSection({ className }: AuthSectionProps) {
             onClick={() => window.location.reload()}
             className="ml-auto h-6 text-xs"
           >
-            Retry
+            Try again
           </Button>
         </div>
       )}

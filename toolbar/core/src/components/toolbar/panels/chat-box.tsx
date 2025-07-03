@@ -32,6 +32,8 @@ import {
 import { SearchResults, type SearchResultsRef } from './search-results';
 import { SelectedDomElements } from './selected-dom-elements';
 import { MagicStatusBar } from './magic-status-bar';
+import { BookmarksList, type BookmarksListRef } from './bookmarks-list';
+import { useBookmarks, type Bookmark } from '@/hooks/use-bookmarks';
 
 // Component for drag border areas
 function DragBorderAreas() {
@@ -126,6 +128,17 @@ export function ToolbarChatArea() {
   // Track readiness of search results after animation
   const [isSearchResultsReady, setIsSearchResultsReady] = useState(false);
 
+  // Bookmarks state
+  const {
+    bookmarks,
+    isLoading: isBookmarksLoading,
+    error: bookmarksError,
+  } = useBookmarks();
+  const [isBookmarksActivated, setIsBookmarksActivated] = useState(false);
+  const [isBookmarksFocused, setIsBookmarksFocused] = useState(false);
+  const [isBookmarksReady, setIsBookmarksReady] = useState(false);
+  const bookmarksListRef = useRef<BookmarksListRef>(null);
+
   // Determine IDE name using the same logic as get-current-ide.ts
   const ideName = useMemo(() => {
     return getIDENameFromAppName(appName);
@@ -192,6 +205,11 @@ export function ToolbarChatArea() {
         setSearchActivated(false);
       }
 
+      // Reset bookmarks activation when user types after bookmarks were activated
+      if (isBookmarksActivated) {
+        setIsBookmarksActivated(false);
+      }
+
       // Re-enable search when user types
       if (searchDisabled) {
         setSearchDisabled(false);
@@ -220,6 +238,7 @@ export function ToolbarChatArea() {
       chatState.currentChatId,
       searchDisabled,
       isSearchActivated,
+      isBookmarksActivated,
       intentInvalidated,
     ],
   );
@@ -341,33 +360,88 @@ export function ToolbarChatArea() {
   const [selectedElementsHeight, setSelectedElementsHeight] =
     useState<number>(0);
 
+  // Check if we should show selected elements block
+  const shouldShowSelectedElements = useMemo(() => {
+    const hasRuntimeErrorInContext =
+      currentChat?.runtimeError &&
+      lastError &&
+      currentChat.runtimeError.timestamp.getTime() ===
+        lastError.timestamp.getTime();
+
+    const shouldShowRuntimeErrorSuggestion =
+      lastError && !hasRuntimeErrorInContext;
+
+    return (
+      (currentChat?.domContextElements &&
+        currentChat.domContextElements.length > 0) ||
+      selectedComponents.length > 0 ||
+      currentChat?.runtimeError ||
+      shouldShowRuntimeErrorSuggestion
+    );
+  }, [
+    currentChat?.domContextElements,
+    selectedComponents.length,
+    currentChat?.runtimeError,
+    lastError,
+  ]);
+
   // Update height whenever selected DOM elements, components, or runtime errors change
   useEffect(() => {
-    if (selectedElementsContainerRef.current) {
-      setSelectedElementsHeight(
-        selectedElementsContainerRef.current.offsetHeight || 0,
-      );
+    if (shouldShowSelectedElements && selectedElementsContainerRef.current) {
+      // Small delay to ensure DOM is updated before measuring height
+      const updateHeight = () => {
+        if (selectedElementsContainerRef.current) {
+          setSelectedElementsHeight(
+            selectedElementsContainerRef.current.offsetHeight || 0,
+          );
+        }
+      };
+
+      // Update immediately
+      updateHeight();
+
+      // Also update after a small delay to catch any DOM changes
+      const timeout = setTimeout(updateHeight, 10);
+      return () => clearTimeout(timeout);
     } else {
+      // Force height to 0 when elements disappear
       setSelectedElementsHeight(0);
     }
   }, [
+    shouldShowSelectedElements,
     currentChat?.domContextElements?.length,
     selectedComponents.length,
     currentChat?.runtimeError,
     lastError?.timestamp.getTime(), // Include timestamp to detect when error changes
   ]);
 
+  // Additional effect to ensure height is reset when elements disappear
+  useEffect(() => {
+    if (!shouldShowSelectedElements) {
+      // Immediately set height to 0 when elements disappear
+      setSelectedElementsHeight(0);
+    }
+  }, [shouldShowSelectedElements]);
+
   // Style object to lift search results above selected elements block
   const searchResultsTranslateStyle = useMemo<React.CSSProperties>(
-    () => ({ transform: `translateY(-${selectedElementsHeight - 8}px)` }),
-    [selectedElementsHeight],
+    () => ({
+      transform: `translateY(-${shouldShowSelectedElements ? selectedElementsHeight - 8 : 0}px)`,
+      transition: 'transform 200ms ease-out',
+    }),
+    [selectedElementsHeight, shouldShowSelectedElements],
   );
 
   // Style object to lift magic status bar above selected elements block
-  const magicStatusBarTranslateStyle = useMemo<React.CSSProperties>(
-    () => ({ transform: `translateY(-${selectedElementsHeight - 8}px)` }),
-    [selectedElementsHeight],
-  );
+  const magicStatusBarTranslateStyle = useMemo<React.CSSProperties>(() => {
+    const translateY = shouldShowSelectedElements
+      ? selectedElementsHeight - 8
+      : 0;
+    return {
+      transform: `translateY(-${translateY}px)`,
+      transition: 'transform 200ms ease-out',
+    };
+  }, [selectedElementsHeight, shouldShowSelectedElements]);
 
   useEffect(() => {
     const blurHandler = () => inputRef.current?.focus();
@@ -451,11 +525,18 @@ export function ToolbarChatArea() {
     if (isSearchResultsFocused) {
       return 'Close search';
     }
+    if (isBookmarksFocused) {
+      return 'Close bookmarks';
+    }
     if (chatState.isDomSelectorActive) {
       return 'Close inspector';
     }
     return 'Close chat';
-  }, [isSearchResultsFocused, chatState.isDomSelectorActive]);
+  }, [
+    isSearchResultsFocused,
+    isBookmarksFocused,
+    chatState.isDomSelectorActive,
+  ]);
 
   // Check if we should show "Fix error" mode (only runtime error in context)
   const shouldShowFixError = useMemo(() => {
@@ -643,12 +724,54 @@ export function ToolbarChatArea() {
   const shouldShowSearchResults =
     !searchDisabled && isSearchActivated && chatState.isPromptCreationActive;
 
+  // Show bookmarks when input starts with "@" and user is authenticated
+  const shouldShowBookmarks = useMemo(() => {
+    return (
+      isAuthenticated &&
+      currentInput.trim().startsWith('@') &&
+      chatState.isPromptCreationActive &&
+      !isSearchActivated
+    );
+  }, [
+    isAuthenticated,
+    currentInput,
+    chatState.isPromptCreationActive,
+    isSearchActivated,
+  ]);
+
+  // Extract search query from input after "@"
+  const bookmarksSearchQuery = useMemo(() => {
+    if (!shouldShowBookmarks) return '';
+
+    const input = currentInput.trim();
+    if (input.startsWith('@')) {
+      return input.slice(1).trim(); // Remove "@" and trim whitespace
+    }
+    return '';
+  }, [shouldShowBookmarks, currentInput]);
+
+  // Auto-activate bookmarks when input starts with "@"
+  useEffect(() => {
+    if (shouldShowBookmarks && !isBookmarksActivated) {
+      setIsBookmarksActivated(true);
+    } else if (!shouldShowBookmarks && isBookmarksActivated) {
+      setIsBookmarksActivated(false);
+    }
+  }, [shouldShowBookmarks, isBookmarksActivated]);
+
   // Reset readiness when search results hidden or disabled
   useEffect(() => {
     if (!shouldShowSearchResults) {
       setIsSearchResultsReady(false);
     }
   }, [shouldShowSearchResults]);
+
+  // Reset readiness when bookmarks hidden or disabled
+  useEffect(() => {
+    if (!shouldShowBookmarks) {
+      setIsBookmarksReady(false);
+    }
+  }, [shouldShowBookmarks]);
 
   // Clear loading context when prompt state changes from loading
   useEffect(() => {
@@ -685,7 +808,10 @@ export function ToolbarChatArea() {
     searchIntent &&
     !intentInvalidated &&
     chatState.isPromptCreationActive &&
-    !isSearchResultsFocused;
+    !isSearchResultsFocused &&
+    !isMagicChatLoading &&
+    !isBookmarksFocused &&
+    !shouldShowBookmarks;
 
   const textareaClassName = useMemo(
     () =>
@@ -739,6 +865,83 @@ export function ToolbarChatArea() {
     [setSearchResultsFocused],
   );
 
+  // Bookmarks handlers
+  const handleBookmarkSelection = useCallback(
+    (bookmark: Bookmark) => {
+      if (!currentChat) return;
+
+      // Convert bookmark to ComponentSearchResult format for consistency
+      const bookmarkAsComponent: ComponentSearchResult = {
+        id: bookmark.id,
+        name: bookmark.name,
+        preview_url: bookmark.preview_url || '',
+        video_url: bookmark.video_url || '',
+        demo_slug: bookmark.demo_slug,
+        user_id: bookmark.user.id,
+        component_data: {
+          name: bookmark.component.name,
+          description: '',
+          code: '',
+          component_slug: bookmark.component.component_slug,
+          install_command: '',
+        },
+        user_data: {
+          name: bookmark.component.display_name,
+          username: bookmark.component.username,
+          image_url: bookmark.component.image_url || '',
+          display_image_url: bookmark.component.image_url || '',
+          display_name: bookmark.component.display_name,
+          display_username: bookmark.component.username,
+        },
+        usage_data: {
+          total_usages: bookmark.bookmarks_count,
+          views: bookmark.view_count,
+          downloads: 0,
+          prompt_copies: 0,
+          code_copies: 0,
+        },
+      };
+
+      // Add component to selected components
+      addComponent(bookmarkAsComponent);
+
+      // Also add to chat state
+      if (chatState.currentChatId) {
+        const currentComponents = currentChat?.selectedComponents || [];
+        const newComponent: SelectedComponentWithCode = {
+          ...bookmarkAsComponent,
+        };
+        const updatedComponents = [...currentComponents, newComponent];
+        chatState.addSelectedComponents(
+          chatState.currentChatId,
+          updatedComponents,
+        );
+      }
+
+      // Clear the entire input (remove "@" and search query)
+      chatState.setChatInput(chatState.currentChatId, '');
+
+      // Close bookmarks
+      setIsBookmarksActivated(false);
+    },
+    [currentChat, addComponent, chatState],
+  );
+
+  const handleCloseBookmarks = useCallback(() => {
+    setIsBookmarksActivated(false);
+    setIsBookmarksFocused(false);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
+
+  const handleBookmarksFocusChange = useCallback(
+    (isFocused: boolean, activeBookmark?: Bookmark) => {
+      setIsBookmarksFocused(isFocused);
+    },
+    [],
+  );
+
   // Auto-focus on search results when they become visible
   useEffect(() => {
     if (shouldShowSearchResults) {
@@ -749,6 +952,14 @@ export function ToolbarChatArea() {
       return () => clearTimeout(timer);
     }
   }, [shouldShowSearchResults]);
+
+  // Auto-focus on bookmarks when they become visible
+  useEffect(() => {
+    if (shouldShowBookmarks && isBookmarksActivated) {
+      // Immediate focus without delay
+      bookmarksListRef.current?.focusOnBookmarks();
+    }
+  }, [shouldShowBookmarks, isBookmarksActivated]);
 
   // Check if we should show "Open Inspector" mode
   const shouldShowOpenInspector = useMemo(() => {
@@ -812,6 +1023,16 @@ export function ToolbarChatArea() {
       }
     }
 
+    if (isBookmarksFocused && bookmarksListRef.current) {
+      // Try to select active bookmark from bookmarks list
+      const success = bookmarksListRef.current.selectActiveBookmark();
+      if (success) {
+        // Bookmark was selected, return focus to input
+        setTimeout(() => handleFocusReturn(), 100);
+        return;
+      }
+    }
+
     // If in "Open Inspector" mode, start DOM selector
     if (shouldShowOpenInspector) {
       chatState.startDomSelector();
@@ -844,6 +1065,7 @@ export function ToolbarChatArea() {
     // Note: Components and DOM elements will be cleared after loading completes
   }, [
     isSearchResultsFocused,
+    isBookmarksFocused,
     currentChat,
     currentInput,
     chatState,
@@ -962,6 +1184,7 @@ export function ToolbarChatArea() {
       searchDisabled,
       intentInvalidated,
       isSearchResultsFocused,
+      isBookmarksFocused,
       bridge,
       selectedSession,
     ],
@@ -1016,11 +1239,32 @@ export function ToolbarChatArea() {
             </div>
           )}
 
+          {/* Bookmarks List - positioned absolutely above chat input */}
+          {shouldShowBookmarks && isBookmarksActivated && (
+            <div
+              className="absolute right-0 bottom-full left-0 z-50 mb-2"
+              style={searchResultsTranslateStyle}
+            >
+              <BookmarksList
+                ref={bookmarksListRef}
+                bookmarks={bookmarks}
+                isLoading={isBookmarksLoading}
+                error={bookmarksError}
+                onBookmarkSelection={handleBookmarkSelection}
+                onFocusReturn={handleFocusReturn}
+                onFocusChange={handleBookmarksFocusChange}
+                onCloseBookmarks={handleCloseBookmarks}
+                onReady={() => setIsBookmarksReady(true)}
+                searchQuery={bookmarksSearchQuery}
+              />
+            </div>
+          )}
+
           {/* Magic Status Bar - positioned above chat when generation is active */}
           <div
             className={cn(
               'absolute right-0 bottom-full left-0 z-30 transition-all duration-300 ease-out',
-              shouldShowSearchResults
+              shouldShowSearchResults || shouldShowBookmarks
                 ? 'pointer-events-none translate-y-2 scale-95 opacity-0'
                 : 'pointer-events-auto translate-y-0 scale-100 opacity-100',
             )}
@@ -1030,14 +1274,7 @@ export function ToolbarChatArea() {
           </div>
 
           {/* Selected DOM Elements and Components - positioned above chat */}
-          {((currentChat?.domContextElements &&
-            currentChat.domContextElements.length > 0) ||
-            selectedComponents.length > 0 ||
-            currentChat?.runtimeError ||
-            (lastError &&
-              (!currentChat?.runtimeError ||
-                currentChat.runtimeError.timestamp.getTime() !==
-                  lastError.timestamp.getTime()))) && (
+          {shouldShowSelectedElements && (
             <div className="absolute right-0 bottom-full left-0 z-40">
               <div className="slide-in-from-top-2 animate-in duration-200 ease-out">
                 <div
@@ -1083,7 +1320,9 @@ export function ToolbarChatArea() {
                   onCompositionEnd={handleCompositionEnd}
                   placeholder={
                     chatState.isPromptCreationActive
-                      ? 'Enter prompt or 21st.dev search...'
+                      ? isAuthenticated
+                        ? 'Enter prompt or 21st.dev search, @ for bookmarks...'
+                        : 'Enter prompt or 21st.dev search...'
                       : `What do you want to change? (${ctrlAltCText})`
                   }
                   disabled={
@@ -1193,9 +1432,10 @@ export function ToolbarChatArea() {
                     className={cn(
                       'gap-0.5 whitespace-normal border-none py-0.5 text-[10px] transition-all duration-200 ease-out',
                       // Add to context state (keep original blue)
-                      isSearchResultsFocused &&
-                        isSearchResultsReady &&
-                        'bg-primary text-primary-foreground hover:bg-primary/90',
+                      (isSearchResultsFocused && isSearchResultsReady) ||
+                        (isBookmarksFocused &&
+                          isBookmarksReady &&
+                          'bg-primary text-primary-foreground hover:bg-primary/90'),
                       // Open Inspector state (green background, white text)
                       !isSearchResultsFocused &&
                         shouldShowOpenInspector &&
@@ -1215,6 +1455,7 @@ export function ToolbarChatArea() {
                       chatState.promptState !== 'loading' &&
                         (currentInput.trim().length === 0 &&
                         (!isSearchResultsFocused || !isSearchResultsReady) &&
+                        (!isBookmarksFocused || !isBookmarksReady) &&
                         !shouldShowOpenInspector &&
                         !shouldShowFixError
                           ? 'cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted hover:text-muted-foreground'
@@ -1223,6 +1464,7 @@ export function ToolbarChatArea() {
                     disabled={
                       (currentInput.trim().length === 0 &&
                         (!isSearchResultsFocused || !isSearchResultsReady) &&
+                        (!isBookmarksFocused || !isBookmarksReady) &&
                         !shouldShowOpenInspector &&
                         !shouldShowFixError) ||
                       chatState.promptState === 'loading' ||
@@ -1234,7 +1476,8 @@ export function ToolbarChatArea() {
                       <Loader className="mr-1 h-3.5 w-3.5 animate-spin" />
                     )}
                     <span className="mr-1 whitespace-normal font-semibold">
-                      {isSearchResultsFocused && isSearchResultsReady
+                      {(isSearchResultsFocused && isSearchResultsReady) ||
+                      (isBookmarksFocused && isBookmarksReady)
                         ? 'Add to context'
                         : shouldShowOpenInspector
                           ? 'Open Inspector'

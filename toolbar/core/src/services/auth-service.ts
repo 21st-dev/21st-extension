@@ -444,6 +444,13 @@ export class AuthService {
     }
   }
 
+  // Get user bookmarks
+  static async getUserBookmarks(): Promise<any> {
+    const response = await AuthService.authenticatedFetch('/bookmarks');
+    const result = await response.json();
+    return result;
+  }
+
   // Check authentication status (with caching)
   static async checkAuthStatus(): Promise<{
     user: UserInfo;
