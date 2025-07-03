@@ -494,26 +494,7 @@ export function MagicStatusBar({ className }: MagicStatusBarProps) {
             </div>
           )}
 
-          {/* View all button for normal mode */}
-          {!mostRecentProject && displayProjects.length > 3 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const newWindow = window.open(
-                  `${TWENTY_FIRST_URL}/magic-chat`,
-                  '_blank',
-                  'noopener,noreferrer',
-                );
-                if (newWindow) {
-                  newWindow.focus();
-                }
-              }}
-              className="h-4 px-0.5 text-muted-foreground text-xs hover:text-foreground"
-            >
-              View all
-            </Button>
-          )}
+
 
           <Button
             variant="ghost"
