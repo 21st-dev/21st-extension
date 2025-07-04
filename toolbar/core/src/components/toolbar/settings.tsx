@@ -62,6 +62,10 @@ export const SettingsPanel = ({ onClose }: { onClose?: () => void }) => {
       </div>
 
       <div className="flex flex-col border-border border-t px-4 py-3 text-foreground">
+        <HotkeySection />
+      </div>
+
+      <div className="flex flex-col border-border border-t px-4 py-3 text-foreground">
         <ProjectInfoSection />
       </div>
     </section>
@@ -299,6 +303,24 @@ const PromptSettings = () => {
     </div>
   );
 };
+
+const HotkeySection = () => (
+  <div className="flex items-start justify-between gap-4">
+    <div className="flex-1">
+      <div className="mb-1 block font-medium text-foreground text-sm">
+        Keyboard Shortcuts
+      </div>
+      <p className="text-muted-foreground text-xs leading-relaxed">
+        Open toolbar
+      </p>
+    </div>
+    <div className="flex-shrink-0">
+      <kbd className="rounded bg-muted px-2 py-1 font-mono text-sm">
+        ⌥ + .
+      </kbd>
+    </div>
+  </div>
+);
 
 const ProjectInfoSection = () => (
   <div className="flex items-center justify-between text-muted-foreground text-xs">

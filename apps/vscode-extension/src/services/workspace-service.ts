@@ -46,18 +46,26 @@ export class WorkspaceService {
     const toolbarInstallations: Array<{ version: string; path: string }> = [];
 
     this.forEachWorkspaceFolderWithLockFile((dependencies, lockFilePath) => {
-      const toolbarPackages = Object.entries(dependencies).filter(
-        ([key]) =>
-          key.startsWith('@21st-extension/toolbar') ||
-          key.startsWith('@21st-extension/toolbar'),
+      const toolbarPackages = Object.entries(dependencies).filter(([key]) =>
+        key.startsWith('@21st-extension/'),
       );
 
       if (toolbarPackages.length > 0) {
+        console.log(
+          '[WorkspaceService] Found 21st-extension packages:',
+          toolbarPackages,
+        );
         const versions = toolbarPackages.map(([_, version]) => version);
         const lowestVersion = versions.reduce((lowest, current) => {
           return this.compareVersions(current, lowest) < 0 ? current : lowest;
         }, versions[0]);
 
+        console.log(
+          '[WorkspaceService] Determined lowest version:',
+          lowestVersion,
+          'from:',
+          versions,
+        );
         toolbarInstallations.push({
           version: lowestVersion,
           path: lockFilePath,
@@ -66,6 +74,10 @@ export class WorkspaceService {
       return undefined;
     });
 
+    console.log(
+      '[WorkspaceService] Total toolbar installations found:',
+      toolbarInstallations,
+    );
     return toolbarInstallations;
   }
 

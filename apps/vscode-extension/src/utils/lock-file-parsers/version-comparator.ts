@@ -1,5 +1,19 @@
 // Compares two version strings. Returns 1 if v1 > v2, 0 if equal, -1 if v1 < v2
 export function compareVersions(v1: string, v2: string): number {
+  // Handle special version strings
+  const normalizeVersion = (version: string): string => {
+    if (version === 'latest' || version === '*') {
+      return '999.999.999'; // Treat as very high version
+    }
+    if (version === 'dev' || version === 'development') {
+      return '0.0.0-dev'; // Treat as very low version
+    }
+    return version;
+  };
+
+  const normalizedV1 = normalizeVersion(v1);
+  const normalizedV2 = normalizeVersion(v2);
+
   // Helper to split version into [main, suffix]
   function splitSuffix(version: string): [string, string | null] {
     const match = version.match(/^(\d+(?:\.\d+)*)(.*)$/);
@@ -32,8 +46,8 @@ export function compareVersions(v1: string, v2: string): number {
     return a.localeCompare(b);
   }
 
-  const [main1, suffix1] = splitSuffix(v1);
-  const [main2, suffix2] = splitSuffix(v2);
+  const [main1, suffix1] = splitSuffix(normalizedV1);
+  const [main2, suffix2] = splitSuffix(normalizedV2);
   const parts1 = parseMain(main1);
   const parts2 = parseMain(main2);
 

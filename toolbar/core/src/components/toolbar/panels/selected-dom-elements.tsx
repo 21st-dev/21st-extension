@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { HoverPeek } from '@/components/ui/link-preview';
 import type { SelectedComponentWithCode } from '@/hooks/use-selected-components';
 import type { RuntimeError } from '@/hooks/use-runtime-errors';
+import * as LucideIcons from 'lucide-react';
 
 interface SelectedDomElementsProps {
   elements: Array<{
@@ -69,6 +70,43 @@ export function SelectedDomElements({
       error.filename.split('/').pop()?.split('?')[0] || 'unknown file';
     return `Runtime Error in ${fileName}`;
   }, []);
+
+  // Helper function to check if a component is a Lucide icon
+  const isLucideIcon = useCallback((component: SelectedComponentWithCode) => {
+    const description = component.component_data?.description || '';
+    return description.includes('icon from Lucide Icons library');
+  }, []);
+
+  // Component for icon hover preview
+  const IconHoverPeek = ({
+    component,
+    children,
+  }: {
+    component: SelectedComponentWithCode;
+    children: any;
+  }) => {
+    const iconName = component.component_data?.name || component.name;
+    const IconComponent = iconName ? (LucideIcons as any)[iconName] : null;
+
+    if (!IconComponent) {
+      return children;
+    }
+
+    return (
+      <div className="group relative">
+        {children}
+        {/* Hover preview */}
+        <div className="-translate-x-1/2 pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden group-hover:block">
+          <div className="flex h-20 w-20 items-center justify-center rounded-lg border border-border bg-background shadow-lg">
+            <IconComponent className="h-10 w-10 text-foreground" />
+          </div>
+          <div className="mt-1 text-center text-muted-foreground text-xs">
+            {iconName}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const getElementInfo = useCallback(
     (element: HTMLElement, pluginContext: any[]) => {
@@ -157,70 +195,91 @@ export function SelectedDomElements({
         const componentName =
           component.component_data?.name || component.name || 'Component';
         const avatarLetter = componentName.charAt(0).toUpperCase();
+        const isIcon = isLucideIcon(component);
+        const IconComponent = isIcon
+          ? (LucideIcons as any)[componentName]
+          : null;
 
-        return (
-          <HoverPeek
+        const componentElement = (
+          <div
             key={`component-${component.id}`}
-            url="#"
-            isStatic={true}
-            imageSrc={component.preview_url}
-            peekWidth={240}
-            peekHeight={180}
-            enableMouseFollow={false}
-            enableLensEffect={false}
-            side="top"
+            className={cn(
+              'group flex items-center gap-1 rounded-md border border-zinc-200 px-1.5 py-0.5 text-xs dark:border-zinc-800',
+              'transition-all duration-150',
+              compact && 'px-1 py-0.5 text-xs',
+            )}
           >
-            <div
-              className={cn(
-                'group flex items-center gap-1 rounded-md border border-zinc-200 px-1.5 py-0.5 text-xs dark:border-zinc-800',
-                'transition-all duration-150',
-                compact && 'px-1 py-0.5 text-xs',
-              )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => handleRemoveComponent(component.id.toString())}
+              className="relative h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 overflow-hidden rounded-[4px] text-[8px] leading-none hover:bg-accent"
+              title="Remove component"
             >
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => handleRemoveComponent(component.id.toString())}
-                className="relative h-3.5 max-h-3.5 w-3.5 max-w-3.5 flex-shrink-0 overflow-hidden rounded-[4px] text-[8px] leading-none hover:bg-accent"
-                title="Remove component"
-              >
-                {/* Avatar - shown by default */}
-                <div className="absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:opacity-0">
-                  {component.preview_url ? (
-                    <img
-                      src={component.preview_url}
-                      alt={componentName}
-                      className="h-full w-full rounded-[4px] object-cover"
-                      onError={(e) => {
-                        // Fallback to letter if image fails to load
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerHTML = `<div class="bg-accent text-primary font-medium text-[7px] h-full w-full flex items-center justify-center rounded-[4px]">${avatarLetter}</div>`;
-                        }
-                      }}
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center rounded-[4px] bg-accent font-medium text-[7px] text-primary">
-                      {avatarLetter}
-                    </div>
-                  )}
-                </div>
-                {/* X Icon - shown on hover */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-200 group-hover:opacity-100">
-                  <div className="flex h-full w-full items-center justify-center rounded-[4px] bg-muted">
-                    <XIcon className="h-2.5 w-2.5 text-muted-foreground transition-colors duration-200 group-hover:text-foreground" />
+              {/* Avatar - shown by default */}
+              <div className="absolute inset-0 flex items-center justify-center transition-all duration-200 group-hover:opacity-0">
+                {isIcon && IconComponent ? (
+                  <div className="flex h-full w-full items-center justify-center rounded-[4px] bg-accent">
+                    <IconComponent className="h-2.5 w-2.5 text-primary" />
                   </div>
+                ) : component.preview_url ? (
+                  <img
+                    src={component.preview_url}
+                    alt={componentName}
+                    className="h-full w-full rounded-[4px] object-cover"
+                    onError={(e) => {
+                      // Fallback to letter if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerHTML = `<div class="bg-accent text-primary font-medium text-[7px] h-full w-full flex items-center justify-center rounded-[4px]">${avatarLetter}</div>`;
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center rounded-[4px] bg-accent font-medium text-[7px] text-primary">
+                    {avatarLetter}
+                  </div>
+                )}
+              </div>
+              {/* X Icon - shown on hover */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-200 group-hover:opacity-100">
+                <div className="flex h-full w-full items-center justify-center rounded-[4px] bg-muted">
+                  <XIcon className="h-2.5 w-2.5 text-muted-foreground transition-colors duration-200 group-hover:text-foreground" />
                 </div>
-              </Button>
-              <span className="min-w-0 truncate font-medium text-primary">
-                {componentName}
-              </span>
-            </div>
-          </HoverPeek>
+              </div>
+            </Button>
+            <span className="min-w-0 truncate font-medium text-primary">
+              {componentName}
+            </span>
+          </div>
         );
+
+        // Render with appropriate hover component
+        if (isIcon) {
+          return (
+            <IconHoverPeek component={component}>
+              {componentElement}
+            </IconHoverPeek>
+          );
+        } else {
+          return (
+            <HoverPeek
+              url="#"
+              isStatic={true}
+              imageSrc={component.preview_url}
+              peekWidth={240}
+              peekHeight={180}
+              enableMouseFollow={false}
+              enableLensEffect={false}
+              side="top"
+            >
+              {componentElement}
+            </HoverPeek>
+          );
+        }
       })}
 
       {/* Runtime Error Suggestion */}

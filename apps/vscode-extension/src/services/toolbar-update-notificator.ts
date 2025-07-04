@@ -77,12 +77,24 @@ export class ToolbarUpdateNotificator implements vscode.Disposable {
     const installedVersion = envInfo.getToolbarInstalledVersion();
     const latestVersion = envInfo.getLatestAvailableToolbarVersion();
 
+    console.log('[ToolbarUpdateNotificator] Version check:', {
+      installedVersion,
+      latestVersion,
+      workspaceId,
+    });
+
     if (!installedVersion || !latestVersion) {
+      console.log(
+        '[ToolbarUpdateNotificator] Missing version info, skipping check',
+      );
       return;
     }
 
     // Skip version check for development versions
     if (installedVersion === 'dev') {
+      console.log(
+        '[ToolbarUpdateNotificator] Dev version detected, skipping check',
+      );
       return;
     }
 
@@ -90,13 +102,29 @@ export class ToolbarUpdateNotificator implements vscode.Disposable {
     const storedVersion =
       await this.storage.get<ToolbarVersionInfo>(storageKey);
 
+    console.log('[ToolbarUpdateNotificator] Storage check:', {
+      storageKey,
+      storedVersion,
+    });
+
     // If we've already notified about this version, don't show again
     if (storedVersion?.latestVersion === latestVersion) {
+      console.log(
+        '[ToolbarUpdateNotificator] Already notified about this version, skipping',
+      );
       return;
     }
 
     // Compare versions (assuming semantic versioning)
-    if (compareVersions(installedVersion, latestVersion) < 0) {
+    const comparison = compareVersions(installedVersion, latestVersion);
+    console.log('[ToolbarUpdateNotificator] Version comparison:', {
+      installedVersion,
+      latestVersion,
+      comparison,
+      needsUpdate: comparison < 0,
+    });
+
+    if (comparison < 0) {
       this.showUpdateNotification(
         storageKey,
         workspaceId,

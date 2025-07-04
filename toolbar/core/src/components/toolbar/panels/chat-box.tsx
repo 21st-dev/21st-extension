@@ -34,6 +34,8 @@ import { SelectedDomElements } from './selected-dom-elements';
 import { MagicStatusBar } from './magic-status-bar';
 import { BookmarksList, type BookmarksListRef } from './bookmarks-list';
 import { useBookmarks, type Bookmark } from '@/hooks/use-bookmarks';
+import { AtMenu } from './at-menu';
+import { IconsList, type IconsListRef } from './icons-list';
 
 // Component for drag border areas
 function DragBorderAreas() {
@@ -139,6 +141,15 @@ export function ToolbarChatArea() {
   const [isBookmarksReady, setIsBookmarksReady] = useState(false);
   const bookmarksListRef = useRef<BookmarksListRef>(null);
 
+  // Icons (Lucide) state
+  const [isIconsActivated, setIsIconsActivated] = useState(false);
+  const [isIconsFocused, setIsIconsFocused] = useState(false);
+  const [isIconsReady, setIsIconsReady] = useState(false);
+  const iconsListRef = useRef<IconsListRef>(null);
+
+  // @ mention mode state (bookmarks or icons)
+  const [atMode, setAtMode] = useState<'bookmarks' | 'icons' | null>(null);
+
   // Determine IDE name using the same logic as get-current-ide.ts
   const ideName = useMemo(() => {
     return getIDENameFromAppName(appName);
@@ -153,6 +164,15 @@ export function ToolbarChatArea() {
     const input = currentChat?.inputValue || '';
     return input;
   }, [currentChat?.inputValue]);
+
+  // Reset atMode and activations when input no longer starts with "@"
+  useEffect(() => {
+    if (!currentInput.startsWith('@')) {
+      setAtMode(null);
+      setIsIconsActivated(false);
+      setIsBookmarksActivated(false);
+    }
+  }, [currentInput]);
 
   // Use search intent hook for constant API calls
   const { searchIntent } = useSearchIntent(currentInput);
@@ -531,11 +551,15 @@ export function ToolbarChatArea() {
     if (chatState.isDomSelectorActive) {
       return 'Close inspector';
     }
+    if (isIconsFocused) {
+      return 'Close icons';
+    }
     return 'Close chat';
   }, [
     isSearchResultsFocused,
     isBookmarksFocused,
     chatState.isDomSelectorActive,
+    isIconsFocused,
   ]);
 
   // Check if we should show "Fix error" mode (only runtime error in context)
@@ -545,7 +569,8 @@ export function ToolbarChatArea() {
       domContextElements.length === 0 &&
       selectedComponents.length === 0 &&
       currentChat?.runtimeError &&
-      !isSearchResultsFocused
+      !isSearchResultsFocused &&
+      !isIconsFocused
     );
   }, [
     currentInput,
@@ -553,6 +578,7 @@ export function ToolbarChatArea() {
     selectedComponents.length,
     currentChat?.runtimeError,
     isSearchResultsFocused,
+    isIconsFocused,
   ]);
 
   // Get Magic Chat button text based on context and auth state
@@ -730,14 +756,60 @@ export function ToolbarChatArea() {
       isAuthenticated &&
       currentInput.trim().startsWith('@') &&
       chatState.isPromptCreationActive &&
-      !isSearchActivated
+      !isSearchActivated &&
+      atMode === 'bookmarks'
     );
   }, [
     isAuthenticated,
     currentInput,
     chatState.isPromptCreationActive,
     isSearchActivated,
+    atMode,
   ]);
+
+  // Show icons list when @mode is icons
+  const shouldShowIcons = useMemo(() => {
+    return (
+      atMode === 'icons' &&
+      currentInput.trim().startsWith('@') &&
+      chatState.isPromptCreationActive &&
+      !isSearchActivated
+    );
+  }, [
+    atMode,
+    currentInput,
+    chatState.isPromptCreationActive,
+    isSearchActivated,
+  ]);
+
+  // Show At-menu when user just typed "@" and no mode selected yet
+  const shouldShowAtMenu = useMemo(() => {
+    return (
+      currentInput.trim().startsWith('@') &&
+      chatState.isPromptCreationActive &&
+      atMode === null
+    );
+  }, [currentInput, chatState.isPromptCreationActive, atMode]);
+
+  // Extract search query for At-menu after "@"
+  const atMenuSearchQuery = useMemo(() => {
+    if (!shouldShowAtMenu) return '';
+    const input = currentInput.trim();
+    if (input.startsWith('@')) {
+      return input.slice(1).trim();
+    }
+    return '';
+  }, [shouldShowAtMenu, currentInput]);
+
+  // Extract search query for icons after "@"
+  const iconsSearchQuery = useMemo(() => {
+    if (!shouldShowIcons) return '';
+    const input = currentInput.trim();
+    if (input.startsWith('@')) {
+      return input.slice(1).trim();
+    }
+    return '';
+  }, [shouldShowIcons, currentInput]);
 
   // Extract search query from input after "@"
   const bookmarksSearchQuery = useMemo(() => {
@@ -750,14 +822,14 @@ export function ToolbarChatArea() {
     return '';
   }, [shouldShowBookmarks, currentInput]);
 
-  // Auto-activate bookmarks when input starts with "@"
+  // Activate bookmarks list only after the user picked the "bookmarks" option
   useEffect(() => {
-    if (shouldShowBookmarks && !isBookmarksActivated) {
+    if (atMode === 'bookmarks' && !isBookmarksActivated) {
       setIsBookmarksActivated(true);
-    } else if (!shouldShowBookmarks && isBookmarksActivated) {
+    } else if (atMode !== 'bookmarks' && isBookmarksActivated) {
       setIsBookmarksActivated(false);
     }
-  }, [shouldShowBookmarks, isBookmarksActivated]);
+  }, [atMode, isBookmarksActivated]);
 
   // Reset readiness when search results hidden or disabled
   useEffect(() => {
@@ -811,6 +883,8 @@ export function ToolbarChatArea() {
     !isSearchResultsFocused &&
     !isMagicChatLoading &&
     !isBookmarksFocused &&
+    !isIconsFocused &&
+    !shouldShowIcons &&
     !shouldShowBookmarks;
 
   const textareaClassName = useMemo(
@@ -961,6 +1035,25 @@ export function ToolbarChatArea() {
     }
   }, [shouldShowBookmarks, isBookmarksActivated]);
 
+  // Auto-focus on icons when they become visible (copied from bookmarks logic)
+  useEffect(() => {
+    if (shouldShowIcons && isIconsActivated) {
+      // Immediate focus without delay
+      iconsListRef.current?.focusOnIcons();
+    }
+  }, [shouldShowIcons, isIconsActivated]);
+
+  // Auto-focus на IconsList, когда меняется строка поиска
+  useEffect(() => {
+    if (shouldShowIcons && isIconsActivated && !isIconsFocused) {
+      // небольшая задержка, чтобы React успел пересчитать список
+      const t = setTimeout(() => {
+        iconsListRef.current?.focusOnIcons();
+      }, 0);
+      return () => clearTimeout(t);
+    }
+  }, [iconsSearchQuery, shouldShowIcons, isIconsActivated, isIconsFocused]);
+
   // Check if we should show "Open Inspector" mode
   const shouldShowOpenInspector = useMemo(() => {
     return (
@@ -998,7 +1091,8 @@ export function ToolbarChatArea() {
       shouldShowRuntimeErrorSuggestion &&
       !isSearchActivated &&
       !isSearchResultsFocused &&
-      !shouldShowInlineSuggestion
+      !shouldShowInlineSuggestion &&
+      !isIconsFocused
     );
   }, [
     currentInput,
@@ -1009,6 +1103,7 @@ export function ToolbarChatArea() {
     isSearchActivated,
     isSearchResultsFocused,
     shouldShowInlineSuggestion,
+    isIconsFocused,
   ]);
 
   // Handle submit or add to context based on focus state
@@ -1028,6 +1123,14 @@ export function ToolbarChatArea() {
       const success = bookmarksListRef.current.selectActiveBookmark();
       if (success) {
         // Bookmark was selected, return focus to input
+        setTimeout(() => handleFocusReturn(), 100);
+        return;
+      }
+    }
+
+    if (isIconsFocused && iconsListRef.current) {
+      const success = iconsListRef.current.selectActiveIcon();
+      if (success) {
         setTimeout(() => handleFocusReturn(), 100);
         return;
       }
@@ -1066,6 +1169,7 @@ export function ToolbarChatArea() {
   }, [
     isSearchResultsFocused,
     isBookmarksFocused,
+    isIconsFocused,
     currentChat,
     currentInput,
     chatState,
@@ -1158,6 +1262,11 @@ export function ToolbarChatArea() {
       }
 
       if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+        // Don't handle Enter if AtMenu is active - let AtMenu handle it
+        if (shouldShowAtMenu) {
+          return;
+        }
+
         e.preventDefault();
         if (e.metaKey || e.ctrlKey) {
           // ⌘ + ⏎ (or Ctrl + ⏎ on Windows/Linux)
@@ -1187,8 +1296,101 @@ export function ToolbarChatArea() {
       isBookmarksFocused,
       bridge,
       selectedSession,
+      shouldShowAtMenu,
     ],
   );
+
+  // Activate icons list only after the user picked the "icons" option (copied from bookmarks logic)
+  useEffect(() => {
+    if (atMode === 'icons' && !isIconsActivated) {
+      setIsIconsActivated(true);
+    } else if (atMode !== 'icons' && isIconsActivated) {
+      setIsIconsActivated(false);
+    }
+  }, [atMode, isIconsActivated]);
+
+  // Reset readiness when icons hidden or disabled
+  useEffect(() => {
+    if (!shouldShowIcons) {
+      setIsIconsReady(false);
+    }
+  }, [shouldShowIcons]);
+
+  // Icons handlers
+  const computeIconId = useCallback((name: string) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash += name.charCodeAt(i);
+    }
+    return -Math.abs(hash);
+  }, []);
+
+  const handleIconSelection = useCallback(
+    (iconName: string) => {
+      if (!currentChat) return;
+
+      const iconComponent: ComponentSearchResult = {
+        id: computeIconId(iconName),
+        name: iconName,
+        preview_url: '',
+        video_url: '',
+        demo_slug: '',
+        user_id: '0',
+        component_data: {
+          name: iconName,
+          description: `${iconName} icon from Lucide Icons library`,
+          code: '',
+          component_slug: iconName,
+          install_command: `import { ${iconName} } from 'lucide-react';`,
+        },
+        user_data: {
+          name: '',
+          username: '',
+          image_url: '',
+          display_image_url: '',
+          display_name: '',
+          display_username: '',
+        },
+        usage_data: {
+          total_usages: 0,
+          views: 0,
+          downloads: 0,
+          prompt_copies: 0,
+          code_copies: 0,
+        },
+      };
+
+      addComponent(iconComponent);
+
+      if (chatState.currentChatId) {
+        const existing = currentChat?.selectedComponents || [];
+        const newComponent: SelectedComponentWithCode = { ...iconComponent };
+        chatState.addSelectedComponents(chatState.currentChatId, [
+          ...existing,
+          newComponent,
+        ]);
+      }
+
+      // Clear input
+      chatState.setChatInput(chatState.currentChatId, '');
+
+      // Close icons list
+      setIsIconsActivated(false);
+    },
+    [currentChat, addComponent, chatState, computeIconId],
+  );
+
+  const handleCloseIcons = useCallback(() => {
+    setIsIconsFocused(false);
+    setIsIconsActivated(false);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
+
+  const handleIconsFocusChange = useCallback((isFocused: boolean) => {
+    setIsIconsFocused(isFocused);
+  }, []);
 
   return (
     <DraggableProvider
@@ -1239,6 +1441,47 @@ export function ToolbarChatArea() {
             </div>
           )}
 
+          {/* @ Mention Menu - appears when user has only typed '@' */}
+          {shouldShowAtMenu && (
+            <div
+              className="absolute right-0 bottom-full left-0 z-50 mb-2"
+              style={searchResultsTranslateStyle}
+            >
+              <AtMenu
+                onSelect={(type) => {
+                  setAtMode(type);
+                  // Clear input to just "@" when mode is selected
+                  chatState.setChatInput(chatState.currentChatId, '@');
+                  if (type === 'bookmarks') {
+                    setIsBookmarksActivated(true);
+                  } else {
+                    setIsIconsActivated(true);
+                  }
+                }}
+                onFocusReturn={handleFocusReturn}
+                searchQuery={atMenuSearchQuery}
+              />
+            </div>
+          )}
+
+          {/* Icons List - positioned above chat input */}
+          {shouldShowIcons && isIconsActivated && (
+            <div
+              className="absolute right-0 bottom-full left-0 z-50 mb-2"
+              style={searchResultsTranslateStyle}
+            >
+              <IconsList
+                ref={iconsListRef}
+                searchQuery={iconsSearchQuery}
+                onIconSelection={handleIconSelection}
+                onFocusReturn={handleFocusReturn}
+                onFocusChange={handleIconsFocusChange}
+                onCloseIcons={handleCloseIcons}
+                onReady={() => setIsIconsReady(true)}
+              />
+            </div>
+          )}
+
           {/* Bookmarks List - positioned absolutely above chat input */}
           {shouldShowBookmarks && isBookmarksActivated && (
             <div
@@ -1264,7 +1507,10 @@ export function ToolbarChatArea() {
           <div
             className={cn(
               'absolute right-0 bottom-full left-0 z-30 transition-all duration-300 ease-out',
-              shouldShowSearchResults || shouldShowBookmarks
+              shouldShowSearchResults ||
+                shouldShowBookmarks ||
+                shouldShowIcons ||
+                shouldShowAtMenu
                 ? 'pointer-events-none translate-y-2 scale-95 opacity-0'
                 : 'pointer-events-auto translate-y-0 scale-100 opacity-100',
             )}
@@ -1452,19 +1698,21 @@ export function ToolbarChatArea() {
                       chatState.promptState === 'loading' &&
                         'cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted hover:text-muted-foreground',
                       // Disabled state (only when not loading)
-                      chatState.promptState !== 'loading' &&
-                        (currentInput.trim().length === 0 &&
+                      (chatState.promptState !== 'loading' &&
+                        currentInput.trim().length === 0 &&
                         (!isSearchResultsFocused || !isSearchResultsReady) &&
                         (!isBookmarksFocused || !isBookmarksReady) &&
+                        (!isIconsFocused || !isIconsReady) &&
                         !shouldShowOpenInspector &&
-                        !shouldShowFixError
-                          ? 'cursor-not-allowed bg-muted text-muted-foreground hover:bg-muted hover:text-muted-foreground'
-                          : ''),
+                        !shouldShowFixError) ||
+                        chatState.promptState === 'loading' ||
+                        isMagicChatLoading,
                     )}
                     disabled={
                       (currentInput.trim().length === 0 &&
                         (!isSearchResultsFocused || !isSearchResultsReady) &&
                         (!isBookmarksFocused || !isBookmarksReady) &&
+                        (!isIconsFocused || !isIconsReady) &&
                         !shouldShowOpenInspector &&
                         !shouldShowFixError) ||
                       chatState.promptState === 'loading' ||
@@ -1477,7 +1725,8 @@ export function ToolbarChatArea() {
                     )}
                     <span className="mr-1 whitespace-normal font-semibold">
                       {(isSearchResultsFocused && isSearchResultsReady) ||
-                      (isBookmarksFocused && isBookmarksReady)
+                      (isBookmarksFocused && isBookmarksReady) ||
+                      (isIconsFocused && isIconsReady)
                         ? 'Add to context'
                         : shouldShowOpenInspector
                           ? 'Open Inspector'

@@ -73,6 +73,7 @@ export class EnvironmentInfo {
       return;
     }
 
+    console.log('[EnvironmentInfo] Refreshing state for workspace...');
     const [toolbarInstallations, isWebApp, latestToolbar, latestExtension] =
       await Promise.all([
         this.workspaceService.getToolbarInstallations(),
@@ -80,6 +81,13 @@ export class EnvironmentInfo {
         this.registryService.getLatestToolbarVersion(),
         this.registryService.getLatestExtensionVersion(),
       ]);
+
+    console.log('[EnvironmentInfo] Received data:', {
+      toolbarInstallations,
+      isWebApp,
+      latestToolbar,
+      latestExtension,
+    });
 
     this.toolbarInstallations = toolbarInstallations;
     this.toolbarInstalled = this.toolbarInstallations.length > 0;
@@ -89,6 +97,13 @@ export class EnvironmentInfo {
     this.webAppWorkspace = isWebApp;
     this.latestToolbarVersion = latestToolbar;
     this.latestExtensionVersion = latestExtension;
+
+    console.log('[EnvironmentInfo] Final state:', {
+      toolbarInstalled: this.toolbarInstalled,
+      toolbarInstalledVersion: this.toolbarInstalledVersion,
+      latestToolbarVersion: this.latestToolbarVersion,
+      webAppWorkspace: this.webAppWorkspace,
+    });
   }
 
   private getOldestToolbarVersion(
