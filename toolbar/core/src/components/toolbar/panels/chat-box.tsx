@@ -36,6 +36,10 @@ import { BookmarksList, type BookmarksListRef } from './bookmarks-list';
 import { useBookmarks, type Bookmark } from '@/hooks/use-bookmarks';
 import { AtMenu } from './at-menu';
 import { IconsList, type IconsListRef } from './icons-list';
+import { DocsList, type DocsListRef } from './docs-list';
+import type { DocsItem } from './docs-list';
+import { LogosList, type LogosListRef } from './logos-list';
+import type { SVGLogo } from '@/types/svgl';
 
 // Component for drag border areas
 function DragBorderAreas() {
@@ -147,8 +151,22 @@ export function ToolbarChatArea() {
   const [isIconsReady, setIsIconsReady] = useState(false);
   const iconsListRef = useRef<IconsListRef>(null);
 
-  // @ mention mode state (bookmarks or icons)
-  const [atMode, setAtMode] = useState<'bookmarks' | 'icons' | null>(null);
+  // Docs (Context7) state
+  const [isDocsActivated, setIsDocsActivated] = useState(false);
+  const [isDocsFocused, setIsDocsFocused] = useState(false);
+  const [isDocsReady, setIsDocsReady] = useState(false);
+  const docsListRef = useRef<DocsListRef>(null);
+
+  // Logos (SVGL) state
+  const [isLogosActivated, setIsLogosActivated] = useState(false);
+  const [isLogosFocused, setIsLogosFocused] = useState(false);
+  const [isLogosReady, setIsLogosReady] = useState(false);
+  const logosListRef = useRef<LogosListRef>(null);
+
+  // @ mention mode state (bookmarks, icons, docs, or logos)
+  const [atMode, setAtMode] = useState<
+    'bookmarks' | 'icons' | 'docs' | 'logos' | null
+  >(null);
 
   // Determine IDE name using the same logic as get-current-ide.ts
   const ideName = useMemo(() => {
@@ -171,6 +189,8 @@ export function ToolbarChatArea() {
       setAtMode(null);
       setIsIconsActivated(false);
       setIsBookmarksActivated(false);
+      setIsDocsActivated(false);
+      setIsLogosActivated(false);
     }
   }, [currentInput]);
 
@@ -230,6 +250,16 @@ export function ToolbarChatArea() {
         setIsBookmarksActivated(false);
       }
 
+      // Reset docs activation when user types after docs were activated
+      if (isDocsActivated) {
+        setIsDocsActivated(false);
+      }
+
+      // Reset logos activation when user types after logos were activated
+      if (isLogosActivated) {
+        setIsLogosActivated(false);
+      }
+
       // Re-enable search when user types
       if (searchDisabled) {
         setSearchDisabled(false);
@@ -259,6 +289,8 @@ export function ToolbarChatArea() {
       searchDisabled,
       isSearchActivated,
       isBookmarksActivated,
+      isDocsActivated,
+      isLogosActivated,
       intentInvalidated,
     ],
   );
@@ -554,12 +586,20 @@ export function ToolbarChatArea() {
     if (isIconsFocused) {
       return 'Close icons';
     }
+    if (isDocsFocused) {
+      return 'Close docs';
+    }
+    if (isLogosFocused) {
+      return 'Close logos';
+    }
     return 'Close chat';
   }, [
     isSearchResultsFocused,
     isBookmarksFocused,
     chatState.isDomSelectorActive,
     isIconsFocused,
+    isDocsFocused,
+    isLogosFocused,
   ]);
 
   // Check if we should show "Fix error" mode (only runtime error in context)
@@ -570,7 +610,9 @@ export function ToolbarChatArea() {
       selectedComponents.length === 0 &&
       currentChat?.runtimeError &&
       !isSearchResultsFocused &&
-      !isIconsFocused
+      !isIconsFocused &&
+      !isDocsFocused &&
+      !isLogosFocused
     );
   }, [
     currentInput,
@@ -579,6 +621,8 @@ export function ToolbarChatArea() {
     currentChat?.runtimeError,
     isSearchResultsFocused,
     isIconsFocused,
+    isDocsFocused,
+    isLogosFocused,
   ]);
 
   // Get Magic Chat button text based on context and auth state
@@ -782,6 +826,36 @@ export function ToolbarChatArea() {
     isSearchActivated,
   ]);
 
+  // Show docs search when @mode is docs
+  const shouldShowDocs = useMemo(() => {
+    return (
+      atMode === 'docs' &&
+      currentInput.trim().startsWith('@') &&
+      chatState.isPromptCreationActive &&
+      !isSearchActivated
+    );
+  }, [
+    atMode,
+    currentInput,
+    chatState.isPromptCreationActive,
+    isSearchActivated,
+  ]);
+
+  // Show logos list when @mode is logos
+  const shouldShowLogos = useMemo(() => {
+    return (
+      atMode === 'logos' &&
+      currentInput.trim().startsWith('@') &&
+      chatState.isPromptCreationActive &&
+      !isSearchActivated
+    );
+  }, [
+    atMode,
+    currentInput,
+    chatState.isPromptCreationActive,
+    isSearchActivated,
+  ]);
+
   // Show At-menu when user just typed "@" and no mode selected yet
   const shouldShowAtMenu = useMemo(() => {
     return (
@@ -822,6 +896,26 @@ export function ToolbarChatArea() {
     return '';
   }, [shouldShowBookmarks, currentInput]);
 
+  // Extract search query for docs after "@"
+  const docsSearchQuery = useMemo(() => {
+    if (!shouldShowDocs) return '';
+    const input = currentInput.trim();
+    if (input.startsWith('@')) {
+      return input.slice(1).trim();
+    }
+    return '';
+  }, [shouldShowDocs, currentInput]);
+
+  // Extract search query for logos after "@"
+  const logosSearchQuery = useMemo(() => {
+    if (!shouldShowLogos) return '';
+    const input = currentInput.trim();
+    if (input.startsWith('@')) {
+      return input.slice(1).trim();
+    }
+    return '';
+  }, [shouldShowLogos, currentInput]);
+
   // Activate bookmarks list only after the user picked the "bookmarks" option
   useEffect(() => {
     if (atMode === 'bookmarks' && !isBookmarksActivated) {
@@ -844,6 +938,20 @@ export function ToolbarChatArea() {
       setIsBookmarksReady(false);
     }
   }, [shouldShowBookmarks]);
+
+  // Reset readiness when docs hidden or disabled
+  useEffect(() => {
+    if (!shouldShowDocs) {
+      setIsDocsReady(false);
+    }
+  }, [shouldShowDocs]);
+
+  // Reset readiness when logos hidden or disabled
+  useEffect(() => {
+    if (!shouldShowLogos) {
+      setIsLogosReady(false);
+    }
+  }, [shouldShowLogos]);
 
   // Clear loading context when prompt state changes from loading
   useEffect(() => {
@@ -884,8 +992,12 @@ export function ToolbarChatArea() {
     !isMagicChatLoading &&
     !isBookmarksFocused &&
     !isIconsFocused &&
+    !isDocsFocused &&
+    !isLogosFocused &&
     !shouldShowIcons &&
-    !shouldShowBookmarks;
+    !shouldShowBookmarks &&
+    !shouldShowDocs &&
+    !shouldShowLogos;
 
   const textareaClassName = useMemo(
     () =>
@@ -1054,6 +1166,32 @@ export function ToolbarChatArea() {
     }
   }, [iconsSearchQuery, shouldShowIcons, isIconsActivated, isIconsFocused]);
 
+  // Auto-focus on docs when they become visible
+  useEffect(() => {
+    if (shouldShowDocs && isDocsActivated) {
+      docsListRef.current?.focusOnDocs();
+    }
+  }, [shouldShowDocs, isDocsActivated]);
+
+  // Auto-focus on logos when they become visible
+  useEffect(() => {
+    if (shouldShowLogos && isLogosActivated) {
+      // Immediate focus without delay
+      logosListRef.current?.focusOnLogos();
+    }
+  }, [shouldShowLogos, isLogosActivated]);
+
+  // Auto-focus on LogosList when search query changes
+  useEffect(() => {
+    if (shouldShowLogos && isLogosActivated && !isLogosFocused) {
+      // Small delay to ensure React has recalculated the list
+      const t = setTimeout(() => {
+        logosListRef.current?.focusOnLogos();
+      }, 0);
+      return () => clearTimeout(t);
+    }
+  }, [logosSearchQuery, shouldShowLogos, isLogosActivated, isLogosFocused]);
+
   // Check if we should show "Open Inspector" mode
   const shouldShowOpenInspector = useMemo(() => {
     return (
@@ -1092,7 +1230,9 @@ export function ToolbarChatArea() {
       !isSearchActivated &&
       !isSearchResultsFocused &&
       !shouldShowInlineSuggestion &&
-      !isIconsFocused
+      !isIconsFocused &&
+      !isDocsFocused &&
+      !isLogosFocused
     );
   }, [
     currentInput,
@@ -1104,6 +1244,8 @@ export function ToolbarChatArea() {
     isSearchResultsFocused,
     shouldShowInlineSuggestion,
     isIconsFocused,
+    isDocsFocused,
+    isLogosFocused,
   ]);
 
   // Handle submit or add to context based on focus state
@@ -1130,6 +1272,22 @@ export function ToolbarChatArea() {
 
     if (isIconsFocused && iconsListRef.current) {
       const success = iconsListRef.current.selectActiveIcon();
+      if (success) {
+        setTimeout(() => handleFocusReturn(), 100);
+        return;
+      }
+    }
+
+    if (isDocsFocused && docsListRef.current) {
+      const success = docsListRef.current.selectActiveDoc();
+      if (success) {
+        setTimeout(() => handleFocusReturn(), 100);
+        return;
+      }
+    }
+
+    if (isLogosFocused && logosListRef.current) {
+      const success = logosListRef.current.selectActiveLogo();
       if (success) {
         setTimeout(() => handleFocusReturn(), 100);
         return;
@@ -1170,6 +1328,8 @@ export function ToolbarChatArea() {
     isSearchResultsFocused,
     isBookmarksFocused,
     isIconsFocused,
+    isDocsFocused,
+    isLogosFocused,
     currentChat,
     currentInput,
     chatState,
@@ -1309,6 +1469,24 @@ export function ToolbarChatArea() {
     }
   }, [atMode, isIconsActivated]);
 
+  // Activate docs search only after the user picked the "docs" option
+  useEffect(() => {
+    if (atMode === 'docs' && !isDocsActivated) {
+      setIsDocsActivated(true);
+    } else if (atMode !== 'docs' && isDocsActivated) {
+      setIsDocsActivated(false);
+    }
+  }, [atMode, isDocsActivated]);
+
+  // Activate logos list only after the user picked the "logos" option
+  useEffect(() => {
+    if (atMode === 'logos' && !isLogosActivated) {
+      setIsLogosActivated(true);
+    } else if (atMode !== 'logos' && isLogosActivated) {
+      setIsLogosActivated(false);
+    }
+  }, [atMode, isLogosActivated]);
+
   // Reset readiness when icons hidden or disabled
   useEffect(() => {
     if (!shouldShowIcons) {
@@ -1316,11 +1494,35 @@ export function ToolbarChatArea() {
     }
   }, [shouldShowIcons]);
 
+  // Reset readiness when docs hidden or disabled
+  useEffect(() => {
+    if (!shouldShowDocs) {
+      setIsDocsReady(false);
+    }
+  }, [shouldShowDocs]);
+
+  // Reset readiness when logos hidden or disabled
+  useEffect(() => {
+    if (!shouldShowLogos) {
+      setIsLogosReady(false);
+    }
+  }, [shouldShowLogos]);
+
   // Icons handlers
   const computeIconId = useCallback((name: string) => {
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash += name.charCodeAt(i);
+    }
+    return -Math.abs(hash);
+  }, []);
+
+  // Logos handlers
+  const computeLogoId = useCallback((logo: SVGLogo) => {
+    const identifier = logo.id?.toString() || logo.title;
+    let hash = 0;
+    for (let i = 0; i < identifier.length; i++) {
+      hash += identifier.charCodeAt(i);
     }
     return -Math.abs(hash);
   }, []);
@@ -1392,6 +1594,147 @@ export function ToolbarChatArea() {
     setIsIconsFocused(isFocused);
   }, []);
 
+  const handleLogoSelection = useCallback(
+    (logo: SVGLogo) => {
+      if (!currentChat) return;
+
+      const logoUrl =
+        typeof logo.route === 'string'
+          ? logo.route
+          : logo.route.light || logo.route.dark;
+      const logoComponent: ComponentSearchResult = {
+        id: computeLogoId(logo),
+        name: logo.title,
+        preview_url: logoUrl,
+        video_url: '',
+        demo_slug: '',
+        user_id: '0',
+        component_data: {
+          name: logo.title,
+          description: `${logo.title} logo from SVGL`,
+          code: `<img src="${logoUrl}" alt="${logo.title}" className="w-6 h-6" />`,
+          component_slug: logo.title.toLowerCase().replace(/\s+/g, '-'),
+          install_command: `// Logo URL: ${logoUrl}`,
+        },
+        user_data: {
+          name: '',
+          username: '',
+          image_url: '',
+          display_image_url: '',
+          display_name: '',
+          display_username: '',
+        },
+        usage_data: {
+          total_usages: 0,
+          views: 0,
+          downloads: 0,
+          prompt_copies: 0,
+          code_copies: 0,
+        },
+      };
+
+      addComponent(logoComponent);
+
+      if (chatState.currentChatId) {
+        const existing = currentChat?.selectedComponents || [];
+        const newComponent: SelectedComponentWithCode = { ...logoComponent };
+        chatState.addSelectedComponents(chatState.currentChatId, [
+          ...existing,
+          newComponent,
+        ]);
+      }
+
+      // Clear input
+      chatState.setChatInput(chatState.currentChatId, '');
+
+      // Close logos list
+      setIsLogosActivated(false);
+    },
+    [currentChat, addComponent, chatState, computeLogoId],
+  );
+
+  const handleCloseLogos = useCallback(() => {
+    setIsLogosFocused(false);
+    setIsLogosActivated(false);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
+
+  const handleLogosFocusChange = useCallback((isFocused: boolean) => {
+    setIsLogosFocused(isFocused);
+  }, []);
+
+  // Docs handlers
+  const handleDocSelection = useCallback(
+    async (item: DocsItem) => {
+      if (!currentChat) return;
+
+      // Convert doc to ComponentSearchResult format for consistency
+      const docAsComponent: ComponentSearchResult = {
+        id: computeIconId(item.id), // Reuse icon ID computation for unique negative IDs
+        name: item.title,
+        preview_url: '',
+        video_url: '',
+        demo_slug: '',
+        user_id: '0',
+        component_data: {
+          name: item.title,
+          description: item.description,
+          code: '', // Will be filled with actual content
+          component_slug: item.id,
+          install_command: `// Documentation: ${item.title}`,
+        },
+        user_data: {
+          name: '',
+          username: '',
+          image_url: '',
+          display_image_url: '',
+          display_name: '',
+          display_username: '',
+        },
+        usage_data: {
+          total_usages: 0,
+          views: 0,
+          downloads: 0,
+          prompt_copies: 0,
+          code_copies: 0,
+        },
+      };
+
+      // Add component to selected components first
+      addComponent(docAsComponent);
+
+      if (chatState.currentChatId) {
+        const existing = currentChat?.selectedComponents || [];
+        const newComponent: SelectedComponentWithCode = { ...docAsComponent };
+        chatState.addSelectedComponents(chatState.currentChatId, [
+          ...existing,
+          newComponent,
+        ]);
+      }
+
+      // Clear input after adding the component
+      chatState.setChatInput(chatState.currentChatId, '');
+
+      // Close docs search
+      setIsDocsActivated(false);
+    },
+    [currentChat, addComponent, chatState, computeIconId],
+  );
+
+  const handleCloseDocs = useCallback(() => {
+    setIsDocsFocused(false);
+    setIsDocsActivated(false);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
+
+  const handleDocsFocusChange = useCallback((isFocused: boolean) => {
+    setIsDocsFocused(isFocused);
+  }, []);
+
   return (
     <DraggableProvider
       containerRef={containerRef}
@@ -1454,8 +1797,12 @@ export function ToolbarChatArea() {
                   chatState.setChatInput(chatState.currentChatId, '@');
                   if (type === 'bookmarks') {
                     setIsBookmarksActivated(true);
-                  } else {
+                  } else if (type === 'icons') {
                     setIsIconsActivated(true);
+                  } else if (type === 'docs') {
+                    setIsDocsActivated(true);
+                  } else if (type === 'logos') {
+                    setIsLogosActivated(true);
                   }
                 }}
                 onFocusReturn={handleFocusReturn}
@@ -1478,6 +1825,42 @@ export function ToolbarChatArea() {
                 onFocusChange={handleIconsFocusChange}
                 onCloseIcons={handleCloseIcons}
                 onReady={() => setIsIconsReady(true)}
+              />
+            </div>
+          )}
+
+          {/* Docs List - positioned above chat input */}
+          {shouldShowDocs && isDocsActivated && (
+            <div
+              className="absolute right-0 bottom-full left-0 z-50 mb-2"
+              style={searchResultsTranslateStyle}
+            >
+              <DocsList
+                ref={docsListRef}
+                searchQuery={docsSearchQuery}
+                onDocSelection={handleDocSelection}
+                onFocusReturn={handleFocusReturn}
+                onFocusChange={handleDocsFocusChange}
+                onCloseDocs={handleCloseDocs}
+                onReady={() => setIsDocsReady(true)}
+              />
+            </div>
+          )}
+
+          {/* Logos List - positioned above chat input */}
+          {shouldShowLogos && isLogosActivated && (
+            <div
+              className="absolute right-0 bottom-full left-0 z-50 mb-2"
+              style={searchResultsTranslateStyle}
+            >
+              <LogosList
+                ref={logosListRef}
+                searchQuery={logosSearchQuery}
+                onLogoSelection={handleLogoSelection}
+                onFocusReturn={handleFocusReturn}
+                onFocusChange={handleLogosFocusChange}
+                onCloseLogos={handleCloseLogos}
+                onReady={() => setIsLogosReady(true)}
               />
             </div>
           )}
@@ -1510,6 +1893,8 @@ export function ToolbarChatArea() {
               shouldShowSearchResults ||
                 shouldShowBookmarks ||
                 shouldShowIcons ||
+                shouldShowDocs ||
+                shouldShowLogos ||
                 shouldShowAtMenu
                 ? 'pointer-events-none translate-y-2 scale-95 opacity-0'
                 : 'pointer-events-auto translate-y-0 scale-100 opacity-100',
@@ -1567,8 +1952,8 @@ export function ToolbarChatArea() {
                   placeholder={
                     chatState.isPromptCreationActive
                       ? isAuthenticated
-                        ? 'Enter prompt or 21st.dev search, @ for bookmarks...'
-                        : 'Enter prompt or 21st.dev search...'
+                        ? 'Enter prompt or 21st.dev search, @ for bookmarks and more...'
+                        : 'Enter prompt or 21st.dev search, @ for more...'
                       : `What do you want to change? (${ctrlAltCText})`
                   }
                   disabled={
@@ -1703,6 +2088,8 @@ export function ToolbarChatArea() {
                         (!isSearchResultsFocused || !isSearchResultsReady) &&
                         (!isBookmarksFocused || !isBookmarksReady) &&
                         (!isIconsFocused || !isIconsReady) &&
+                        (!isDocsFocused || !isDocsReady) &&
+                        (!isLogosFocused || !isLogosReady) &&
                         !shouldShowOpenInspector &&
                         !shouldShowFixError) ||
                         chatState.promptState === 'loading' ||
@@ -1713,6 +2100,8 @@ export function ToolbarChatArea() {
                         (!isSearchResultsFocused || !isSearchResultsReady) &&
                         (!isBookmarksFocused || !isBookmarksReady) &&
                         (!isIconsFocused || !isIconsReady) &&
+                        (!isDocsFocused || !isDocsReady) &&
+                        (!isLogosFocused || !isLogosReady) &&
                         !shouldShowOpenInspector &&
                         !shouldShowFixError) ||
                       chatState.promptState === 'loading' ||
@@ -1726,7 +2115,9 @@ export function ToolbarChatArea() {
                     <span className="mr-1 whitespace-normal font-semibold">
                       {(isSearchResultsFocused && isSearchResultsReady) ||
                       (isBookmarksFocused && isBookmarksReady) ||
-                      (isIconsFocused && isIconsReady)
+                      (isIconsFocused && isIconsReady) ||
+                      (isDocsFocused && isDocsReady) ||
+                      (isLogosFocused && isLogosReady)
                         ? 'Add to context'
                         : shouldShowOpenInspector
                           ? 'Open Inspector'

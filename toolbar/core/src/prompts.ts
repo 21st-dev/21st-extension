@@ -135,8 +135,98 @@ async function formatSelectedComponents(
     return '';
   }
 
-  // Fetch prompts for every selected component using Promise.allSettled
-  const promptPromises = components.map((component) =>
+  // Helper function to check if component needs API prompt
+  const needsApiPrompt = (component: SelectedComponentWithCode): boolean => {
+    const description = component.component_data?.description || '';
+    const installCommand = component.component_data?.install_command || '';
+
+    // Skip API for icons, logos, and documentation
+    if (description.includes('icon from Lucide Icons library')) return false;
+    if (description.includes('logo from SVGL')) return false;
+    if (installCommand.startsWith('// Documentation:')) return false;
+
+    return true;
+  };
+
+  // Helper function to generate local prompt for icons/logos/docs
+  const generateLocalPrompt = (
+    component: SelectedComponentWithCode,
+  ): string => {
+    const description = component.component_data?.description || '';
+    const installCommand = component.component_data?.install_command || '';
+    const name = component.component_data?.name || component.name || 'Unknown';
+
+    if (description.includes('icon from Lucide Icons library')) {
+      return `You are given a task to integrate an existing Lucide icon in the codebase
+
+The codebase should support:
+- React/Preact or similar framework
+- TypeScript (recommended)
+
+Import the icon:
+\`\`\`tsx
+${installCommand}
+\`\`\`
+
+Usage example:
+\`\`\`tsx
+import { ${name} } from 'lucide-react';
+
+function MyComponent() {
+  return (
+    <div>
+      <${name} className="h-4 w-4" />
+    </div>
+  );
+}
+\`\`\`
+
+The icon is fully customizable via className prop for size, color, and other styles.`;
+    }
+
+    if (description.includes('logo from SVGL')) {
+      const logoUrl = component.preview_url;
+      return `You are given a task to integrate a brand logo in the codebase
+
+${installCommand}
+
+Usage example:
+\`\`\`tsx
+function MyComponent() {
+  return (
+    <div>
+      <img 
+        src="${logoUrl}" 
+        alt="${name}" 
+        className="h-6 w-6"
+      />
+    </div>
+  );
+}
+\`\`\`
+
+The logo URL is: ${logoUrl}
+You can use this logo in img tags, as background images, or in any way that fits your design.`;
+    }
+
+    if (installCommand.startsWith('// Documentation:')) {
+      return `${installCommand}
+
+This is documentation reference for ${name}.
+${component.component_data?.description || ''}
+
+Use this documentation as context for implementing features, understanding APIs, or following best practices for this technology.`;
+    }
+
+    return '';
+  };
+
+  // Separate components into those that need API calls and those that don't
+  const componentsNeedingApi = components.filter(needsApiPrompt);
+  const localComponents = components.filter((c) => !needsApiPrompt(c));
+
+  // Fetch prompts for components that need API calls
+  const promptPromises = componentsNeedingApi.map((component) =>
     fetch(TWENTY_FIRST_URL + '/api/prompts', {
       method: 'POST',
       headers: {
@@ -199,16 +289,20 @@ async function formatSelectedComponents(
   const formattedComponents = components
     .map((component, index) => {
       const fetchedPrompt = promptMap.get(component.id);
+      const localPrompt = !needsApiPrompt(component)
+        ? generateLocalPrompt(component)
+        : null;
+      const finalPrompt = fetchedPrompt || localPrompt;
 
       return `
   <component index="${index + 1}">
     <name>${component.component_data.name || component.name || 'Unknown'}</name>
     <description>${component.component_data.description || 'No description available'}</description>
     ${
-      fetchedPrompt
+      finalPrompt
         ? `
     <install_instructions>
-${fetchedPrompt}
+${finalPrompt}
     </install_instructions>`
         : ''
     }

@@ -2,18 +2,20 @@ import { BookmarkIcon, SparklesIcon } from 'lucide-react';
 import { cn } from '@/utils';
 import { useCallback, useEffect, useState, useMemo } from 'preact/hooks';
 import { LucideLogo } from './lucide-logo';
+import { Context7Logo } from './context7-logo';
+import { SVGLLogo } from './svgl-logo';
 import { useAuthStatus } from '@/hooks/use-auth';
 
 interface AtMenuProps {
-  onSelect: (type: 'bookmarks' | 'icons') => void;
+  onSelect: (type: 'bookmarks' | 'icons' | 'docs' | 'logos') => void;
   onFocusReturn?: () => void;
   searchQuery?: string;
 }
 
 const options: Array<{
-  type: 'bookmarks' | 'icons';
+  type: 'bookmarks' | 'icons' | 'docs' | 'logos';
   label: string;
-  Icon: typeof BookmarkIcon | 'LucideLogo';
+  Icon: typeof BookmarkIcon | 'LucideLogo' | 'Context7Logo' | 'SVGLLogo';
 }> = [
   {
     type: 'bookmarks',
@@ -24,6 +26,16 @@ const options: Array<{
     type: 'icons',
     label: 'Lucide Icons',
     Icon: 'LucideLogo',
+  },
+  {
+    type: 'docs',
+    label: 'Documentation',
+    Icon: 'Context7Logo',
+  },
+  {
+    type: 'logos',
+    label: 'Brand Logos',
+    Icon: 'SVGLLogo',
   },
 ];
 
@@ -58,7 +70,7 @@ export function AtMenu({ onSelect, onFocusReturn, searchQuery }: AtMenuProps) {
   }, [filteredOptions.length]);
 
   const handleClick = useCallback(
-    (type: 'bookmarks' | 'icons') => {
+    (type: 'bookmarks' | 'icons' | 'docs' | 'logos') => {
       onSelect(type);
     },
     [onSelect],
@@ -138,6 +150,10 @@ export function AtMenu({ onSelect, onFocusReturn, searchQuery }: AtMenuProps) {
         >
           {Icon === 'LucideLogo' ? (
             <LucideLogo className="h-4 w-4" />
+          ) : Icon === 'Context7Logo' ? (
+            <Context7Logo className="h-4 w-4" />
+          ) : Icon === 'SVGLLogo' ? (
+            <SVGLLogo className="h-4 w-4" />
           ) : (
             <Icon
               className={cn(

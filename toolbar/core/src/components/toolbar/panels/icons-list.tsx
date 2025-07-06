@@ -10,6 +10,30 @@ import {
 } from 'preact/hooks';
 import * as LucideIcons from 'lucide-react';
 
+// Recent icons storage utilities
+const RECENT_ICONS_KEY = '21st-toolbar-recent-icons';
+const MAX_RECENT_ICONS = 5;
+
+function getRecentIcons(): string[] {
+  try {
+    const stored = localStorage.getItem(RECENT_ICONS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentIcon(iconName: string) {
+  try {
+    const recent = getRecentIcons();
+    const filtered = recent.filter((name) => name !== iconName);
+    const updated = [iconName, ...filtered].slice(0, MAX_RECENT_ICONS);
+    localStorage.setItem(RECENT_ICONS_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 interface IconsListProps {
   searchQuery?: string;
   onIconSelection?: (iconName: string) => void;
@@ -43,10 +67,31 @@ export const IconsList = forwardRef<IconsListRef, IconsListProps>(
     },
     ref,
   ) => {
+    // Keyboard navigation state
+    const [activeIndex, setActiveIndex] = useState(-1);
+    const [startIndex, setStartIndex] = useState(0);
+    const [isFocused, setIsFocused] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Recent icons state
+    const [recentIcons, setRecentIcons] = useState<string[]>([]);
+
+    // Load recent icons on mount
+    useEffect(() => {
+      setRecentIcons(getRecentIcons());
+    }, []);
+
     // Filter icons by query
     const filteredIcons = useMemo(() => {
       if (!searchQuery?.trim()) {
-        return allIconNames;
+        // No search query - show recent icons first, then all others
+        const validRecentIcons = recentIcons.filter((name) =>
+          allIconNames.includes(name),
+        );
+        const remainingIcons = allIconNames.filter(
+          (name) => !validRecentIcons.includes(name),
+        );
+        return [...validRecentIcons, ...remainingIcons];
       }
       const q = searchQuery.toLowerCase();
 
@@ -65,20 +110,14 @@ export const IconsList = forwardRef<IconsListRef, IconsListProps>(
 
       // Return startsWith first, then contains
       return [...startsWith, ...contains];
-    }, [searchQuery]);
-
-    // Keyboard navigation state
-    const [activeIndex, setActiveIndex] = useState(-1);
-    const [startIndex, setStartIndex] = useState(0);
-    const [isFocused, setIsFocused] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
+    }, [searchQuery, recentIcons]);
 
     // Reset activeIndex when search results change (copied from bookmarks-list)
     useEffect(() => {
       if (activeIndex >= filteredIcons.length && filteredIcons.length > 0) {
         // If current index is beyond results, set to last item
         setActiveIndex(filteredIcons.length - 1);
-        setStartIndex(Math.max(0, filteredIcons.length - 6));
+        setStartIndex(Math.max(0, filteredIcons.length - 3));
       } else if (filteredIcons.length === 0 && activeIndex !== -1) {
         // If no results, reset index
         setActiveIndex(-1);
@@ -103,9 +142,9 @@ export const IconsList = forwardRef<IconsListRef, IconsListProps>(
       }
     }, [isFocused]);
 
-    // Visible window of 6 icons
+    // Visible window of 3 icons
     const visibleIcons = useMemo(() => {
-      return filteredIcons.slice(startIndex, startIndex + 6);
+      return filteredIcons.slice(startIndex, startIndex + 3);
     }, [filteredIcons, startIndex]);
 
     const activeIconName = useMemo(() => {
@@ -122,6 +161,10 @@ export const IconsList = forwardRef<IconsListRef, IconsListProps>(
 
     const handleIconSelection = useCallback(
       (iconName: string) => {
+        // Save to recent icons
+        saveRecentIcon(iconName);
+        setRecentIcons(getRecentIcons());
+
         onIconSelection?.(iconName);
         if (onCloseIcons) {
           setTimeout(() => onCloseIcons(), 100);
@@ -176,8 +219,8 @@ export const IconsList = forwardRef<IconsListRef, IconsListProps>(
               setStartIndex((currentStart) => {
                 if (newIndex === 0) {
                   return 0; // Wrapped to beginning
-                } else if (newIndex >= currentStart + 6) {
-                  return Math.min(newIndex - 5, filteredIcons.length - 6); // Scroll down
+                } else if (newIndex >= currentStart + 3) {
+                  return Math.min(newIndex - 2, filteredIcons.length - 3); // Scroll down
                 }
                 return currentStart;
               });
@@ -193,7 +236,7 @@ export const IconsList = forwardRef<IconsListRef, IconsListProps>(
               // Update startIndex to keep active element visible
               setStartIndex((currentStart) => {
                 if (newIndex === filteredIcons.length - 1) {
-                  return Math.max(0, filteredIcons.length - 6); // Wrapped to end
+                  return Math.max(0, filteredIcons.length - 3); // Wrapped to end
                 } else if (newIndex < currentStart) {
                   return Math.max(0, newIndex); // Scroll up
                 }
@@ -305,10 +348,24 @@ export const IconsList = forwardRef<IconsListRef, IconsListProps>(
 
         {visibleIcons.length > 0 ? (
           <div className="space-y-2">
+            {/* Recent used section */}
+            {!searchQuery?.trim() &&
+              recentIcons.length > 0 &&
+              startIndex === 0 && (
+                <div className="px-1 py-1">
+                  <div className="text-muted-foreground text-xs">
+                    Recent used
+                  </div>
+                </div>
+              )}
+
             {visibleIcons.map((iconName, idx) => {
               const Comp = (LucideIcons as any)[iconName];
               const isItemFocused =
                 isFocused && activeIndex === startIndex + idx;
+              const isRecentIcon =
+                !searchQuery?.trim() && recentIcons.includes(iconName);
+
               return (
                 <button
                   key={iconName}
@@ -325,6 +382,11 @@ export const IconsList = forwardRef<IconsListRef, IconsListProps>(
                   <span className="truncate font-medium text-foreground">
                     {iconName}
                   </span>
+                  {isRecentIcon && (
+                    <span className="ml-auto text-muted-foreground text-xs">
+                      recent
+                    </span>
+                  )}
                 </button>
               );
             })}
