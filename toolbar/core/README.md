@@ -46,7 +46,7 @@ export const TWENTY_FIRST_URL = 'https://21st.dev';
 
 ## 📖 Quickstart 
 
-### 1. 🧩 **Install the code editor extension (Cursor, Windsurf, VS Code)**
+### 1. 🧩 **Install the code editor extension (Cursor, Windsurf, VS Code, Trae IDE, Kilo Code)**
 
 Install the extension here: https://marketplace.visualstudio.com/items?itemName=stagewise.stagewise-vscode-extension
 
@@ -289,6 +289,8 @@ You would then use `TwentyFirstToolbarLoader` in your `src/routes/+layout.svelte
 | Windsurf       | ✅             |
 | Cline          | ✅             |
 | Roo Code       | ✅             |
+| Trae IDE       | ✅             |
+| Kilo Code      | ✅             |
 | Claude Code    | ✅ (via Copy Prompt) |
 | Gemini CLI     | ✅ (via Copy Prompt) |
 | Any AI Agent   | ✅ (via Copy Prompt) |

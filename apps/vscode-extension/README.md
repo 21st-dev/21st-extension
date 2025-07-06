@@ -31,10 +31,10 @@ The Toolbar makes it incredibly easy to edit your frontend code with AI agents:
 
 ## 📖 Quickstart 
 
-### 1. 🧩 **Install the code editor extension (Cursor, Windsurf, VS Code)**
+### 1. 🧩 **Install the code editor extension (Cursor, Windsurf, VS Code, Trae IDE, Kilo Code)**
 
 - **VS Code**: install from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=21st-dev.21st-extension) or Extensions tab in IDE
-- **Cursor, Windsurf, etc.**: install from Extensions tab in IDE or manually from [Open VSX](https://open-vsx.org/extension/21st-dev/21st-extension) → Open file in editor → Right click → Install Extension
+- **Cursor, Windsurf, Trae IDE, etc.**: install from Extensions tab in IDE or manually from [Open VSX](https://open-vsx.org/extension/21st-dev/21st-extension) → Open file in editor → Right click → Install Extension
 
 ### 2. 👨🏽‍💻 **Install and inject the toolbar**
 
@@ -275,6 +275,8 @@ You would then use `TwentyFirstToolbarLoader` in your `src/routes/+layout.svelte
 | Windsurf       | ✅             |
 | Cline          | ✅             |
 | Roo Code       | ✅             |
+| Trae IDE       | ✅             |
+| Kilo Code      | ✅             |
 | Claude Code    | ✅ (via Copy Prompt) |
 | Gemini CLI     | ✅ (via Copy Prompt) |
 | Any AI Agent   | ✅ (via Copy Prompt) |
