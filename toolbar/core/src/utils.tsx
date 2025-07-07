@@ -273,3 +273,102 @@ export const generateId = (length = 16): string => {
     .toString(36)
     .substring(2, length + 2);
 };
+
+// Cache for SVG content
+const svgCache = new Map<string, string>();
+
+/**
+ * Fetches SVG content from a URL and returns it as a string
+ * Handles CORS issues by trying multiple proxy approaches
+ */
+export async function fetchSVGContent(url: string): Promise<string> {
+  if (svgCache.has(url)) {
+    return svgCache.get(url)!;
+  }
+
+  // Try multiple approaches to fetch SVG content
+  const attempts = [
+    // Direct fetch
+    () => fetch(url),
+    // CORS proxies
+    () => fetch(`https://corsproxy.io/?${url}`),
+    () => fetch(`https://cors-anywhere.herokuapp.com/${url}`),
+    () =>
+      fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`),
+  ];
+
+  for (let i = 0; i < attempts.length; i++) {
+    try {
+      const response = await attempts[i]();
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      let svgContent: string;
+      if (i === 3) {
+        // allorigins wraps response
+        const wrapped = await response.json();
+        svgContent = wrapped.contents;
+      } else {
+        svgContent = await response.text();
+      }
+
+      // Validate that it's actually SVG content
+      if (!svgContent.trim().startsWith('<svg')) {
+        throw new Error('Response is not valid SVG');
+      }
+
+      // Clean up the SVG content
+      svgContent = svgContent.trim();
+
+      // Remove any standalone XML declaration
+      svgContent = svgContent.replace(/^<\?xml[^>]*>\s*/, '');
+
+      // Cache the result
+      svgCache.set(url, svgContent);
+
+      return svgContent;
+    } catch (err) {
+      console.warn(`SVG fetch attempt ${i + 1} failed:`, err);
+      if (i === attempts.length - 1) {
+        // If all attempts fail, return a fallback
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
+      }
+    }
+  }
+
+  // This should never be reached
+  throw new Error('Unreachable');
+}
+
+/**
+ * Processes SVG content to make it suitable for inline use
+ * Adds proper classes and removes unwanted attributes
+ */
+export function processSVGForInline(
+  svgContent: string,
+  className?: string,
+): string {
+  // Add default className if not provided
+  const finalClassName = className || 'w-6 h-6';
+
+  let processedSvg = svgContent;
+
+  // Try to add className to the SVG element
+  if (processedSvg.includes('class=')) {
+    // If class already exists, append to it
+    processedSvg = processedSvg.replace(
+      /class="([^"]*)"/,
+      `class="$1 ${finalClassName}"`,
+    );
+  } else {
+    // Add className to the SVG element
+    processedSvg = processedSvg.replace(
+      /<svg([^>]*)>/,
+      `<svg$1 class="${finalClassName}">`,
+    );
+  }
+
+  return processedSvg;
+}

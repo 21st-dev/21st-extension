@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'preact/hooks';
+import { Loader } from 'lucide-react';
 
 export interface DocsItem {
   id: string;
@@ -642,7 +643,7 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
 
         {isSearching ? (
           <div className="flex items-center justify-center p-4">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <Loader className="h-4 w-4 animate-spin" />
             <span className="ml-2 text-muted-foreground text-xs">
               Searching documentation...
             </span>

@@ -19,7 +19,7 @@ const options: Array<{
 }> = [
   {
     type: 'bookmarks',
-    label: 'Bookmarks',
+    label: '21st.dev Bookmarks',
     Icon: BookmarkIcon,
   },
   {
@@ -34,7 +34,7 @@ const options: Array<{
   },
   {
     type: 'logos',
-    label: 'Brand Logos',
+    label: 'SVG Logos',
     Icon: 'SVGLLogo',
   },
 ];

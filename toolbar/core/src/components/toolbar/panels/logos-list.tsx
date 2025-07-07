@@ -8,8 +8,9 @@ import {
 } from 'preact/hooks';
 import { forwardRef } from 'preact/compat';
 import { useSVGLSearch } from '@/hooks/use-svgl-search';
-import { cn } from '@/utils';
+import { cn, fetchSVGContent, processSVGForInline } from '@/utils';
 import type { SVGLogo, ThemeOptions } from '@/types/svgl';
+import { Loader } from 'lucide-react';
 
 interface LogosListProps {
   searchQuery: string;
@@ -27,6 +28,83 @@ export interface LogosListRef {
   blur: () => void;
 }
 
+// Компонент для отображения SVG контента
+const SVGDisplay = ({ 
+  logo, 
+  className = "h-6 w-6" 
+}: { 
+  logo: SVGLogo; 
+  className?: string; 
+}) => {
+  const [svgContent, setSvgContent] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const logoUrl = useMemo(() => {
+    if (typeof logo.route === 'string') {
+      return logo.route;
+    }
+    return (
+      (logo.route as ThemeOptions).light || (logo.route as ThemeOptions).dark
+    );
+  }, [logo.route]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadSVG = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const content = await fetchSVGContent(logoUrl);
+        if (!isCancelled) {
+          const processedContent = processSVGForInline(content, className);
+          setSvgContent(processedContent);
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load SVG');
+          console.warn('Failed to load SVG:', err);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadSVG();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [logoUrl, className]);
+
+  if (isLoading) {
+    return (
+      <div className={cn("flex items-center justify-center bg-muted/50 rounded", className)}>
+        <Loader className="h-3 w-3 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !svgContent) {
+    return (
+      <div className={cn("flex items-center justify-center bg-muted/50 rounded", className)}>
+        <span className="text-xs text-muted-foreground">SVG</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn("flex items-center justify-center", className)}
+      dangerouslySetInnerHTML={{ __html: svgContent }}
+    />
+  );
+};
+
 // Компонент для карточки логотипа
 const LogoCard = ({
   logo,
@@ -37,16 +115,7 @@ const LogoCard = ({
   isFocused?: boolean;
   onClick?: (logo: SVGLogo) => void;
 }) => {
-  // Get logo URL based on theme
-  const getLogoUrl = (logo: SVGLogo) => {
-    if (typeof logo.route === 'string') {
-      return logo.route;
-    }
-    // For now, default to light theme - could be improved with theme context
-    return (
-      (logo.route as ThemeOptions).light || (logo.route as ThemeOptions).dark
-    );
-  };
+
 
   const handleClick = useCallback(() => {
     if (onClick) {
@@ -66,14 +135,9 @@ const LogoCard = ({
     >
       {/* Logo icon */}
       <div className="relative flex h-6 w-6 flex-shrink-0 items-center justify-center">
-        <img
-          src={getLogoUrl(logo)}
-          alt={logo.title}
-          className="h-full w-full rounded border border-border object-contain"
-          onError={(e) => {
-            // Fallback to a placeholder if image fails to load
-            e.currentTarget.style.display = 'none';
-          }}
+        <SVGDisplay 
+          logo={logo} 
+          className="h-full w-full rounded border border-border"
         />
       </div>
 
@@ -141,15 +205,7 @@ export const LogosList = forwardRef<LogosListRef, LogosListProps>(
       return null;
     }, [isFocused, selectedIndex, limitedResults]);
 
-    // Get logo URL for preview
-    const getLogoUrl = (logo: SVGLogo) => {
-      if (typeof logo.route === 'string') {
-        return logo.route;
-      }
-      return (
-        (logo.route as ThemeOptions).light || (logo.route as ThemeOptions).dark
-      );
-    };
+
 
     const handleKeyDown = useCallback(
       (e: KeyboardEvent) => {
@@ -331,7 +387,7 @@ export const LogosList = forwardRef<LogosListRef, LogosListProps>(
     if (isLoading) {
       return (
         <div className="flex items-center justify-center p-4">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <Loader className="h-4 w-4 animate-spin" />
           <span className="ml-2 text-muted-foreground text-xs">
             Loading logos...
           </span>
@@ -361,13 +417,9 @@ export const LogosList = forwardRef<LogosListRef, LogosListProps>(
         {activeLogo && (
           <div className="flex justify-center">
             <div className="flex h-[150px] w-[200px] items-center justify-center overflow-hidden rounded-lg border border-border bg-background shadow-md transition-shadow duration-150">
-              <img
-                src={getLogoUrl(activeLogo)}
-                alt={activeLogo.title}
-                className="max-h-full max-w-full object-contain p-4"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
+              <SVGDisplay 
+                logo={activeLogo} 
+                className="max-h-full max-w-full p-4"
               />
             </div>
           </div>

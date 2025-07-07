@@ -17,7 +17,12 @@ import { useSRPCBridge } from '@/hooks/use-srpc-bridge';
 import { useVSCode } from '@/hooks/use-vscode';
 import { createPrompt } from '@/prompts';
 import type { ComponentSearchResult } from '@/types/supabase';
-import { cn, HotkeyActions } from '@/utils';
+import {
+  cn,
+  HotkeyActions,
+  fetchSVGContent,
+  processSVGForInline,
+} from '@/utils';
 import { getIDENameFromAppName } from '@/utils/get-ide-name';
 import { EventName } from '@21st-extension/extension-toolbar-srpc-contract';
 import { Textarea } from '@headlessui/react';
@@ -297,10 +302,10 @@ export function ToolbarChatArea() {
 
   const handleSubmit = useCallback(() => {
     if (!currentChat || !currentInput.trim()) return;
-    chatState.addMessage(currentChat.id, currentInput);
+    chatState.addMessage(currentChat.id, currentInput, atMode);
     // Reset search state after sending
     setSearchActivated(false);
-  }, [currentChat, currentInput, chatState.addMessage]);
+  }, [currentChat, currentInput, chatState.addMessage, atMode]);
 
   const handleMagicChatSubmit = useCallback(async () => {
     if (!currentInput.trim()) return;
@@ -342,6 +347,8 @@ export function ToolbarChatArea() {
                 id: c.id,
                 name: c.name,
               })),
+              atMenuMode: atMode, // Track which @-menu mode was used
+              atMenuContextUsed: atMode !== null, // Track if @-menu was used at all
             },
           },
           { onUpdate: () => {} },
@@ -394,6 +401,7 @@ export function ToolbarChatArea() {
     setSearchActivated,
     bridge,
     selectedSession,
+    atMode,
   ]);
 
   const handleCompositionStart = useCallback(() => {
@@ -706,6 +714,8 @@ export function ToolbarChatArea() {
                   searchQuery: currentInput.trim(),
                   searchQueryLength: currentInput.trim().length,
                   searchIntent: searchIntent || '',
+                  atMenuMode: atMode, // Track which @-menu mode was used
+                  atMenuContextUsed: atMode !== null, // Track if @-menu was used at all
                 },
               },
               { onUpdate: () => {} },
@@ -758,6 +768,8 @@ export function ToolbarChatArea() {
       currentInput,
       bridge,
       selectedSession,
+      atMode,
+      searchIntent,
     ],
   );
 
@@ -1304,7 +1316,7 @@ export function ToolbarChatArea() {
     if (shouldShowFixError) {
       if (!currentChat) return;
       // Send message to IDE with runtime error in context
-      chatState.addMessage(currentChat.id, '');
+      chatState.addMessage(currentChat.id, '', atMode);
       return;
     }
 
@@ -1321,7 +1333,7 @@ export function ToolbarChatArea() {
     });
 
     // Send message to IDE
-    chatState.addMessage(currentChat.id, currentInput);
+    chatState.addMessage(currentChat.id, currentInput, atMode);
 
     // Note: Components and DOM elements will be cleared after loading completes
   }, [
@@ -1336,6 +1348,7 @@ export function ToolbarChatArea() {
     handleFocusReturn,
     shouldShowOpenInspector,
     shouldShowFixError,
+    atMode,
   ]);
 
   const handleKeyDown = useCallback(
@@ -1361,6 +1374,8 @@ export function ToolbarChatArea() {
                     id: c.id,
                     name: c.name,
                   })),
+                  atMenuMode: atMode, // Track which @-menu mode was used
+                  atMenuContextUsed: atMode !== null, // Track if @-menu was used at all
                 },
               },
               { onUpdate: () => {} },
@@ -1457,6 +1472,7 @@ export function ToolbarChatArea() {
       bridge,
       selectedSession,
       shouldShowAtMenu,
+      atMode,
     ],
   );
 
@@ -1595,60 +1611,150 @@ export function ToolbarChatArea() {
   }, []);
 
   const handleLogoSelection = useCallback(
-    (logo: SVGLogo) => {
+    async (logo: SVGLogo) => {
       if (!currentChat) return;
 
       const logoUrl =
         typeof logo.route === 'string'
           ? logo.route
           : logo.route.light || logo.route.dark;
-      const logoComponent: ComponentSearchResult = {
-        id: computeLogoId(logo),
-        name: logo.title,
-        preview_url: logoUrl,
-        video_url: '',
-        demo_slug: '',
-        user_id: '0',
-        component_data: {
+
+      try {
+        // Fetch SVG content instead of using URL
+        const svgContent = await fetchSVGContent(logoUrl);
+        const processedSvg = processSVGForInline(svgContent, 'w-6 h-6');
+
+        const logoComponent: ComponentSearchResult = {
+          id: computeLogoId(logo),
           name: logo.title,
-          description: `${logo.title} logo from SVGL`,
-          code: `<img src="${logoUrl}" alt="${logo.title}" className="w-6 h-6" />`,
-          component_slug: logo.title.toLowerCase().replace(/\s+/g, '-'),
-          install_command: `// Logo URL: ${logoUrl}`,
-        },
-        user_data: {
-          name: '',
-          username: '',
-          image_url: '',
-          display_image_url: '',
-          display_name: '',
-          display_username: '',
-        },
-        usage_data: {
-          total_usages: 0,
-          views: 0,
-          downloads: 0,
-          prompt_copies: 0,
-          code_copies: 0,
-        },
-      };
+          preview_url: logoUrl,
+          video_url: '',
+          demo_slug: '',
+          user_id: '0',
+          component_data: {
+            name: logo.title,
+            description: `${logo.title} logo from SVGL`,
+            code: processedSvg,
+            component_slug: logo.title.toLowerCase().replace(/\s+/g, '-'),
+            install_command: `// ${logo.title} Logo - Inline SVG
+// Source: ${logoUrl}
+// Ready to use - copy and paste into your React/JSX component
 
-      addComponent(logoComponent);
+${processedSvg}
 
-      if (chatState.currentChatId) {
-        const existing = currentChat?.selectedComponents || [];
-        const newComponent: SelectedComponentWithCode = { ...logoComponent };
-        chatState.addSelectedComponents(chatState.currentChatId, [
-          ...existing,
-          newComponent,
-        ]);
+// Usage example:
+// function MyComponent() {
+//   return (
+//     <div>
+//       {/* Paste the SVG above here */}
+//     </div>
+//   );
+// }
+//
+// You can customize the size by changing the class:
+// w-4 h-4 (16px), w-6 h-6 (24px), w-8 h-8 (32px), etc.`,
+          },
+          user_data: {
+            name: '',
+            username: '',
+            image_url: '',
+            display_image_url: '',
+            display_name: '',
+            display_username: '',
+          },
+          usage_data: {
+            total_usages: 0,
+            views: 0,
+            downloads: 0,
+            prompt_copies: 0,
+            code_copies: 0,
+          },
+        };
+
+        addComponent(logoComponent);
+
+        if (chatState.currentChatId) {
+          const existing = currentChat?.selectedComponents || [];
+          const newComponent: SelectedComponentWithCode = { ...logoComponent };
+          chatState.addSelectedComponents(chatState.currentChatId, [
+            ...existing,
+            newComponent,
+          ]);
+        }
+
+        // Clear input
+        chatState.setChatInput(chatState.currentChatId, '');
+
+        // Close logos list
+        setIsLogosActivated(false);
+      } catch (error) {
+        console.error('Failed to fetch SVG content:', error);
+        // Fallback to original behavior with img tag
+        const logoComponent: ComponentSearchResult = {
+          id: computeLogoId(logo),
+          name: logo.title,
+          preview_url: logoUrl,
+          video_url: '',
+          demo_slug: '',
+          user_id: '0',
+          component_data: {
+            name: logo.title,
+            description: `${logo.title} logo from SVGL`,
+            code: `<img src="${logoUrl}" alt="${logo.title}" className="w-6 h-6" />`,
+            component_slug: logo.title.toLowerCase().replace(/\s+/g, '-'),
+            install_command: `// ${logo.title} Logo - Image fallback
+// Source: ${logoUrl}
+// SVG loading failed, using image tag instead
+
+<img 
+  src="${logoUrl}" 
+  alt="${logo.title}" 
+  className="w-6 h-6" 
+/>
+
+// Usage example:
+// function MyComponent() {
+//   return (
+//     <div>
+//       <img src="${logoUrl}" alt="${logo.title}" className="w-6 h-6" />
+//     </div>
+//   );
+// }`,
+          },
+          user_data: {
+            name: '',
+            username: '',
+            image_url: '',
+            display_image_url: '',
+            display_name: '',
+            display_username: '',
+          },
+          usage_data: {
+            total_usages: 0,
+            views: 0,
+            downloads: 0,
+            prompt_copies: 0,
+            code_copies: 0,
+          },
+        };
+
+        addComponent(logoComponent);
+
+        if (chatState.currentChatId) {
+          const existing = currentChat?.selectedComponents || [];
+          const newComponent: SelectedComponentWithCode = { ...logoComponent };
+          chatState.addSelectedComponents(chatState.currentChatId, [
+            ...existing,
+            newComponent,
+          ]);
+        }
+
+        // Clear input
+        chatState.setChatInput(chatState.currentChatId, '');
+
+        // Close logos list
+        setIsLogosActivated(false);
       }
-
-      // Clear input
-      chatState.setChatInput(chatState.currentChatId, '');
-
-      // Close logos list
-      setIsLogosActivated(false);
     },
     [currentChat, addComponent, chatState, computeLogoId],
   );

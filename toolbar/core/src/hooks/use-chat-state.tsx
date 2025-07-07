@@ -56,7 +56,7 @@ interface ChatContext {
 
   // Chat content operations
   setChatInput: (chatId: ChatId, value: string) => void;
-  addMessage: (chatId: ChatId, content: string) => void;
+  addMessage: (chatId: ChatId, content: string, atMenuMode?: 'bookmarks' | 'icons' | 'docs' | 'logos' | null) => void;
   addChatDomContext: (chatId: ChatId, element: HTMLElement) => void;
   removeChatDomContext: (chatId: ChatId, element: HTMLElement) => void;
   addSelectedComponents: (
@@ -376,7 +376,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
   // Instead, we show a suggestion in the UI to add them manually
 
   const addMessage = useCallback(
-    async (chatId: ChatId, content: string, pluginTriggered = false) => {
+    async (chatId: ChatId, content: string, atMenuMode?: 'bookmarks' | 'icons' | 'docs' | 'logos' | null, pluginTriggered = false) => {
       if (!content.trim()) return;
 
       // Prevent sending new messages while one is already loading
@@ -471,6 +471,8 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
                       chat.domContextElements?.length || 0,
                     runtimeError: chat.runtimeError?.message,
                     promptAction: promptAction,
+                    atMenuMode: atMenuMode, // Track which @-menu mode was used
+                    atMenuContextUsed: atMenuMode !== null, // Track if @-menu was used at all
                   },
                 },
                 { onUpdate: () => {} },

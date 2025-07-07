@@ -1,7 +1,7 @@
 {
   "name": "@21st-extension/toolbar",
   "private": false,
-  "version": "0.5.13",
+  "version": "0.5.14",
   "type": "module",
   "description": "21st.dev toolbar SDK for AI Agent interaction.",
   "keywords": [
