@@ -87,6 +87,22 @@ export function useSearchIntent(text: string): UseSearchIntentReturn {
         return;
       }
 
+      // Check word count - don't extract intent if more than 4 words
+      const wordCount = inputText.trim().split(/\s+/).length;
+      if (wordCount > 4) {
+        setSearchIntent('');
+        setIsLoading(false);
+        setError(null);
+        requestedForTextRef.current = '';
+        receivedForTextRef.current = '';
+        // Cancel any pending request
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+          abortControllerRef.current = null;
+        }
+        return;
+      }
+
       // Cancel previous request if it exists
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();

@@ -10,7 +10,7 @@ export function ExpandButton() {
       onClick={() => expand()}
       className="pointer-events-auto absolute bottom-3 left-3 size-12 rounded-full bg-transparent opacity-80 shadow-sm transition-all duration-500 hover:opacity-100 hover:shadow-lg"
     >
-      <Logo color="gradient" />
+      <Logo className="text-foreground" />
     </button>
   );
 }

@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
-import { InlineSuggestion } from '@/components/ui/inline-suggestion';
-import { TWENTY_FIRST_URL } from '@/constants';
 import { useAppState } from '@/hooks/use-app-state';
 import { useAuth, useAuthStatus } from '@/hooks/use-auth';
-import { useMagicProjects } from '@/hooks/use-magic-projects';
+// import { useMagicProjects } from '@/hooks/use-magic-projects'; // No longer used
+import { useCursorBgAgent } from '@/hooks/use-cursor-bg-agent';
+import { detectRepository } from '@/utils/repository-detector';
 import { useChatState } from '@/hooks/use-chat-state';
 import { useComponentSearch } from '@/hooks/use-component-search';
 import { DraggableProvider, useDraggable } from '@/hooks/use-draggable';
@@ -15,7 +15,6 @@ import type { SelectedComponentWithCode } from '@/hooks/use-selected-components'
 import { useSelectedComponents } from '@/hooks/use-selected-components';
 import { useSRPCBridge } from '@/hooks/use-srpc-bridge';
 import { useVSCode } from '@/hooks/use-vscode';
-import { createPrompt } from '@/prompts';
 import type { ComponentSearchResult } from '@/types/supabase';
 import {
   cn,
@@ -74,14 +73,20 @@ export function ToolbarChatArea() {
   // Auth and Magic Projects hooks
   const { signIn } = useAuth();
   const { isAuthenticated } = useAuthStatus();
-  const {
-    createProject,
-    status: magicStatus,
-    progress: magicProgress,
-  } = useMagicProjects();
+  // Magic projects no longer used - only Cursor BG Agent
+  // const { createProject, status: magicStatus } = useMagicProjects();
 
-  // Magic Chat loading state - only show spinner during creation
-  const isMagicChatLoading = magicStatus === 'creating';
+  const {
+    isConfigured: isCursorConfigured,
+    sendToBackgroundAgent,
+    getSelectedRepository,
+  } = useCursorBgAgent();
+
+  // Magic Chat loading state - only show spinner during creation (unused now)
+  // const isMagicChatLoading = magicStatus === 'creating';
+
+  // Cursor BG loading state
+  const [isCursorBgLoading, setIsCursorBgLoading] = useState(false);
 
   // State to preserve context during loading
   const [loadingContext, setLoadingContext] = useState<{
@@ -361,41 +366,17 @@ export function ToolbarChatArea() {
         });
     }
 
-    // Start Magic project creation (non-blocking)
-    createProject(
-      currentInput,
-      window.location.href,
-      currentChat?.domContextElements?.map((e) => e.element) || [],
-      selectedComponents,
-    )
-      .then(() => {
-        // Clear everything after successful project creation
-        if (chatState.currentChatId && currentChat) {
-          chatState.clearSelectedComponents(chatState.currentChatId);
-          clearSelection();
-          currentChat.domContextElements?.forEach((elementData) => {
-            chatState.removeChatDomContext(
-              chatState.currentChatId,
-              elementData.element,
-            );
-          });
-          chatState.setChatInput(chatState.currentChatId, '');
-          setSearchActivated(false);
-        }
-      })
-      .catch((err) => {
-        console.error('Error creating Magic project:', err);
-      })
-      .finally(() => {
-        setLoadingContext(null);
-      });
+    // Magic project creation no longer used - only Cursor BG Agent
+    console.log(
+      'Magic project creation is disabled. Use Cursor Background Agent instead.',
+    );
   }, [
     currentInput,
     isAuthenticated,
     signIn,
     currentChat,
     selectedComponents,
-    createProject,
+    // createProject, // No longer used
     chatState,
     clearSelection,
     setSearchActivated,
@@ -633,18 +614,11 @@ export function ToolbarChatArea() {
     isLogosFocused,
   ]);
 
-  // Get Magic Chat button text based on context and auth state
-  const getMagicChatButtonText = useCallback(() => {
-    // Check auth first
-    if (!isAuthenticated) {
-      return 'Sign in for Magic';
-    }
+  // Magic Chat button text no longer used - only Cursor BG Agent
+  // const getMagicChatButtonText = () => 'Magic disabled';
 
-    // Only show creating state briefly
-    if (magicStatus === 'creating') {
-      return 'Create with Magic';
-    }
-
+  // Get Cursor BG button text based on context
+  const getCursorBgButtonText = useCallback(() => {
     // Use loading context if available, otherwise use current context
     const contextToUse = loadingContext || {
       hasText: currentInput.trim().length > 0,
@@ -654,20 +628,117 @@ export function ToolbarChatArea() {
         selectedComponents.length > 0,
     };
 
-    // If no text but has selected elements/components, show "Refine with Magic"
+    // If no text but has selected elements/components, show "Refine bg task"
     if (!contextToUse.hasText && contextToUse.hasSelectedElements) {
-      return 'Refine with Magic';
+      return 'Refine bg task';
     }
 
-    // Default to "Create with Magic"
-    return 'Create with Magic';
+    // Default to "Create bg task"
+    return 'Create bg task';
   }, [
-    isAuthenticated,
-    magicStatus,
     currentInput,
     currentChat?.domContextElements,
     selectedComponents.length,
     loadingContext,
+  ]);
+
+  // Handle Cursor Background Agent submission
+  const handleCursorBgSubmit = useCallback(async () => {
+    if (!currentInput.trim()) return;
+
+    setIsCursorBgLoading(true);
+
+    // Save current context before loading starts
+    setLoadingContext({
+      hasText: currentInput.trim().length > 0,
+      hasSelectedElements:
+        (currentChat?.domContextElements &&
+          currentChat.domContextElements.length > 0) ||
+        selectedComponents.length > 0,
+    });
+
+    try {
+      // Get selected repository or fallback to auto-detection
+      const selectedRepoUrl = getSelectedRepository();
+      let repoInfo;
+
+      if (selectedRepoUrl) {
+        repoInfo = {
+          repository: selectedRepoUrl,
+          ref: 'main', // Default ref
+        };
+      } else {
+        // Fallback to auto-detection
+        repoInfo = detectRepository();
+      }
+
+      // Prepare context according to Cursor Background Agents API
+      const context = {
+        repository: repoInfo.repository, // Direct repository field, not in source
+        model: 'claude-4-sonnet-thinking', // Use latest model with thinking
+        ref: repoInfo.ref,
+        target: {
+          branchName: `cursor/${Date.now()}`, // Generate unique branch name
+          createPr: true,
+        },
+      };
+
+      // Send to Cursor Background Agent (remove @bg prefix as it's handled by API)
+      const agent = await sendToBackgroundAgent(currentInput, context);
+
+      console.log('Background agent created:', agent);
+
+      // Show success notification and open task
+      if (agent) {
+        // Show browser notification if supported
+        if (Notification.permission === 'granted') {
+          new Notification('Cursor Background Task Created', {
+            body: `Task "${agent.name || 'Background Task'}" created successfully!`,
+            icon: '/21st-icon.png',
+          });
+        }
+
+        // Open created task in new tab/window with slight delay
+        setTimeout(() => {
+          if (agent.target && agent.target.url) {
+            console.log('Opening Cursor task:', agent.target.url);
+            window.open(agent.target.url, '_blank', 'noopener,noreferrer');
+          } else if (agent.id) {
+            // Fallback: construct URL based on agent ID
+            const taskUrl = `https://cursor.com/agents?id=${agent.id}`;
+            console.log('Opening Cursor task (fallback):', taskUrl);
+            window.open(taskUrl, '_blank', 'noopener,noreferrer');
+          }
+        }, 500); // Small delay for better UX
+      }
+
+      // Clear everything after successful submission
+      if (chatState.currentChatId && currentChat) {
+        chatState.clearSelectedComponents(chatState.currentChatId);
+        clearSelection();
+        currentChat.domContextElements?.forEach((elementData) => {
+          chatState.removeChatDomContext(
+            chatState.currentChatId,
+            elementData.element,
+          );
+        });
+        chatState.setChatInput(chatState.currentChatId, '');
+        setSearchActivated(false);
+      }
+    } catch (err) {
+      console.error('Error creating Cursor background task:', err);
+    } finally {
+      setIsCursorBgLoading(false);
+      setLoadingContext(null);
+    }
+  }, [
+    currentInput,
+    currentChat,
+    selectedComponents,
+    sendToBackgroundAgent,
+    chatState,
+    clearSelection,
+    setSearchActivated,
   ]);
 
   // Get main button text based on prompt action setting
@@ -1001,7 +1072,7 @@ export function ToolbarChatArea() {
     !intentInvalidated &&
     chatState.isPromptCreationActive &&
     !isSearchResultsFocused &&
-    !isMagicChatLoading &&
+    !isCursorBgLoading &&
     !isBookmarksFocused &&
     !isIconsFocused &&
     !isDocsFocused &&
@@ -1167,10 +1238,10 @@ export function ToolbarChatArea() {
     }
   }, [shouldShowIcons, isIconsActivated]);
 
-  // Auto-focus на IconsList, когда меняется строка поиска
+  // Auto-focus on IconsList when search query changes
   useEffect(() => {
     if (shouldShowIcons && isIconsActivated && !isIconsFocused) {
-      // небольшая задержка, чтобы React успел пересчитать список
+      // Small delay to ensure React has recalculated the list
       const t = setTimeout(() => {
         iconsListRef.current?.focusOnIcons();
       }, 0);
@@ -1353,6 +1424,20 @@ export function ToolbarChatArea() {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      // Skip if event is from API key input field or settings
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        target.hasAttribute &&
+        target.hasAttribute('data-cursor-api-input')
+      ) {
+        return;
+      }
+
+      // Also skip if target is inside settings panel
+      if (target && target.closest && target.closest('[data-settings-panel]')) {
+        return;
+      }
       if (e.key === 'Tab' && shouldShowInlineSuggestion) {
         // Activate search when Tab is pressed with search intent
         e.preventDefault();
@@ -1445,7 +1530,14 @@ export function ToolbarChatArea() {
         e.preventDefault();
         if (e.metaKey || e.ctrlKey) {
           // ⌘ + ⏎ (or Ctrl + ⏎ on Windows/Linux)
-          handleMagicChatSubmit();
+          if (isCursorConfigured) {
+            handleCursorBgSubmit();
+          } else {
+            // Do nothing if no Cursor API key configured
+            console.warn(
+              'Cursor API key not configured. Please add it in Settings.',
+            );
+          }
         } else {
           // Just ⏎ - either select component or submit
           handleSubmitOrAddToContext();
@@ -2057,13 +2149,11 @@ ${processedSvg}
                   onCompositionEnd={handleCompositionEnd}
                   placeholder={
                     chatState.isPromptCreationActive
-                      ? isAuthenticated
-                        ? 'Enter prompt or 21st.dev search, @ for bookmarks and more...'
-                        : 'Enter prompt or 21st.dev search, @ for more...'
-                      : `What do you want to change? (${ctrlAltCText})`
+                      ? 'What do you want to change with Cursor'
+                      : `What do you want to change with Cursor (${ctrlAltCText})`
                   }
                   disabled={
-                    chatState.promptState === 'loading' || isMagicChatLoading
+                    chatState.promptState === 'loading' || isCursorBgLoading
                   }
                   style={
                     shouldShowSearchResults && isLoading && currentInput.trim()
@@ -2075,12 +2165,7 @@ ${processedSvg}
                       : undefined
                   }
                 />
-                <InlineSuggestion
-                  text={currentInput}
-                  suggestion={searchIntent}
-                  visible={shouldShowInlineSuggestion}
-                  className="z-10"
-                />
+                {/* Temporarily disabled inline suggestions */}
               </div>
               <div className="flex items-center justify-between gap-2">
                 {/* Esc indicator on the left - hidden during loading */}
@@ -2088,7 +2173,7 @@ ${processedSvg}
                   className={cn(
                     'flex items-center text-[10px] text-muted-foreground',
                     (chatState.promptState === 'loading' ||
-                      isMagicChatLoading) &&
+                      isCursorBgLoading) &&
                       'invisible',
                   )}
                 >
@@ -2100,68 +2185,70 @@ ${processedSvg}
 
                 {/* Action buttons on the right */}
                 <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      '!py-0 gap-0.5 whitespace-normal border-none bg-transparent text-[10px] hover:bg-transparent',
-                      (currentInput.trim().length > 0 ||
-                        (currentChat?.domContextElements &&
-                          currentChat.domContextElements.length > 0) ||
-                        selectedComponents.length > 0) &&
-                        !isMagicChatLoading &&
-                        chatState.promptState !== 'loading'
-                        ? 'text-foreground hover:text-foreground/80'
-                        : 'cursor-not-allowed text-muted-foreground',
-                    )}
-                    disabled={
-                      (currentInput.trim().length === 0 &&
-                        (!currentChat?.domContextElements ||
-                          currentChat.domContextElements.length === 0) &&
-                        selectedComponents.length === 0) ||
-                      isMagicChatLoading ||
-                      chatState.promptState === 'loading'
-                    }
-                    onClick={handleMagicChatSubmit}
-                  >
-                    {isMagicChatLoading && (
-                      <Loader className="mr-1 h-3.5 w-3.5 animate-spin" />
-                    )}
-                    <span className="mr-1 whitespace-normal font-semibold">
-                      {getMagicChatButtonText()}
-                    </span>
-                    <span
+                  {isCursorConfigured && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       className={cn(
-                        'flex items-center justify-center py-0.5 leading-none',
+                        '!py-0 gap-0.5 whitespace-normal border-none bg-transparent text-[10px] hover:bg-transparent',
                         (currentInput.trim().length > 0 ||
                           (currentChat?.domContextElements &&
                             currentChat.domContextElements.length > 0) ||
                           selectedComponents.length > 0) &&
-                          !isMagicChatLoading &&
+                          !isCursorBgLoading &&
                           chatState.promptState !== 'loading'
-                          ? 'text-muted-foreground'
-                          : 'text-muted-foreground/60',
+                          ? 'text-foreground hover:text-foreground/80'
+                          : 'cursor-not-allowed text-muted-foreground',
                       )}
+                      disabled={
+                        (currentInput.trim().length === 0 &&
+                          (!currentChat?.domContextElements ||
+                            currentChat.domContextElements.length === 0) &&
+                          selectedComponents.length === 0) ||
+                        isCursorBgLoading ||
+                        chatState.promptState === 'loading'
+                      }
+                      onClick={handleCursorBgSubmit}
                     >
-                      ⌘
-                    </span>
-                    <span
-                      className={cn(
-                        'flex items-center justify-center py-0.5 leading-none',
-                        (currentInput.trim().length > 0 ||
-                          (currentChat?.domContextElements &&
-                            currentChat.domContextElements.length > 0) ||
-                          selectedComponents.length > 0) &&
-                          !isMagicChatLoading &&
-                          chatState.promptState !== 'loading'
-                          ? 'text-muted-foreground'
-                          : 'text-muted-foreground/60',
+                      {isCursorBgLoading && (
+                        <Loader className="mr-1 h-3.5 w-3.5 animate-spin" />
                       )}
-                    >
-                      ⏎
-                    </span>
-                  </Button>
+                      <span className="mr-1 whitespace-normal font-semibold">
+                        {getCursorBgButtonText()}
+                      </span>
+                      <span
+                        className={cn(
+                          'flex items-center justify-center py-0.5 leading-none',
+                          (currentInput.trim().length > 0 ||
+                            (currentChat?.domContextElements &&
+                              currentChat.domContextElements.length > 0) ||
+                            selectedComponents.length > 0) &&
+                            !isCursorBgLoading &&
+                            chatState.promptState !== 'loading'
+                            ? 'text-muted-foreground'
+                            : 'text-muted-foreground/60',
+                        )}
+                      >
+                        ⌘
+                      </span>
+                      <span
+                        className={cn(
+                          'flex items-center justify-center py-0.5 leading-none',
+                          (currentInput.trim().length > 0 ||
+                            (currentChat?.domContextElements &&
+                              currentChat.domContextElements.length > 0) ||
+                            selectedComponents.length > 0) &&
+                            !isCursorBgLoading &&
+                            chatState.promptState !== 'loading'
+                            ? 'text-muted-foreground'
+                            : 'text-muted-foreground/60',
+                        )}
+                      >
+                        ⏎
+                      </span>
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="secondary"
@@ -2199,7 +2286,7 @@ ${processedSvg}
                         !shouldShowOpenInspector &&
                         !shouldShowFixError) ||
                         chatState.promptState === 'loading' ||
-                        isMagicChatLoading,
+                        isCursorBgLoading,
                     )}
                     disabled={
                       (currentInput.trim().length === 0 &&
@@ -2211,7 +2298,7 @@ ${processedSvg}
                         !shouldShowOpenInspector &&
                         !shouldShowFixError) ||
                       chatState.promptState === 'loading' ||
-                      isMagicChatLoading
+                      isCursorBgLoading
                     }
                     onClick={handleSubmitOrAddToContext}
                   >

@@ -130,7 +130,7 @@ export function ToolbarBox() {
       return <WifiOffIcon className="size-5 text-background" />;
     }
     // Show logo by default
-    return <Logo className="size-5 text-background" color="current" />;
+    return <Logo className="size-5 text-background" />;
   };
 
   // Get CSS classes for position

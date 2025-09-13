@@ -1,6 +1,5 @@
 import { useVSCode } from '@/hooks/use-vscode';
-import { Panel } from '@/plugin-ui/components/panel';
-import { RefreshCwIcon, SettingsIcon, X } from 'lucide-react';
+import { SettingsIcon, X } from 'lucide-react';
 import { ToolbarButton } from './button';
 import { ToolbarSection } from './section';
 import { useAppState } from '@/hooks/use-app-state';
@@ -9,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/utils';
 import { useState } from 'preact/hooks';
 import { AuthSection } from '@/components/auth/auth-section';
+import { CursorBgAgentSection } from '@/components/auth/cursor-bg-agent-section';
 
 export const SettingsButton = ({
   onOpenPanel,
@@ -26,7 +26,10 @@ export const SettingsButton = ({
 
 export const SettingsPanel = ({ onClose }: { onClose?: () => void }) => {
   return (
-    <section className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-xl border border-border bg-background shadow-md backdrop-blur-md">
+    <section
+      className="pointer-events-auto flex max-h-full min-h-48 w-[480px] flex-col items-stretch justify-start rounded-xl border border-border bg-background shadow-md"
+      data-settings-panel="true"
+    >
       <div className="flex items-center justify-between px-4 py-2">
         <h2 className="font-medium text-base text-foreground">Preferences</h2>
         {onClose && (
@@ -42,8 +45,13 @@ export const SettingsPanel = ({ onClose }: { onClose?: () => void }) => {
       </div>
 
       <div className="border-border border-t px-4 py-3">
-        <AuthSection />
+        <CursorBgAgentSection />
       </div>
+
+      {/* Temporarily disabled 21st.dev integration */}
+      {/* <div className="border-border border-t px-4 py-3">
+        <AuthSection />
+      </div> */}
 
       <div className="flex flex-col border-border border-t px-4 py-3 text-foreground">
         <ThemeSettings />
@@ -315,9 +323,7 @@ const HotkeySection = () => (
       </p>
     </div>
     <div className="flex-shrink-0">
-      <kbd className="rounded bg-muted px-2 py-1 font-mono text-sm">
-        ⌥ + .
-      </kbd>
+      <kbd className="rounded bg-muted px-2 py-1 font-mono text-sm">⌥ + .</kbd>
     </div>
   </div>
 );
