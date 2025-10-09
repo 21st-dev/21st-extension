@@ -269,6 +269,8 @@ You would then use `TwentyFirstToolbarLoader` in your `src/routes/+layout.svelte
 
 ## 🤖 Agent support 
 
+> Important: In case of any troubles with the agents, you could still use the extension via the "Copy Prompt" feature (Toolbar Settings > Prompt Action > Copy To Clipboard) to copy the prompt and paste it into the agent manually
+
 | **Agent**      | **Supported**  |
 | -------------- | -------------- |
 | Cursor         | ✅             |
