@@ -54,7 +54,10 @@
     },
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "form-data": ">=4.0.4"
+    }
   },
   "dependencies": {
     "create-21st-extension-plugin": "link:packages/create-21st-extension-plugin"
